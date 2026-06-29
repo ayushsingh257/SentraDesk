@@ -1,0 +1,45 @@
+# Python exclusions
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+alembic.log
+
+# Node exclusions
+node_modules/
+.next/
+dist/
+build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+
+# OS exclusions
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker exclusions
+.dockerdata/
+pgdata/
+redisdata/
+qdrantdata/
+miniadata/
+
+# IDE exclusions
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
