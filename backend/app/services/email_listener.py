@@ -135,10 +135,21 @@ class EmailListenerService:
 
         if ticket:
             logger.info(f"Incoming email matched to existing ticket {ticket.ticket_number}. Appending comment.")
+            # Fetch comment author: match sender_email, fallback to assigned_officer, fallback to first user in db
+            from app.models.user import User
+            author = db.query(User).filter(User.email == sender_email).first()
+            if not author:
+                author_id = ticket.assigned_officer_id
+                if not author_id:
+                    fallback_user = db.query(User).first()
+                    author_id = fallback_user.id if fallback_user else uuid.uuid4()
+            else:
+                author_id = author.id
+
             # Create thread comment from officer/citizen
             comment = Comment(
                 ticket_id=ticket.id,
-                author_id=ticket.assigned_officer_id or ticket.complaint.ticket.assigned_officer_id or uuid.UUID("00000000-0000-0000-0000-000000000000"), # System or default
+                author_id=author_id,
                 content=f"--- [Email Reply from {sender_name}] ---\n\n{body}"
             )
             # Add to timeline
