@@ -321,7 +321,7 @@ class TicketService:
             raise NotFoundError(message="Primary or duplicate ticket not found", code="TICKET_NOT_FOUND")
             
         # Update metadata of duplicate to link to primary
-        dup_meta = duplicate.complaint.metadata_json or {}
+        dup_meta = dict(duplicate.complaint.metadata_json or {})
         dup_meta["merged_into_ticket_id"] = str(primary.id)
         duplicate.complaint.metadata_json = dup_meta
         duplicate.complaint.status = "Closed" # Auto-close duplicate
