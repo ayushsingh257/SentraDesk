@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Workflow & SLA Era (Phases 42-49):** Dynamic SLA policies by severity, countdown timer engine, cron-based deadline breach detector, automatic priority escalations and supervisor email alerts, and two-layer supervisor approvals (L1/L2) state machine transitions.
 - **Evidence & Storage Era (Phases 50-55):** MinIO object storage service, upload presigned PUT URLs, download presigned GET URLs, automatic uploaded file SHA-256 cryptographic hashes, evidence versioning history logs, and bulk downloads zipping module.
 - **Tests & UI:** Integrated unit test suite covering full flows (email intake, threading, SLA breacher, L1/L2 approval transitions, evidence uploads versioning/zipping), dynamic React count-down timer, files upload-picker UI, and approvals panel.
+- **Premium UI/UX Redesign:** Implemented cinematic and immersive SOC dashboard, terminal-style auth gateway, and landing page with custom 3D WebGL particle neural network (Three.js/R3F), Lenis smooth scrolling, GSAP startup boot sequence, cursor glow trails, HUD panels, and hover/micro-interaction designs. Fully sanitized of legacy branding.
+- **Seeded Accounts Verification Script:** Added `backend/tests/verify_functional_e2e.py` to systematically test and confirm login, permissions, state machine, evidence, linking, and approvals across all 7 default user roles.
+
+### Fixed
+- **Next.js & React 19 Dependency Conflict:** Upgraded Next.js and `eslint-config-next` to `15.1.0` and aligned React/React-DOM to stable `19.0.0` to natively resolve the peer dependency constraints of `@react-three/fiber` and `@react-three/drei` without using `--legacy-peer-deps` or `--force`.
+- **SQLAlchemy JSON Mutability (Merging Fix):** Resolved a bug in ticket merge logic where primary/duplicate references in `metadata_json` were not persisted to PostgreSQL due to SQLAlchemy dict-in-place change detection. Fixed by passing copies `dict(metadata_json)`.
 
 ## [1.0.0-milestone1] - 2026-06-29
 
