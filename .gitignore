@@ -43,3 +43,14 @@ miniadata/
 *.njsproj
 *.sln
 *.swp
+
+# ML / runtime artifacts
+backend/mlflow.db
+backend/mlruns/
+backend/logs/
+backend/backups/
+*.db
+*.log
+mlflow.db
+mlruns/
+

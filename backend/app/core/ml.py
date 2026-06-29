@@ -4,9 +4,12 @@ from typing import Dict, Any, Optional
 from abc import ABC, abstractmethod
 from app.core.logging import logger
 
-# Set up local MLflow tracking URI using SQLite database to comply with MLflow 3.x requirements
-DB_PATH = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "mlflow.db"))
-mlflow.set_tracking_uri(f"sqlite:///{DB_PATH.replace(os.sep, '/')}")
+# Use MLFLOW_TRACKING_URI env var if set (CI/production), else default to local SQLite
+_default_db = os.path.abspath(
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "mlflow.db")
+)
+_tracking_uri = os.environ.get("MLFLOW_TRACKING_URI", f"sqlite:///{_default_db.replace(os.sep, '/')}")
+mlflow.set_tracking_uri(_tracking_uri)
 
 logger.info(f"MLflow tracking initialized at: {mlflow.get_tracking_uri()}")
 

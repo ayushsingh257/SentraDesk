@@ -33,6 +33,15 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      qdrant:
+        image: qdrant/qdrant:v1.9.3
+        ports:
+          - 6333:6333
+        options: >-
+          --health-cmd "curl -f http://localhost:6333/healthz || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
     - uses: actions/checkout@v4
@@ -59,7 +68,18 @@ jobs:
       env:
         DATABASE_URL: postgresql://ccgp_admin:ccgp_secure_password_2026@localhost:5432/ccgp_governance
         REDIS_URL: redis://localhost:6379/0
+        REDIS_HOST: localhost
+        REDIS_PORT: "6379"
         JWT_SECRET: super_secret_jwt_signing_key_for_development_purposes_only_change_in_production
+        QDRANT_HOST: localhost
+        QDRANT_PORT: "6333"
+        QDRANT_URL: http://localhost:6333
+        MINIO_ENDPOINT: localhost:9000
+        MINIO_ACCESS_KEY: minioadmin
+        MINIO_SECRET_KEY: minioadmin
+        MINIO_BUCKET_NAME: ccgp-evidence
+        MLFLOW_TRACKING_URI: sqlite:///mlflow_ci.db
+        ENVIRONMENT: testing
       run: |
         cd backend
         python -m pytest -v --tb=short
