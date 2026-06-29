@@ -75,4 +75,11 @@ class Settings(BaseSettings):
     SMTP_FROM_EMAIL: str = "alerts.ccgp@example.com"
     SMTP_FROM_NAME: str = "CCGP Alert System"
 
+    # IMAP Configurations
+    IMAP_HOST: str = "imap.gmail.com"
+    IMAP_PORT: int = 993
+    IMAP_USER: str = "alerts.ccgp@example.com"
+    IMAP_PASSWORD: str = "gmail_application_password"
+    IMAP_SECURE: bool = True
+
 settings = Settings()

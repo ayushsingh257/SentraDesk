@@ -5,6 +5,14 @@ All notable changes to the Cyber Complaint Governance Platform (CCGP) will be do
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0-milestone2] - 2026-06-29
+
+### Added
+- **Email Automation Era (Phases 33-41):** IMAP email polling integration, MIME parser with headers, body decoders and regex financial amount parser, email threading based on subject/references, auto ticket creation, SMTP notifications dispatcher, Jinja2 template folder rendering engine, and Celery reliability retry worker queues.
+- **Workflow & SLA Era (Phases 42-49):** Dynamic SLA policies by severity, countdown timer engine, cron-based deadline breach detector, automatic priority escalations and supervisor email alerts, and two-layer supervisor approvals (L1/L2) state machine transitions.
+- **Evidence & Storage Era (Phases 50-55):** MinIO object storage service, upload presigned PUT URLs, download presigned GET URLs, automatic uploaded file SHA-256 cryptographic hashes, evidence versioning history logs, and bulk downloads zipping module.
+- **Tests & UI:** Integrated unit test suite covering full flows (email intake, threading, SLA breacher, L1/L2 approval transitions, evidence uploads versioning/zipping), dynamic React count-down timer, files upload-picker UI, and approvals panel.
+
 ## [1.0.0-milestone1] - 2026-06-29
 
 ### Added

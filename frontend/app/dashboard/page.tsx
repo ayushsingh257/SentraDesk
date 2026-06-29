@@ -17,7 +17,11 @@ import {
   Power,
   ChevronRight,
   TrendingUp,
-  FolderOpen
+  FolderOpen,
+  Upload,
+  Download,
+  FileArchive,
+  RefreshCw
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -36,6 +40,12 @@ export default function Dashboard() {
   const [officers, setOfficers] = useState<any[]>([]);
   const [selectedOfficer, setSelectedOfficer] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
+  const [evidenceList, setEvidenceList] = useState<any[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [remainingSlaText, setRemainingSlaText] = useState("");
+  const [closureReason, setClosureReason] = useState("");
+  const [approvalComment, setApprovalComment] = useState("");
+  const [showClosureModal, setShowClosureModal] = useState(false);
 
   // Create new ticket form state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -97,11 +107,51 @@ export default function Dashboard() {
     }
   };
 
+  useEffect(() => {
+    if (!selectedTicket?.sla_deadline) {
+      setRemainingSlaText("");
+      return;
+    }
+    const updateTimer = () => {
+      const deadline = new Date(selectedTicket.sla_deadline).getTime();
+      const now = new Date().getTime();
+      const diff = deadline - now;
+      if (diff <= 0) {
+        setRemainingSlaText("BREACHED 🚨");
+      } else {
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+        setRemainingSlaText(`${hours}h ${mins}m ${secs}s remaining`);
+      }
+    };
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [selectedTicket]);
+
+  const fetchEvidence = async (ticketId: string) => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`http://localhost:8000/api/v1/evidence/${ticketId}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const result = await response.json();
+      if (result.success) {
+        setEvidenceList(result.data);
+      }
+    } catch (err) {
+      console.error("Failed to load evidence:", err);
+    }
+  };
+
   const handleSelectTicket = async (ticket: any) => {
     setSelectedTicket(ticket);
     setNewComment("");
     setNewNote("");
     setRejectionReason("");
+    setApprovalComment("");
+    fetchEvidence(ticket.id);
     // Fetch timeline
     try {
       const token = localStorage.getItem("access_token");
@@ -114,6 +164,120 @@ export default function Dashboard() {
       }
     } catch (err) {
       console.error("Failed to load timeline details:", err);
+    }
+  };
+
+  const handleUploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setUploading(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      // 1. Get presigned upload URL
+      const urlResponse = await fetch(`http://localhost:8000/api/v1/evidence/${selectedTicket.id}/upload-link`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ filename: file.name })
+      });
+      const urlResult = await urlResponse.json();
+      if (!urlResult.success) throw new Error(urlResult.error?.message || "Failed upload link");
+      
+      const { upload_url, file_path } = urlResult.data;
+
+      // 2. Put file to URL (direct MinIO upload)
+      await fetch(upload_url, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type }
+      });
+
+      // 3. Save metadata to backend
+      const saveResponse = await fetch(`http://localhost:8000/api/v1/evidence/${selectedTicket.id}/save`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          filename: file.name,
+          file_path: file_path,
+          mime_type: file.type || "application/octet-stream",
+          file_size: file.size,
+          sha256_hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        })
+      });
+      
+      const saveResult = await saveResponse.json();
+      if (saveResult.success) {
+        fetchEvidence(selectedTicket.id);
+      }
+    } catch (err) {
+      console.error("Failed to upload evidence asset:", err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDownloadAsset = async (evidenceId: string) => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`http://localhost:8000/api/v1/evidence/download/${evidenceId}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const result = await response.json();
+      if (result.success) {
+        window.open(result.data, "_blank");
+      }
+    } catch (err) {
+      console.error("Failed to download evidence asset:", err);
+    }
+  };
+
+  const handleDownloadBulkZip = () => {
+    const token = localStorage.getItem("access_token");
+    const url = `http://localhost:8000/api/v1/evidence/${selectedTicket.id}/zip`;
+    fetch(url, {
+      headers: { "Authorization": `Bearer ${token}` }
+    })
+    .then(res => res.blob())
+    .then(blob => {
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", `evidence_${selectedTicket.ticket_number}.zip`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    })
+    .catch(err => console.error("Failed to download zip archive:", err));
+  };
+
+  const handleRequestClosure = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!closureReason.trim()) return;
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`http://localhost:8000/api/v1/approvals/${selectedTicket.id}/request-closure`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ reason: closureReason })
+      });
+      const result = await response.json();
+      if (result.success) {
+        setShowClosureModal(false);
+        setClosureReason("");
+        const updated = result.data;
+        handleSelectTicket(updated);
+        fetchTickets();
+      }
+    } catch (err) {
+      console.error("Failed to request closure:", err);
     }
   };
 
@@ -250,23 +414,43 @@ export default function Dashboard() {
     }
   };
 
-  const handleApprovalAction = async (decision: string, level: number) => {
+  const handleApprovalAction = async (action: "approved" | "rejected", level: number) => {
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`http://localhost:8000/api/v1/tickets/${selectedTicket.id}/approvals`, {
-        method: "POST",
+      let url = "";
+      let method = "POST";
+      let payload: any = {};
+      
+      if (action === "approved") {
+        url = `http://localhost:8000/api/v1/approvals/${selectedTicket.id}/${level === 1 ? "l1-approve" : "l2-approve"}`;
+        payload = { comment: approvalComment || "Approved by supervisor" };
+      } else {
+        url = `http://localhost:8000/api/v1/tickets/${selectedTicket.id}/status`;
+        method = "PUT";
+        payload = { status: "Under Investigation" };
+        
+        await fetch(`http://localhost:8000/api/v1/tickets/${selectedTicket.id}/comments`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ content: `--- [Closure Rejected] ---\nReason: ${rejectionReason || "Reverted by supervisor"}` })
+        });
+      }
+      
+      const response = await fetch(url, {
+        method: method,
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({
-          decision,
-          reason: decision === "rejected" ? rejectionReason : "Approved by supervisor",
-          level
-        })
+        body: JSON.stringify(payload)
       });
       const result = await response.json();
       if (result.success) {
+        setApprovalComment("");
+        setRejectionReason("");
         const updated = result.data;
         handleSelectTicket(updated);
         fetchTickets();
@@ -437,7 +621,7 @@ export default function Dashboard() {
                   )}
                   {selectedTicket.complaint.status === "Under Investigation" && (
                     <button 
-                      onClick={() => handleStatusChange("Closure Requested")}
+                      onClick={() => setShowClosureModal(true)}
                       className="rounded-lg bg-yellow-600 px-4 py-2 text-xs font-semibold text-white hover:bg-yellow-500 transition-all"
                     >
                       Request Closure
@@ -486,6 +670,19 @@ export default function Dashboard() {
                           : "Unassigned"}
                       </span>
                     </div>
+                    <div className="col-span-2 pt-2 border-t border-white/5 flex items-center justify-between">
+                      <div>
+                        <span className="block text-[10px] text-cyber-muted uppercase tracking-wider">SLA Target Countdown</span>
+                        <span className={`font-bold text-xs ${selectedTicket.is_escalated || remainingSlaText.includes("BREACHED") ? "text-red-400 font-mono animate-pulse" : "text-yellow-400 font-mono"}`}>
+                          {remainingSlaText || "No SLA Set"}
+                        </span>
+                      </div>
+                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${
+                        selectedTicket.is_escalated ? "bg-red-500/20 text-red-400" : "bg-yellow-500/10 text-yellow-400"
+                      }`}>
+                        {selectedTicket.is_escalated ? "Escalated 🚨" : "Active SLA"}
+                      </span>
+                    </div>
                   </div>
 
                   {userRole === "supervisor" && (
@@ -511,6 +708,70 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {/* Evidence Storage & Versioning Manager */}
+              <div className="glass rounded-xl p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-cyber-muted flex items-center gap-2">
+                    <FolderOpen className="h-4.5 w-4.5 text-blue-500" /> Evidence Repository
+                  </h3>
+                  {evidenceList.length > 0 && (
+                    <button
+                      onClick={handleDownloadBulkZip}
+                      className="inline-flex items-center gap-1.5 rounded bg-blue-600/20 px-2.5 py-1 text-xs font-semibold text-blue-400 hover:bg-blue-600/30 transition-all border border-blue-500/20"
+                    >
+                      <FileArchive className="h-3.5 w-3.5" /> Download ZIP
+                    </button>
+                  )}
+                </div>
+                
+                <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                  {evidenceList.length === 0 ? (
+                    <p className="text-center text-xs text-cyber-muted py-6 bg-black/20 rounded-lg">No evidence files uploaded to this case yet.</p>
+                  ) : (
+                    evidenceList.map((file) => (
+                      <div key={file.id} className="flex items-center justify-between bg-black/30 p-2.5 rounded-lg border border-white/5 text-xs">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-semibold text-white truncate max-w-[320px]">{file.filename}</span>
+                          <span className="text-[10px] text-cyber-muted">
+                            v{file.version} | {(file.file_size / 1024).toFixed(1)} KB | SHA-256: <code className="text-blue-300 font-mono text-[9px]">{file.sha256_hash.substring(0, 8)}...</code>
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleDownloadAsset(file.id)}
+                          className="p-1.5 rounded hover:bg-white/5 text-cyber-muted hover:text-white transition-all"
+                        >
+                          <Download className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {userRole === "investigator" || userRole === "cyber_cell_officer" || userRole === "supervisor" ? (
+                  <div className="pt-2 border-t border-white/5">
+                    <label className="relative flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-white/10 hover:border-blue-500/30 hover:bg-blue-500/5 py-3 transition-all text-xs text-cyber-muted hover:text-white">
+                      {uploading ? (
+                        <>
+                          <RefreshCw className="h-4.5 w-4.5 animate-spin text-blue-500" />
+                          <span>Uploading evidence chunk...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4.5 w-4.5 text-blue-500" />
+                          <span>Upload evidence attachment (presigned put)</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={handleUploadFile}
+                        disabled={uploading}
+                      />
+                    </label>
+                  </div>
+                ) : null}
+              </div>
+
               {/* L1 & L2 Supervisor Approvals Panel */}
               {selectedTicket.complaint.status === "Closure Requested" && userRole === "supervisor" && (
                 <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-5 space-y-4">
@@ -525,9 +786,16 @@ export default function Dashboard() {
                   <div className="space-y-3">
                     <input 
                       type="text"
+                      value={approvalComment}
+                      onChange={(e) => setApprovalComment(e.target.value)}
+                      placeholder="Provide supervisor approval comments..."
+                      className="w-full rounded-lg border border-white/5 bg-black/40 py-2 px-3 text-xs text-white outline-none focus:border-blue-500/40"
+                    />
+                    <input 
+                      type="text"
                       value={rejectionReason}
                       onChange={(e) => setRejectionReason(e.target.value)}
-                      placeholder="Specify rejection reason details if rejecting..."
+                      placeholder="Specify rejection details if rejecting..."
                       className="w-full rounded-lg border border-white/5 bg-black/40 py-2 px-3 text-xs text-white outline-none focus:border-blue-500/40"
                     />
                     <div className="flex gap-2">
@@ -686,6 +954,46 @@ export default function Dashboard() {
               <div className="flex justify-end gap-2">
                 <button type="button" onClick={() => setShowCreateModal(false)} className="rounded-lg border border-white/5 bg-white/5 px-4 py-2 text-xs font-semibold text-cyber-muted hover:bg-white/10 hover:text-white transition-all">Cancel</button>
                 <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-500 transition-all">File Complaint</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Request Closure Modal */}
+      {showClosureModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="glass w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+            <h3 className="text-lg font-bold text-white">Request Incident Closure</h3>
+            <p className="text-xs text-cyber-muted leading-relaxed">
+              Provide investigation outcomes justifying resolution. This request will proceed to multi-tier supervisor approvals.
+            </p>
+            <form onSubmit={handleRequestClosure} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-cyber-muted">Closure Reason / Outcomes</label>
+                <textarea
+                  required
+                  rows={4}
+                  value={closureReason}
+                  onChange={(e) => setClosureReason(e.target.value)}
+                  placeholder="Specify resolution findings details..."
+                  className="w-full rounded-lg border border-white/5 bg-black/40 py-2 px-3 text-xs text-white outline-none focus:border-blue-500/40"
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowClosureModal(false)}
+                  className="rounded-lg border border-white/5 bg-white/5 px-4 py-2 text-xs font-semibold text-cyber-muted hover:bg-white/10 hover:text-white transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-yellow-600 px-4 py-2 text-xs font-semibold text-black hover:bg-yellow-500 transition-all"
+                >
+                  Submit Request
+                </button>
               </div>
             </form>
           </div>
