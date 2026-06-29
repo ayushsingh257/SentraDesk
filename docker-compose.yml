@@ -111,8 +111,43 @@ services:
     depends_on:
       - backend
 
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: ccgp_prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheusdata:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: ccgp_grafana
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-ccgp_grafana_2026}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+
 volumes:
   pgdata:
   redisdata:
   miniodata:
   qdrantdata:
+  prometheusdata:
+  grafanadata:
+

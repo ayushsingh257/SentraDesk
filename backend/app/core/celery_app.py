@@ -18,7 +18,9 @@ celery_app.conf.update(
     # Auto-discover tasks in tasks/ folder
     imports=[
         "app.tasks.email",
-        "app.tasks.sla"
+        "app.tasks.sla",
+        "app.tasks.governance",
+        "app.tasks.devops"
     ]
 )
 
@@ -31,5 +33,22 @@ celery_app.conf.beat_schedule = {
     "check-sla-breaches-every-minute": {
         "task": "app.tasks.sla.check_sla_breaches_task",
         "schedule": 60.0, # Every minute
+    },
+    "monthly-governance-reports": {
+        "task": "app.tasks.governance.send_governance_report_task",
+        "schedule": 2592000.0,
+        "args": ("supervisor@ccgp.gov.in",)
+    },
+    "daily-postgresql-backup": {
+        "task": "app.tasks.devops.backup_postgresql_task",
+        "schedule": 86400.0,  # Every 24 hours
+    },
+    "daily-minio-mirror": {
+        "task": "app.tasks.devops.backup_minio_task",
+        "schedule": 86400.0,  # Every 24 hours
+    },
+    "hourly-backup-integrity-check": {
+        "task": "app.tasks.devops.verify_backup_integrity_task",
+        "schedule": 3600.0,  # Every hour
     }
 }

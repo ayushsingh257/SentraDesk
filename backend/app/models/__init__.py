@@ -4,6 +4,7 @@ from app.models.ticket import Complaint, Ticket, TicketVersion, Comment, Private
 from app.models.audit import AuditLog, SecurityAuditChain
 from app.models.notification import EmailConversation, NotificationLog
 from app.models.evidence import Evidence
+from app.models.threat_intel import ExtractedEntityIndex, ThreatIndicator
 
 __all__ = [
     "Base",
@@ -19,5 +20,7 @@ __all__ = [
     "SecurityAuditChain",
     "EmailConversation",
     "NotificationLog",
-    "Evidence"
+    "Evidence",
+    "ExtractedEntityIndex",
+    "ThreatIndicator"
 ]

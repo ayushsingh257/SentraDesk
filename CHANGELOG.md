@@ -5,6 +5,13 @@ All notable changes to the Cyber Complaint Governance Platform (CCGP) will be do
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0-milestone3_era7] - 2026-06-29
+
+### Added
+- **AI Intelligence Era (Phases 56-67):** Introduced core MLflow tracking local integration (backed by SQLite database), language detection offline service, offline text classification training pipeline (TF-IDF + SGDClassifier seed corpus), Named Entity Recognition (NER) regex-based extraction engine for technical indicators (phone, email, UPI, crypto wallets, bank accounts, PAN/IFSC), dynamic severity and risk scoring engine (0-100), Qdrant collection vector schema auto-initialization, cosine similarity duplicate check queries via HTTP search_points, similar complaints retrieval APIs, human-in-the-loop low-confidence review queue, explainability API endpoint tracing predictions, and Investigator AI Assistant summary card generation.
+- **Inference Logs Auditing:** Structured SIEM-compatible file auditing (`logs/ai_inference.log`) recording latency statistics, model predictions, confidence levels, and risk metrics.
+- **AI Integration Tests:** End-to-end integration tests validating classification, entity extraction, similarity matches, explainability, review queues, and inference logging.
+
 ## [1.1.0-milestone2] - 2026-06-29
 
 ### Added

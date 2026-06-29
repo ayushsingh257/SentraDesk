@@ -49,6 +49,7 @@ class Ticket(Base, TimestampMixin):
     comments: Mapped[list["Comment"]] = relationship(back_populates="ticket", cascade="all, delete-orphan")
     private_notes: Mapped[list["PrivateNote"]] = relationship(back_populates="ticket", cascade="all, delete-orphan")
     timeline: Mapped[list["ActivityTimeline"]] = relationship(back_populates="ticket", cascade="all, delete-orphan")
+    extracted_entities = relationship("ExtractedEntityIndex", back_populates="ticket", cascade="all, delete-orphan")
 
 class TicketVersion(Base, TimestampMixin):
     __tablename__ = "ticket_versions"

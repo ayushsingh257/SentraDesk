@@ -25,29 +25,33 @@ class TicketService:
     ) -> Ticket:
         """Create a new citizen complaint and automatically provision a tracked ticket."""
         meta = metadata_json or {}
+        import time
+        from app.services.ai_pipeline import ai_pipeline_service
+        start_time = time.time()
+        ai_res = ai_pipeline_service.process_complaint(description, meta)
+        inference_time_ms = (time.time() - start_time) * 1000
         
-        # Determine Category, Severity, and Group using rules engine
-        category = meta.get("category", "Unclassified")
-        amount = meta.get("amount", 0.0)
+        # Prioritize AI predictions unless explicitly provided in request metadata
+        category = meta.get("category") or ai_res["category"]
+        severity = meta.get("severity") or ai_res["severity"]
         
-        severity = "Low"
+        # Populate AI telemetry details back into metadata_json
+        meta["ai_category_prediction"] = ai_res["category"]
+        meta["ai_confidence"] = ai_res["confidence"]
+        meta["ai_extracted_entities"] = ai_res["entities"]
+        meta["ai_risk_score"] = ai_res["risk_score"]
+        meta["ai_language"] = ai_res["language"]
+        meta["needs_ai_review"] = ai_res["confidence"] < 70.0
+        
         assigned_group = "General Cyber Triage Team"
         
         # Apply assignment rules based on category and financial amount
         if category == "Cyber Financial Fraud":
             assigned_group = "Financial Fraud Unit"
-            if amount >= 500000:
-                severity = "Critical"
-            elif amount >= 100000:
-                severity = "High"
-            else:
-                severity = "Medium"
         elif category in ["Hacking", "Ransomware"]:
             assigned_group = "Technical Investigation Cell"
-            severity = "High" if category == "Hacking" else "Critical"
         elif category in ["Cyber Stalking", "Online Harassment"]:
             assigned_group = "Women & Children Safety Cell"
-            severity = "Medium"
             
         # Calculate SLA deadline based on Severity
         sla_hours = 360 # Default Low: 15 days
@@ -96,6 +100,42 @@ class TicketService:
             actor_id=None
         )
         ticket_repository.add_timeline_event(db, event=new_event)
+        
+        # Index NER-extracted technical indicators in DB (Phase 69)
+        from app.models.threat_intel import ExtractedEntityIndex
+        extracted_entities_dict = ai_res.get("entities", {})
+        for ent_type, values in extracted_entities_dict.items():
+            if values:
+                norm_type = ent_type
+                if norm_type.endswith("s"):
+                    norm_type = norm_type[:-1]
+                for val in values:
+                    entity_record = ExtractedEntityIndex(
+                        ticket_id=ticket.id,
+                        entity_type=norm_type,
+                        entity_value=val
+                    )
+                    db.add(entity_record)
+        db.commit()
+        
+        # Upsert vector representation into Qdrant for similarity search
+        ai_pipeline_service.upsert_complaint_vector(
+            ticket_id=ticket.id,
+            text=description,
+            ticket_number=ticket.ticket_number,
+            category=category,
+            severity=severity
+        )
+        
+        # Audit log inference metrics for SIEM scanning
+        from app.core.logging import log_ai_inference
+        log_ai_inference(
+            ticket_id=ticket.id,
+            predicted_category=ai_res["category"],
+            confidence=ai_res["confidence"],
+            risk_score=ai_res["risk_score"],
+            inference_time_ms=inference_time_ms
+        )
         
         return ticket
 
