@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     BACKEND_CORS_ORIGINS: Annotated[
         List[str], BeforeValidator(parse_cors_origins)
-    ] = []
+    ] = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
     # Postgres Database Configs
     POSTGRES_USER: str = "ccgp_admin"
