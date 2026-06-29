@@ -2,13 +2,13 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  // Allow rendering in Docker without issues
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: true,
-  }
+  },
+  transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'],
 };
 
 module.exports = nextConfig;
