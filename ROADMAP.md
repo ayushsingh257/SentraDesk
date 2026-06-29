@@ -1,6 +1,6 @@
 # 🚀 Cyber Complaint Governance Platform (CCGP) — Consolidated Roadmap
 
-This is the consolidated enterprise implementation roadmap for the **Cyber Complaint Governance Platform (CCGP)**, built in accordance with Tech Mahindra's v2.1/v2.2 specifications and mentor feedback. 
+This is the consolidated enterprise implementation roadmap for the **Cyber Complaint Governance Platform (CCGP)**, built in accordance with national cyber cell specifications and enterprise governance guidelines. 
 
 The roadmap is structured into **12 Eras** spanning **100 logical phases** (Phases 0 to 99). 
 

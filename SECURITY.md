@@ -23,4 +23,4 @@ The CCGP platform implements state-level cybersecurity specifications:
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in this project, please email the security audit lead at `security.ccgp@techmahindra.com` instead of opening a public issue. We aim to respond within 24 hours and patch issues within 5 business days.
+If you discover a security vulnerability in this project, please email the security audit lead at `security@ccgp.gov.in` instead of opening a public issue. We aim to respond within 24 hours and patch issues within 5 business days.
