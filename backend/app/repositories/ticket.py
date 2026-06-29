@@ -32,6 +32,7 @@ class TicketRepository(BaseRepository[Ticket]):
         severity: Optional[str] = None,
         assigned_officer_id: Optional[uuid.UUID] = None,
         search_query: Optional[str] = None,
+        needs_review: Optional[bool] = None,
         skip: int = 0,
         limit: int = 100
     ) -> List[Ticket]:
@@ -44,6 +45,8 @@ class TicketRepository(BaseRepository[Ticket]):
             query = query.filter(Ticket.severity == severity)
         if assigned_officer_id:
             query = query.filter(Ticket.assigned_officer_id == assigned_officer_id)
+        if needs_review is not None:
+            query = query.filter(Complaint.metadata_json["needs_ai_review"].as_boolean() == needs_review)
         if search_query:
             search_pattern = f"%{search_query}%"
             query = query.filter(

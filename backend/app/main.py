@@ -8,12 +8,22 @@ from app.core.exceptions import register_exception_handlers
 from app.api.v1.router import api_router
 from app.core.logging import logger
 
+from contextlib import asynccontextmanager
+from app.core.database import engine
+from app.models import Base
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    yield
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    lifespan=lifespan
 )
 
 # Configure CORS middleware

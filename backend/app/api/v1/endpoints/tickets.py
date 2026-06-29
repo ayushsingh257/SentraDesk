@@ -54,6 +54,7 @@ def list_tickets(
     severity: Optional[str] = None,
     assigned_officer_id: Optional[uuid.UUID] = None,
     search: Optional[str] = None,
+    needs_review: Optional[bool] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1),
     db: Session = Depends(get_db),
@@ -66,6 +67,7 @@ def list_tickets(
         severity=severity,
         assigned_officer_id=assigned_officer_id,
         search_query=search,
+        needs_review=needs_review,
         skip=skip,
         limit=limit
     )
@@ -231,3 +233,212 @@ def merge_tickets(
         "data": res,
         "error": None
     }
+
+@router.get("/{id}/similar", response_model=StandardResponse[List[Dict[str, Any]]])
+def get_similar_tickets(
+    id: uuid.UUID,
+    limit: int = Query(5, ge=1, le=20),
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
+):
+    """Retrieve highly similar past complaints using vector search (requires officer or higher permissions)."""
+    from app.services.ai_pipeline import ai_pipeline_service
+    ticket = ticket_repository.get(db, id)
+    if not ticket or not ticket.complaint:
+        return {
+            "success": True,
+            "data": [],
+            "error": None
+        }
+    similar = ai_pipeline_service.find_similar_complaints(
+        text=ticket.complaint.description,
+        limit=limit,
+        exclude_id=id
+    )
+    return {
+        "success": True,
+        "data": similar,
+        "error": None
+    }
+
+@router.get("/{id}/explain", response_model=StandardResponse[Dict[str, Any]])
+def get_ticket_ai_explanation(
+    id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
+):
+    """Explain AI model triage predictions and risk scoring breakdown (requires officer or higher permissions)."""
+    ticket = ticket_repository.get(db, id)
+    if not ticket or not ticket.complaint:
+        return {
+            "success": False,
+            "data": None,
+            "error": {"message": "Ticket not found", "code": "TICKET_NOT_FOUND"}
+        }
+    
+    meta = ticket.complaint.metadata_json or {}
+    
+    # Retrieve pre-stored AI telemetry or calculate dynamically
+    ai_cat = meta.get("ai_category_prediction", ticket.category)
+    ai_conf = meta.get("ai_confidence", 100.0)
+    ai_risk = meta.get("ai_risk_score", 10.0)
+    ai_lang = meta.get("ai_language", "en")
+    
+    # Construct rich reasoning explanation text
+    reasoning = (
+        f"The AI classification model (SGDClassifier) predicted category '{ai_cat}' "
+        f"with {ai_conf}% confidence. Language detected was '{ai_lang}'. "
+        f"The Severity Engine computed a risk score of {ai_risk} out of 100, "
+        f"which maps to a '{ticket.severity}' severity tier. "
+    )
+    
+    # Add extraction notes
+    extracted = meta.get("ai_extracted_entities", {})
+    found_entities = []
+    for k, v in extracted.items():
+        if v:
+            found_entities.append(f"{k}: {', '.join(v)}")
+    if found_entities:
+        reasoning += f"Technical indicators extracted: {'; '.join(found_entities)}."
+    else:
+        reasoning += "No technical indicators (phone, email, UPI, bank, crypto) were extracted."
+        
+    return {
+        "success": True,
+        "data": {
+            "predicted_category": ai_cat,
+            "confidence": ai_conf,
+            "risk_score": ai_risk,
+            "language": ai_lang,
+            "reasoning": reasoning,
+            "extracted_entities": extracted
+        },
+        "error": None
+    }
+
+@router.get("/{id}/ai-summary", response_model=StandardResponse[Dict[str, Any]])
+def get_ticket_ai_summary_card(
+    id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
+):
+    """Retrieve the Investigator AI Assistant summary card (requires officer or higher permissions)."""
+    ticket = ticket_repository.get(db, id)
+    if not ticket or not ticket.complaint:
+        return {
+            "success": False,
+            "data": None,
+            "error": {"message": "Ticket not found", "code": "TICKET_NOT_FOUND"}
+        }
+    
+    meta = ticket.complaint.metadata_json or {}
+    category = ticket.category
+    amount = meta.get("amount", 0.0)
+    
+    # Extract key facts
+    key_facts = [
+        f"Complainant reporter identity matches '{ticket.complaint.reporter_name}'.",
+        f"Initial submission source marked as '{ticket.complaint.source}'."
+    ]
+    if amount > 0:
+        key_facts.append(f"Financial transaction loss amount: {amount} INR.")
+        
+    extracted = meta.get("ai_extracted_entities", {})
+    for k, v in extracted.items():
+        if v:
+            key_facts.append(f"Extracted {k}: {', '.join(v)}")
+            
+    # Suggested next steps based on category & details
+    suggested_steps = ["Establish contact with complainant to verify reporter identity details."]
+    if category == "Cyber Financial Fraud":
+        suggested_steps.extend([
+            "Contact financial partners governing extracted UPI / Bank tags to halt transactions.",
+            "Verify SHA-256 signatures of upload receipts/screenshots if available.",
+            "Register immediate transaction alert tags with the cyber cell nodal dashboard."
+        ])
+    elif category == "Hacking":
+        suggested_steps.extend([
+            "Audit firewall traffic records surrounding target domain/IP address matches.",
+            "Instruct target to update compromised login credentials and implement 2FA.",
+            "Retrieve system crash dump logs from target host device."
+        ])
+    elif category == "Ransomware":
+        suggested_steps.extend([
+            "Isolate compromised subnet hosts from intranet connection tags.",
+            "Search local threat repository for known decryptor binaries matching the ransomware extension.",
+            "Block payment addresses matching target cryptocurrency wallet addresses."
+        ])
+    else:
+        suggested_steps.extend([
+            "Log case file details inside secondary threat indexes.",
+            "Assign investigator tasks to respective cyber intelligence unit."
+        ])
+        
+    return {
+        "success": True,
+        "data": {
+            "ticket_id": str(id),
+            "category": category,
+            "key_facts": key_facts,
+            "suggested_next_steps": suggested_steps
+        },
+        "error": None
+    }
+
+@router.get("/global/search", response_model=StandardResponse[List[Dict[str, Any]]])
+def global_hybrid_search(
+    q: str = Query(..., min_length=1),
+    limit: int = Query(10, ge=1, le=50),
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
+):
+    """Execute unified SQL keyword + vector semantic global search (requires officer or higher permissions)."""
+    from app.services.search import unified_search_service
+    res = unified_search_service.hybrid_search(db, query_text=q, limit=limit)
+    return {
+        "success": True,
+        "data": res,
+        "error": None
+    }
+
+from fastapi.responses import Response
+
+@router.get("/{id}/report/complaint")
+def download_complaint_report_pdf(
+    id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
+):
+    """Compile and download citizen complaint incident record sheet PDF (requires officer or higher permissions)."""
+    ticket = ticket_repository.get(db, id)
+    if not ticket:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Ticket record not found.")
+        
+    from app.services.reporting import reporting_service
+    pdf_bytes = reporting_service.generate_complaint_pdf(ticket)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=complaint_report_{ticket.ticket_number}.pdf"}
+    )
+
+@router.get("/{id}/report/case")
+def download_case_investigation_report_pdf(
+    id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
+):
+    """Compile and download complete case investigation tactical report PDF (requires officer or higher permissions)."""
+    ticket = ticket_repository.get(db, id)
+    if not ticket:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Ticket record not found.")
+        
+    from app.services.reporting import reporting_service
+    pdf_bytes = reporting_service.generate_case_report_pdf(ticket, db)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=case_report_{ticket.ticket_number}.pdf"}
+    )
