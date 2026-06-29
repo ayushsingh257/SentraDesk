@@ -14,12 +14,15 @@ from app.core.exceptions import ValidationError, NotFoundError
 
 # Initialize MinIO client
 try:
-    minio_client = Minio(
-        settings.MINIO_ENDPOINT,
-        access_key=settings.MINIO_ACCESS_KEY,
-        secret_key=settings.MINIO_SECRET_KEY,
-        secure=settings.MINIO_SECURE
-    )
+    if settings.ENVIRONMENT == "testing":
+        minio_client = None
+    else:
+        minio_client = Minio(
+            settings.MINIO_ENDPOINT,
+            access_key=settings.MINIO_ACCESS_KEY,
+            secret_key=settings.MINIO_SECRET_KEY,
+            secure=settings.MINIO_SECURE
+        )
 except Exception as e:
     logger.error(f"Failed to initialize MinIO client: {str(e)}")
     minio_client = None
