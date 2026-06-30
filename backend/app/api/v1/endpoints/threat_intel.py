@@ -141,7 +141,7 @@ def scan_evidence_file_reputation(
     if not evidence:
         raise HTTPException(status_code=404, detail="Evidence record not found.")
         
-    file_hash = evidence.file_hash or ""
+    file_hash = evidence.sha256_hash or ""
     
     # Heuristics: if file hash contains mock tags, or ends with executable extension types, flag threat!
     score = 10.0

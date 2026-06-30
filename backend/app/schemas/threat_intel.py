@@ -1,3 +1,4 @@
+import uuid
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional, Dict, Any
@@ -13,7 +14,7 @@ class ThreatIndicatorCreate(ThreatIndicatorBase):
     pass
 
 class ThreatIndicatorResponse(ThreatIndicatorBase):
-    id: str
+    id: uuid.UUID
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
