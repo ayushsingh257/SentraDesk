@@ -334,10 +334,6 @@ body {
 }
 
 /* ── Gradient Border ─────────────────────── */
-.gradient-border {
-  position: relative;
-}
-
 .gradient-border::before {
   content: '';
   position: absolute;
@@ -350,3 +346,83 @@ body {
   mask-composite: exclude;
   pointer-events: none;
 }
+
+/* ── HUD Command Center Visual Utilities ── */
+.cyber-ambient-overlay {
+  background: radial-gradient(circle at 50% 50%, rgba(14,165,233,0.03) 0%, transparent 60%);
+  mix-blend-mode: screen;
+}
+
+.cyber-glow-border {
+  box-shadow: 0 0 15px rgba(6,182,212,0.25), inset 0 0 10px rgba(6,182,212,0.05);
+  border-color: rgba(6,182,212,0.4) !important;
+}
+
+/* Horizontal scanning laser swipe */
+.scanline-active {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanline-active::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(to bottom, transparent, rgba(6,182,212,0.5), transparent);
+  box-shadow: 0 0 8px rgba(6,182,212,0.8);
+  animation: laserSweep 3.5s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes laserSweep {
+  0% { top: -5%; }
+  100% { top: 105%; }
+}
+
+/* Warning indicator pulse glow */
+.hud-pulse-red {
+  animation: hudRedPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes hudRedPulse {
+  0%, 100% { box-shadow: 0 0 5px rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.2); }
+  50% { box-shadow: 0 0 15px rgba(239,68,68,0.4); border-color: rgba(239,68,68,0.5); }
+}
+
+.hud-pulse-green {
+  animation: hudGreenPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes hudGreenPulse {
+  0%, 100% { box-shadow: 0 0 5px rgba(16,185,129,0.2); border-color: rgba(16,185,129,0.2); }
+  50% { box-shadow: 0 0 15px rgba(16,185,129,0.4); border-color: rgba(16,185,129,0.5); }
+}
+
+/* Telemetry stats alignment */
+.hud-telemetry {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: rgba(14,165,233,0.6);
+  text-transform: uppercase;
+}
+
+/* Accessibility: respect user preferences for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    background-attachment: initial !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+  .scanline-active::after {
+    display: none !important;
+  }
+}
+
