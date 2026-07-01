@@ -58,8 +58,10 @@ def create_access_token(subject: str, role: str, expires_delta: Optional[timedel
     }
     return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
+import uuid
+
 def create_refresh_token(subject: str, expires_delta: Optional[timedelta] = None) -> str:
-    """Generate JWT Refresh Token containing user ID subject claim."""
+    """Generate JWT Refresh Token containing user ID subject claim and unique jti."""
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
@@ -68,7 +70,8 @@ def create_refresh_token(subject: str, expires_delta: Optional[timedelta] = None
     to_encode = {
         "exp": expire,
         "sub": str(subject),
-        "type": "refresh"
+        "type": "refresh",
+        "jti": str(uuid.uuid4())
     }
     return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 

@@ -5,8 +5,8 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Points, PointMaterial } from "@react-three/drei";
 import * as THREE from "three";
 
-// ── Plasma Sun Surface Shader Material ────────────────────────
-const PlasmaSurfaceShader = {
+// ── Spline Glass Core Shader (Inner Volumetric Glow) ────────────────
+const SplineGlassCoreShader = {
   uniforms: {
     uTime: { value: 0.0 },
   },
@@ -14,10 +14,12 @@ const PlasmaSurfaceShader = {
     varying vec2 vUv;
     varying vec3 vNormal;
     varying vec3 vViewPosition;
+    varying vec3 vModelPosition;
 
     void main() {
       vUv = uv;
       vNormal = normalize(normalMatrix * normal);
+      vModelPosition = position;
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
       vViewPosition = -mvPosition.xyz;
       gl_Position = projectionMatrix * mvPosition;
@@ -28,52 +30,169 @@ const PlasmaSurfaceShader = {
     varying vec2 vUv;
     varying vec3 vNormal;
     varying vec3 vViewPosition;
+    varying vec3 vModelPosition;
 
-    // Simplex noise / fBm noise generators
-    float hash(vec2 p) {
-      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
-    }
-    float noise(vec2 p) {
-      vec2 i = floor(p);
-      vec2 f = fract(p);
-      vec2 u = f * f * (3.0 - 2.0 * f);
-      return mix(mix(hash(i + vec2(0.0,0.0)), hash(i + vec2(1.0,0.0)), u.x),
-                 mix(hash(i + vec2(0.0,1.0)), hash(i + vec2(1.0,1.0)), u.x), u.y);
-    }
-    float fbm(vec2 p) {
-      float v = 0.0;
-      float a = 0.5;
-      vec2 shift = vec2(100.0);
-      mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
-      for (int i = 0; i < 4; ++i) {
-        v += a * noise(p);
-        p = rot * p * 2.0 + shift;
-        a *= 0.5;
-      }
-      return v;
+    // Simplex 3D Noise generator for fluid gradients
+    vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
+    vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
+
+    float snoise(vec3 v){
+      const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
+      const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+
+      vec3 i  = floor(v + dot(v, C.yyy) );
+      vec3 x0 =   v - i + dot(i, C.xxx) ;
+
+      vec3 g = step(x0.yzx, x0.xyz);
+      vec3 l = 1.0 - g;
+      vec3 i1 = min( g.xyz, l.zxy );
+      vec3 i2 = max( g.xyz, l.zxy );
+
+      vec3 x1 = x0 - i1 + C.xxx;
+      vec3 x2 = x0 - i2 + C.yyy;
+      vec3 x3 = x0 - D.yyy;
+
+      i = mod(i, 289.0 );
+      vec4 p = permute( permute( permute(
+                 i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+               + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))
+               + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+
+      float n_ = 0.142857142857;
+      vec3  ns = n_ * D.wyz - D.xzx;
+
+      vec4 j = p - 49.0 * floor(p * ns.z *ns.z);
+
+      vec4 x_ = floor(j * ns.z);
+      vec4 y_ = floor(j - 7.0 * x_ );
+
+      vec4 x = x_ *ns.x + ns.yyyy;
+      vec4 y = y_ *ns.x + ns.yyyy;
+      vec4 h = 1.0 - abs(x) - abs(y);
+
+      vec4 b0 = vec4( x.xy, y.xy );
+      vec4 b1 = vec4( x.zw, y.zw );
+
+      vec4 s0 = floor(b0)*2.0 + 1.0;
+      vec4 s1 = floor(b1)*2.0 + 1.0;
+      vec4 sh = -step(h, vec4(0.0));
+
+      vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+      vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+
+      vec3 p0 = vec3(a0.xy, h.x);
+      vec3 p1 = vec3(a0.zw, h.y);
+      vec3 p2 = vec3(a1.xy, h.z);
+      vec3 p3 = vec3(a1.zw, h.w);
+
+      vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+      p0 *= norm.x;
+      p1 *= norm.y;
+      p2 *= norm.z;
+      p3 *= norm.w;
+
+      vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+      m = m * m;
+      return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),
+                                    dot(p2,x2), dot(p3,x3) ) );
     }
 
     void main() {
-      // Flowing plasma coords
-      vec2 uv = vUv * 3.5;
-      float n1 = fbm(uv + vec2(uTime * 0.12, uTime * 0.06));
-      float n2 = fbm(uv - vec2(uTime * 0.08, -uTime * 0.10));
-      float finalNoise = mix(n1, n2, 0.5);
+      // Create layered complex moving noise waves
+      vec3 noiseCoord1 = vModelPosition * 2.5 + vec3(0.0, 0.0, uTime * 0.35);
+      vec3 noiseCoord2 = vModelPosition * 4.0 - vec3(0.0, uTime * 0.25, 0.0);
+      
+      float n1 = snoise(noiseCoord1);
+      float n2 = snoise(noiseCoord2);
+      float combinedNoise = (n1 + n2 * 0.5 + 0.5) / 1.5;
 
-      // Fresnel glow normal computation
+      // Premium Cyber Palette Gradients
+      vec3 cyan = vec3(0.0, 0.92, 1.0);
+      vec3 blue = vec3(0.02, 0.28, 0.95);
+      vec3 purple = vec3(0.44, 0.0, 0.98);
+      vec3 magenta = vec3(0.95, 0.0, 0.55);
+
+      // Smooth interpolation of colors
+      float mixFactor = clamp(vModelPosition.y * 0.45 + 0.5 + combinedNoise * 0.3, 0.0, 1.0);
+      vec3 grad1 = mix(blue, cyan, mixFactor);
+      vec3 grad2 = mix(purple, magenta, mixFactor);
+      
+      // Dynamic shift over time
+      vec3 finalColor = mix(grad1, grad2, sin(uTime * 0.4) * 0.5 + 0.5);
+
+      // Subsurface / Depth glow density
+      vec3 viewDir = normalize(vViewPosition);
+      vec3 normal = normalize(vNormal);
+      float rim = 1.0 - max(dot(normal, viewDir), 0.0);
+      float centerGlow = pow(1.0 - rim, 2.8);
+
+      vec3 coreGlow = finalColor * (centerGlow + 0.3) + magenta * pow(rim, 4.0) * 0.5;
+
+      gl_FragColor = vec4(coreGlow, centerGlow * 0.88 + 0.12);
+    }
+  `,
+};
+
+// ── Spline Glass Shell Shader (Glossy Glass Reflective Outer Layer) ──
+const SplineGlassShellShader = {
+  uniforms: {
+    uTime: { value: 0.0 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+    varying vec3 vModelPosition;
+
+    void main() {
+      vUv = uv;
+      vNormal = normalize(normalMatrix * normal);
+      vModelPosition = position;
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      vViewPosition = -mvPosition.xyz;
+      gl_Position = projectionMatrix * mvPosition;
+    }
+  `,
+  fragmentShader: `
+    uniform float uTime;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+    varying vec3 vModelPosition;
+
+    void main() {
       vec3 normal = normalize(vNormal);
       vec3 viewDir = normalize(vViewPosition);
-      float fresnel = pow(1.0 - dot(normal, viewDir), 2.2);
 
-      // Cyber plasma color palettes (Cyan core, deep indigo flares, bright cyan rims)
-      vec3 coreColor = vec3(0.05, 0.70, 0.90);
-      vec3 flareColor = vec3(0.38, 0.08, 0.75);
-      vec3 rimColor = vec3(0.20, 0.85, 1.00);
+      // Fresnel factor for reflection
+      float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 2.5);
 
-      vec3 base = mix(coreColor, flareColor, finalNoise);
-      vec3 finalColor = base + rimColor * fresnel * 1.6;
+      // Multi-source glossy specular highlights
+      vec3 lightDir1 = normalize(vec3(5.0, 6.0, 4.0));
+      vec3 lightDir2 = normalize(vec3(-4.0, 3.0, 2.0));
+      
+      vec3 halfDir1 = normalize(lightDir1 + viewDir);
+      vec3 halfDir2 = normalize(lightDir2 + viewDir);
 
-      gl_FragColor = vec4(finalColor, 0.92);
+      // High-shininess glossy specular calculation
+      float spec1 = pow(max(dot(normal, halfDir1), 0.0), 128.0);
+      float spec2 = pow(max(dot(normal, halfDir2), 0.0), 45.0);
+      
+      vec3 specColor = vec3(1.0) * spec1 * 0.95 + vec3(0.0, 0.85, 1.0) * spec2 * 0.4;
+
+      // Soft iridescence reflection at the edge
+      vec3 glassBase = vec3(0.03, 0.45, 0.85);
+      vec3 violetRim = vec3(0.75, 0.15, 0.95);
+      float rimShift = sin(atan(normal.y, normal.x) + uTime * 0.25) * 0.5 + 0.5;
+      vec3 rimReflection = mix(glassBase, violetRim, rimShift);
+
+      // Transparency: high center visibility, high reflection opacity on edges
+      float opacity = mix(0.14, 0.78, fresnel);
+
+      // Combined look: glass body + fresnel reflection + specular shine
+      vec3 glassOutput = rimReflection * fresnel * 0.95 + specColor;
+
+      gl_FragColor = vec4(glassOutput, opacity);
     }
   `,
 };
@@ -98,9 +217,14 @@ const CoronaGlowShader = {
     void main() {
       vec3 normal = normalize(vNormal);
       vec3 viewDir = normalize(vViewPosition);
-      // Soft atmospheric glow edge falloff
+      
+      // Edge falloff intensity
       float intensity = pow(0.78 - dot(normal, viewDir), 2.8);
-      gl_FragColor = vec4(vec3(0.08, 0.65, 0.95) * intensity, intensity * 0.55);
+      
+      // Dynamic shift between cyan and purple
+      vec3 glowColor = mix(vec3(0.0, 0.8, 1.0), vec3(0.48, 0.0, 1.0), 0.5);
+      
+      gl_FragColor = vec4(glowColor * intensity * 1.2, intensity * 0.6);
     }
   `,
 };
@@ -111,12 +235,11 @@ function DeepSpaceStars() {
   const positions = useMemo(() => {
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      // Scatter in wider spherical shell for depth
       const u = Math.random();
       const v = Math.random();
       const theta = u * 2.0 * Math.PI;
       const phi = Math.acos(2.0 * v - 1.0);
-      const r = 8.0 + Math.random() * 15.0; // distant stars
+      const r = 8.0 + Math.random() * 15.0;
       pos[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
       pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       pos[i * 3 + 2] = r * Math.cos(phi);
@@ -128,7 +251,7 @@ function DeepSpaceStars() {
   useFrame((state) => {
     const elapsed = state.clock.getElapsedTime();
     if (ref.current) {
-      ref.current.rotation.y = elapsed * 0.005; // very slow drift
+      ref.current.rotation.y = elapsed * 0.005;
       ref.current.rotation.z = elapsed * 0.002;
     }
   });
@@ -207,21 +330,25 @@ function LayeredOrbitRings() {
   );
 }
 
-// ── Glowing Plasma Reactor Core ────────────────────────────────
+// ── Glowing Plasma Reactor Core (Spline Materials Layered) ───────────────────
 interface ReactorProps {
   mouse: React.MutableRefObject<{ x: number; y: number }>;
 }
 
 function PlasmaReactor({ mouse }: ReactorProps) {
   const mainGroup = useRef<THREE.Group>(null!);
-  const surfaceMat = useRef<THREE.ShaderMaterial>(null!);
+  const coreMat = useRef<THREE.ShaderMaterial>(null!);
+  const shellMat = useRef<THREE.ShaderMaterial>(null!);
 
   useFrame((state) => {
     const elapsed = state.clock.getElapsedTime();
     
-    // Update shader uTime
-    if (surfaceMat.current) {
-      surfaceMat.current.uniforms.uTime.value = elapsed;
+    // Update uTime on both core & glass shell
+    if (coreMat.current) {
+      coreMat.current.uniforms.uTime.value = elapsed;
+    }
+    if (shellMat.current) {
+      shellMat.current.uniforms.uTime.value = elapsed;
     }
 
     // Scroll interpolation target math (0.0 to 1.0)
@@ -236,14 +363,12 @@ function PlasmaReactor({ mouse }: ReactorProps) {
     let rotationScale = 1.0;
 
     if (scroll < 0.25) {
-      // Phase 1: Hero Centered -> Left (Scroll zoom in)
       const t = scroll / 0.25;
       targetX = -2.3 * t;
       targetY = 0.3 * t;
       targetZ = 0.5 * t;
       targetScale = 1.0 + 0.25 * t;
     } else if (scroll < 0.55) {
-      // Phase 2: Left -> Slide Right
       const t = (scroll - 0.25) / 0.30;
       targetX = -2.3 + 4.6 * t;
       targetY = 0.3 - 0.6 * t;
@@ -251,7 +376,6 @@ function PlasmaReactor({ mouse }: ReactorProps) {
       targetScale = 1.25 - 0.15 * t;
       rotationScale = 1.3;
     } else if (scroll < 0.80) {
-      // Phase 3: Slide Right -> Center Down
       const t = (scroll - 0.55) / 0.25;
       targetX = 2.3 - 2.3 * t;
       targetY = -0.3 - 1.2 * t;
@@ -259,7 +383,6 @@ function PlasmaReactor({ mouse }: ReactorProps) {
       targetScale = 1.1 + 0.3 * t;
       rotationScale = 2.0;
     } else {
-      // Phase 4: Center Down -> Deep Ambient Background
       const t = (scroll - 0.80) / 0.20;
       targetX = 0;
       targetY = -1.5 + 1.5 * t;
@@ -268,7 +391,7 @@ function PlasmaReactor({ mouse }: ReactorProps) {
       rotationScale = 0.4;
     }
 
-    // Apply linear interpolation with lower coefficient (0.055) for cinematic inertia
+    // Apply linear interpolation
     if (mainGroup.current) {
       mainGroup.current.position.x += (targetX - mainGroup.current.position.x) * 0.055;
       mainGroup.current.position.y += (targetY - mainGroup.current.position.y) * 0.055;
@@ -287,26 +410,39 @@ function PlasmaReactor({ mouse }: ReactorProps) {
   return (
     <group ref={mainGroup}>
       
-      {/* Core Dynamic light source: casts light on nearby rings and stars */}
-      <pointLight position={[0, 0, 0]} color="#06b6d4" intensity={4.5} distance={15} decay={1.4} />
+      {/* Dynamic light source to illuminate the environment */}
+      <pointLight position={[0, 0, 0]} color="#00d8ff" intensity={6.0} distance={15} decay={1.3} />
 
-      {/* Plasma Sun Mesh with Custom GLSL Shader */}
+      {/* Layer 1: Inner Volumetric Shader (Subsurface Glow & Shifting Gradients) */}
       <mesh>
-        <sphereGeometry args={[0.7, 40, 40]} />
+        <sphereGeometry args={[0.62, 64, 64]} />
         <shaderMaterial
-          ref={surfaceMat}
+          ref={coreMat}
           attach="material"
-          {...PlasmaSurfaceShader}
+          {...SplineGlassCoreShader}
+          transparent={true}
         />
       </mesh>
 
-      {/* Volumetric Corona Halo Glow (fades outwards) */}
+      {/* Layer 2: Outer Glass Shell Shader (Glossy specular highlights, fresnel & refraction) */}
       <mesh>
-        <sphereGeometry args={[0.82, 40, 40]} />
+        <sphereGeometry args={[0.70, 64, 64]} />
+        <shaderMaterial
+          ref={shellMat}
+          attach="material"
+          {...SplineGlassShellShader}
+          transparent={true}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Layer 3: Soft Volumetric Corona Additive Glow */}
+      <mesh>
+        <sphereGeometry args={[0.82, 48, 48]} />
         <shaderMaterial
           attach="material"
           {...CoronaGlowShader}
-          transparent
+          transparent={true}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
@@ -338,8 +474,8 @@ export default function NeuralNetwork() {
       style={{ background: "transparent" }}
       gl={{ antialias: true, alpha: true }}
     >
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[2, 3, 5]} intensity={0.8} color="#ffffff" />
+      <ambientLight intensity={0.3} />
+      <directionalLight position={[3, 4, 5]} intensity={0.9} color="#00eeff" />
       
       <DeepSpaceStars />
       <PlasmaReactor mouse={mouse} />
