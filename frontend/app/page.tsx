@@ -9,8 +9,7 @@ import {
   Shield, ArrowRight, Lock, Mail, Database, Activity,
   Cpu, Globe, Terminal, Layers, CheckCircle2, Zap,
   Network, BarChart3, FileSearch, GitBranch, ChevronDown,
-  Volume2, VolumeX, Radio, CpuIcon, Binary, Fingerprint,
-  Eye, ShieldCheck, ActivitySquare
+  Volume2, VolumeX, Radio, CpuIcon, Binary, Fingerprint
 } from "lucide-react";
 import SmoothScrollProvider from "@/components/SmoothScroll";
 import CursorGlow from "@/components/CursorGlow";
@@ -20,7 +19,7 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 const NeuralNetwork = dynamic(() => import("@/components/NeuralNetwork"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-[#02040a]">
+    <div className="w-full h-full flex items-center justify-center bg-[#020308]">
       <div className="w-12 h-12 rounded-full border border-cyan-500/20 border-t-cyan-500 animate-spin" />
     </div>
   ),
@@ -31,12 +30,12 @@ const BootSequence = dynamic(() => import("@/components/BootSequence"), {
   ssr: false,
 });
 
-// ── Web Audio Synthesizer for Immersive Atmospheric Server Hum ──
+// ── Web Audio Synth for Deep Space Observatory Ambience ──
 class CyberAudioEngine {
   private ctx: AudioContext | null = null;
-  private oscSub: OscillatorNode | null = null;
-  private oscMid: OscillatorNode | null = null;
-  private oscHigh: OscillatorNode | null = null;
+  private oscBase: OscillatorNode | null = null;
+  private oscWarm: OscillatorNode | null = null;
+  private oscRes: OscillatorNode | null = null;
   private filter: BiquadFilterNode | null = null;
   private lfo: OscillatorNode | null = null;
   private gainNode: GainNode | null = null;
@@ -47,55 +46,54 @@ class CyberAudioEngine {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       this.ctx = new AudioCtx();
       
-      // Explicitly resume to avoid Chrome/Safari autoplay locks
       if (this.ctx.state === "suspended") {
         await this.ctx.resume();
       }
 
-      this.oscSub = this.ctx.createOscillator();
-      this.oscMid = this.ctx.createOscillator();
-      this.oscHigh = this.ctx.createOscillator();
+      this.oscBase = this.ctx.createOscillator();
+      this.oscWarm = this.ctx.createOscillator();
+      this.oscRes = this.ctx.createOscillator();
       this.filter = this.ctx.createBiquadFilter();
       this.lfo = this.ctx.createOscillator();
       const lfoGain = this.ctx.createGain();
       this.gainNode = this.ctx.createGain();
 
-      // Detuned frequencies for standard speaker audibility (A1, A2, detuned E3)
-      this.oscSub.type = "sine";
-      this.oscSub.frequency.setValueAtTime(55.00, this.ctx.currentTime); // Sub-bass hum
+      // Deep space console hum structure
+      this.oscBase.type = "sine";
+      this.oscBase.frequency.setValueAtTime(55.00, this.ctx.currentTime); // 55Hz sub hum
       
-      this.oscMid.type = "triangle";
-      this.oscMid.frequency.setValueAtTime(110.00, this.ctx.currentTime); // Mid warm drone
+      this.oscWarm.type = "triangle";
+      this.oscWarm.frequency.setValueAtTime(82.41, this.ctx.currentTime); // 82.4Hz warm drone E2
       
-      this.oscHigh.type = "sine";
-      this.oscHigh.frequency.setValueAtTime(165.40, this.ctx.currentTime); // Detuned harmonic to cut through speakers
+      this.oscRes.type = "sine";
+      this.oscRes.frequency.setValueAtTime(220.00, this.ctx.currentTime); // 220Hz higher console resonance
 
-      // Lowpass server room resonance filter sweep
+      // Lowpass server room resonance filter sweep (120Hz to 220Hz)
       this.filter.type = "lowpass";
-      this.filter.frequency.setValueAtTime(180, this.ctx.currentTime);
-      this.filter.Q.setValueAtTime(2.2, this.ctx.currentTime);
+      this.filter.frequency.setValueAtTime(160, this.ctx.currentTime);
+      this.filter.Q.setValueAtTime(2.5, this.ctx.currentTime);
 
-      // Low frequency modulation (LFO) to simulate cooling airflow
-      this.lfo.frequency.setValueAtTime(0.06, this.ctx.currentTime);
-      lfoGain.gain.setValueAtTime(50, this.ctx.currentTime);
+      // Very slow LFO sweep mimicking cooling airflow cycles
+      this.lfo.frequency.setValueAtTime(0.04, this.ctx.currentTime); // 25s period
+      lfoGain.gain.setValueAtTime(60, this.ctx.currentTime);
 
       this.lfo.connect(lfoGain);
       lfoGain.connect(this.filter.frequency);
       
-      this.oscSub.connect(this.filter);
-      this.oscMid.connect(this.filter);
-      this.oscHigh.connect(this.filter);
+      this.oscBase.connect(this.filter);
+      this.oscWarm.connect(this.filter);
+      this.oscRes.connect(this.filter);
       
       this.filter.connect(this.gainNode);
       this.gainNode.connect(this.ctx.destination);
 
-      // Fade-in target volume (subtle background levels)
+      // Smooth fade-in target levels
       this.gainNode.gain.setValueAtTime(0, this.ctx.currentTime);
-      this.gainNode.gain.linearRampToValueAtTime(0.045, this.ctx.currentTime + 2.0);
+      this.gainNode.gain.linearRampToValueAtTime(0.045, this.ctx.currentTime + 2.2);
 
-      this.oscSub.start();
-      this.oscMid.start();
-      this.oscHigh.start();
+      this.oscBase.start();
+      this.oscWarm.start();
+      this.oscRes.start();
       this.lfo.start();
     } catch (e) {
       console.warn("Web Audio initialize failed:", e);
@@ -106,20 +104,20 @@ class CyberAudioEngine {
     if (!this.ctx) return;
     try {
       const current = this.ctx.currentTime;
-      this.gainNode?.gain.linearRampToValueAtTime(0, current + 1.0);
+      this.gainNode?.gain.linearRampToValueAtTime(0, current + 1.2);
       setTimeout(() => {
-        this.oscSub?.stop();
-        this.oscMid?.stop();
-        this.oscHigh?.stop();
+        this.oscBase?.stop();
+        this.oscWarm?.stop();
+        this.oscRes?.stop();
         this.lfo?.stop();
         this.ctx?.close();
         this.ctx = null;
-      }, 1100);
+      }, 1300);
     } catch (e) {}
   }
 }
 
-// ── Staggered fade in triggers ──────────────────────────────────
+// ── Cinematic fade in configurations ──────────────────────────
 const staggerContainer = {
   hidden: {},
   show: { transition: { staggerChildren: 0.12, delayChildren: 0.05 } },
@@ -130,7 +128,7 @@ const fadeUp = {
   show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } },
 };
 
-// ── Cinematic scroll reveal wrapper ───────────────────────────
+// ── Viewport scroll reveal blocks ─────────────────────────────
 function RevealSection({ children, id = "", className = "" }: { children: React.ReactNode; id?: string; className?: string }) {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, margin: "-120px" });
@@ -148,7 +146,7 @@ function RevealSection({ children, id = "", className = "" }: { children: React.
   );
 }
 
-// ── Main Page Redesign ──────────────────────────────────────────
+// ── Landing Page Redesign ──────────────────────────────────────
 export default function Home() {
   const [booted, setBooted] = useState(false);
   const [bootDone, setBootDone] = useState(false);
@@ -177,6 +175,21 @@ export default function Home() {
       setAudioOn(true);
     }
   };
+
+  // Auto-resume trigger on first scroll/click if context gets locked
+  useEffect(() => {
+    const handleAutoplay = async () => {
+      if (audioOn && audioEngineRef.current) {
+        await audioEngineRef.current.start();
+      }
+    };
+    window.addEventListener("click", handleAutoplay, { once: true });
+    window.addEventListener("scroll", handleAutoplay, { once: true });
+    return () => {
+      window.removeEventListener("click", handleAutoplay);
+      window.removeEventListener("scroll", handleAutoplay);
+    };
+  }, [audioOn]);
 
   const features = [
     { icon: Mail, title: "Intake Automation", desc: "IMAP bridge parses incoming threat reports into incident ticket states with zero supervisor routing delays.", color: "#0ea5e9" },
@@ -210,39 +223,42 @@ export default function Home() {
     <SmoothScrollProvider>
       <CursorGlow />
 
-      {/* ── Boot sequence terminal ── */}
+      {/* Boot terminal sequences */}
       <AnimatePresence>
         {booted && !bootDone && (
           <BootSequence onComplete={handleBootComplete} />
         )}
       </AnimatePresence>
 
-      <div className="relative min-h-screen bg-[#020308] text-slate-100 overflow-hidden font-sans select-none">
+      <div className="relative min-h-screen bg-[#010206] text-slate-100 overflow-hidden font-sans select-none">
         
-        {/* ── CINEMATIC 3D BACKGROUND (FIXED TARGET VIEWPORT) ── */}
+        {/* ── FIXED WebGL 3D VIEWPORT CANVAS ── */}
         <div className="fixed inset-0 z-0 pointer-events-none w-full h-screen">
           <NeuralNetwork />
         </div>
 
-        {/* ── ATMOSPHERIC LIGHTING & GLITCH GRIDS ── */}
+        {/* ── CINEMATIC SPACE NEBULA GRID OVERLAY ── */}
         <div className="pointer-events-none fixed inset-0 z-1">
-          <div className="absolute inset-0 cyber-grid-dense opacity-[0.25]" />
-          {/* Radial light gradients mapping NASA command console hues */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#020308] via-transparent to-[#020308]/50" />
-          <div className="absolute top-[15%] left-[20%] w-[600px] h-[600px] rounded-full bg-blue-900/5 blur-[120px]" />
-          <div className="absolute bottom-[20%] right-[10%] w-[500px] h-[500px] rounded-full bg-cyan-950/10 blur-[100px]" />
+          <div className="absolute inset-0 cyber-grid-dense opacity-[0.22]" />
+          
+          {/* Deep space color gradient shading */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#010206] via-transparent to-[#010206]/40" />
+          
+          {/* Ambient volumetric navy glows */}
+          <div className="absolute top-[20%] left-[25%] w-[700px] h-[700px] rounded-full bg-blue-950/15 blur-[130px] opacity-70" />
+          <div className="absolute bottom-[25%] right-[15%] w-[600px] h-[600px] rounded-full bg-indigo-950/10 blur-[110px] opacity-60" />
         </div>
 
-        {/* ── TOP HEADER NAV ── */}
+        {/* ── NAV HEADER ── */}
         <motion.header
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: bootDone ? 1 : 0, y: bootDone ? 0 : -10 }}
           transition={{ duration: 0.8 }}
-          className="fixed top-0 left-0 z-50 w-full border-b border-white/5 bg-[#020308]/40 backdrop-blur-md"
+          className="fixed top-0 left-0 z-50 w-full border-b border-white/5 bg-[#010206]/40 backdrop-blur-md"
         >
           <div className="container mx-auto flex items-center justify-between px-8 py-4.5">
             <div className="flex items-center gap-3">
-              <div className="relative flex h-8 w-8 items-center justify-center rounded bg-cyan-500/10 border border-cyan-500/30">
+              <div className="relative flex h-8 w-8 items-center justify-center rounded bg-cyan-500/10 border border-cyan-500/25">
                 <Shield className="h-4.5 w-4.5 text-cyan-400" />
               </div>
               <div>
@@ -251,14 +267,14 @@ export default function Home() {
             </div>
 
             <nav className="flex items-center gap-6">
-              {/* Synth console hum switch */}
+              {/* Mute/Unmute Audio Hum controller */}
               <button
                 onClick={toggleAudio}
                 className="flex items-center gap-2 px-3 py-1.5 rounded border border-white/5 bg-white/5 hover:bg-white/10 text-[9px] font-mono text-slate-400 uppercase tracking-widest transition-all"
-                title="Toggle ambient server hum"
+                title="Toggle ambient drone"
               >
                 {audioOn ? <Volume2 className="h-3.5 w-3.5 text-cyan-400" /> : <VolumeX className="h-3.5 w-3.5 text-slate-600" />}
-                <span className="hidden xs:inline">{audioOn ? "CONSOLE HUM: ACTIVE" : "CONSOLE HUM: STANDBY"}</span>
+                <span className="hidden xs:inline">{audioOn ? "OBSERVATORY HUM: ACTIVE" : "OBSERVATORY HUM: STANDBY"}</span>
               </button>
 
               <Link
@@ -271,11 +287,11 @@ export default function Home() {
           </div>
         </motion.header>
 
-        {/* ── CINEMATIC MAIN CONTENT LAYER ── */}
+        {/* ── CINEMATIC SCROLL LAYER ── */}
         <main className="relative z-10">
 
           {/* ══════════════════════════════════════════════
-              SECTION 1: HERO (IMMERSED SCENE)
+              SECTION 1: HERO
           ══════════════════════════════════════════════ */}
           <section className="min-h-screen flex flex-col items-center justify-center relative px-6 text-center select-none pt-20">
             <motion.div
@@ -284,15 +300,13 @@ export default function Home() {
               animate={bootDone ? "show" : "hidden"}
               className="max-w-4xl space-y-8 relative z-20"
             >
-              {/* Broadcast system state */}
               <motion.div variants={fadeUp} className="flex justify-center">
-                <span className="inline-flex items-center gap-2.5 rounded border border-cyan-500/20 bg-cyan-950/20 px-4.5 py-1 text-[9px] font-mono font-bold text-cyan-400 uppercase tracking-[0.25em]">
+                <span className="inline-flex items-center gap-2.5 rounded border border-cyan-500/20 bg-cyan-950/25 px-4.5 py-1 text-[9px] font-mono font-bold text-cyan-400 uppercase tracking-[0.25em] shadow-[0_0_15px_rgba(6,182,212,0.1)]">
                   <Radio className="h-3.5 w-3.5 animate-pulse text-cyan-400" />
-                  India National Cyber Command Centre
+                  India National Cyber Operations Command
                 </span>
               </motion.div>
 
-              {/* Title */}
               <motion.h1 variants={fadeUp} className="text-4xl sm:text-6xl md:text-7xl font-mono font-extrabold tracking-tight text-white leading-[1.08]">
                 CYBER GOVERNANCE
                 <span className="block text-slate-500 text-lg sm:text-2xl font-light uppercase tracking-[0.3em] mt-3">
@@ -300,12 +314,10 @@ export default function Home() {
                 </span>
               </motion.h1>
 
-              {/* Tagline */}
               <motion.p variants={fadeUp} className="max-w-xl mx-auto text-xs sm:text-sm text-slate-400 leading-relaxed font-sans font-medium">
                 Cryptographic case registry, automated Intake Triages, and multi-tier supervisor approvals, anchored in real-time SLA verification.
               </motion.p>
 
-              {/* Interactive buttons */}
               <motion.div variants={fadeUp} className="flex justify-center gap-4 pt-4">
                 <Link href="/login" className="btn-cyber text-[10px] tracking-widest font-mono py-3.5 px-8">
                   INITIALIZE GATEWAY <ArrowRight className="h-4 w-4" />
@@ -319,26 +331,24 @@ export default function Home() {
               </motion.div>
             </motion.div>
 
-            {/* Floating system metrics info box at base */}
             <div className="absolute bottom-10 left-0 w-full flex justify-center pointer-events-none">
-              <div className="flex gap-10 text-[9px] font-mono text-slate-500 uppercase tracking-widest">
+              <div className="flex gap-10 text-[9px] font-mono text-slate-600 uppercase tracking-widest">
                 <div>SYSTEM NODE: <span className="text-cyan-400 font-bold">ONLINE</span></div>
-                <div className="hidden xs:block">SECTOR state: <span className="text-emerald-400 font-bold">SECURED</span></div>
+                <div className="hidden xs:block">SECTOR STATE: <span className="text-emerald-400 font-bold">SECURED</span></div>
               </div>
             </div>
           </section>
 
           {/* ══════════════════════════════════════════════
-              SECTION 2: CAPABILITIES (CORE SHIFTS LEFT)
+              SECTION 2: CAPABILITIES
           ══════════════════════════════════════════════ */}
           <RevealSection id="capabilities">
             <div className="container mx-auto max-w-5xl">
               <div className="grid lg:grid-cols-12 gap-12 items-center">
                 
-                {/* Space spacer for the reactor shifted to left */}
+                {/* Spacer left: visual focus */}
                 <div className="lg:col-span-6 hidden lg:block" />
 
-                {/* Content right panel */}
                 <div className="lg:col-span-6 space-y-6">
                   <div className="space-y-2">
                     <span className="text-[10px] font-mono text-cyan-400 tracking-[0.3em] uppercase">SYSTEM CAPABILITIES</span>
@@ -350,7 +360,6 @@ export default function Home() {
                     Every transaction and ticket routing pathway is automated through standard server rules and secured using cryptographic signatures.
                   </p>
                   
-                  {/* capabilities mini list */}
                   <div className="grid sm:grid-cols-2 gap-3.5 pt-2">
                     {features.map((f, i) => (
                       <div key={i} className="glass rounded-lg p-4 border-slate-900 hover:border-cyan-500/15 transition-all">
@@ -369,13 +378,12 @@ export default function Home() {
           </RevealSection>
 
           {/* ══════════════════════════════════════════════
-              SECTION 3: STATE WORKFLOW (CORE SHIFTS RIGHT)
+              SECTION 3: WORKFLOW
           ══════════════════════════════════════════════ */}
           <RevealSection>
             <div className="container mx-auto max-w-5xl">
               <div className="grid lg:grid-cols-12 gap-12 items-center">
                 
-                {/* Content Left panel */}
                 <div className="lg:col-span-6 space-y-6">
                   <div className="space-y-2">
                     <span className="text-[10px] font-mono text-cyan-400 tracking-[0.3em] uppercase">TRIAGE MACHINE</span>
@@ -406,7 +414,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Spacer on the right where the Reactor rotates */}
+                {/* Spacer right */}
                 <div className="lg:col-span-6 hidden lg:block" />
 
               </div>
@@ -414,7 +422,7 @@ export default function Home() {
           </RevealSection>
 
           {/* ══════════════════════════════════════════════
-              SECTION 4: METRICS & TELEMETRY
+              SECTION 4: STATISTICS
           ══════════════════════════════════════════════ */}
           <RevealSection>
             <div className="container mx-auto max-w-5xl text-center space-y-12">
@@ -439,7 +447,7 @@ export default function Home() {
           </RevealSection>
 
           {/* ══════════════════════════════════════════════
-              SECTION 5: SYSTEM STACK
+              SECTION 5: REGISTRY TECH
           ══════════════════════════════════════════════ */}
           <RevealSection>
             <div className="container mx-auto max-w-4xl text-center space-y-10">
@@ -462,14 +470,13 @@ export default function Home() {
           </RevealSection>
 
           {/* ══════════════════════════════════════════════
-              SECTION 6: GATEWAY TERMINAL CTA
+              SECTION 6: ACCESS GATEWAY
           ══════════════════════════════════════════════ */}
           <RevealSection>
             <div className="container mx-auto max-w-4xl">
-              <div className="relative overflow-hidden rounded-xl border border-slate-900 bg-[#020308]/60 p-12 text-center"
+              <div className="relative overflow-hidden rounded-xl border border-slate-900 bg-[#010206]/60 p-12 text-center"
                 style={{ boxShadow: "0 25px 65px rgba(0,0,0,0.8)" }}>
                 
-                {/* Mini background grid inside block */}
                 <div className="pointer-events-none absolute inset-0 cyber-grid-bg opacity-[0.12]" />
 
                 <div className="relative z-10 space-y-6 max-w-xl mx-auto">
