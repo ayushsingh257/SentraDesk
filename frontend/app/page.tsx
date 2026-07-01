@@ -30,90 +30,66 @@ const BootSequence = dynamic(() => import("@/components/BootSequence"), {
   ssr: false,
 });
 
-// ── Web Audio Synth for Deep Space Observatory Ambience ──
+// ── HTML5 Audio Engine for Ambient Background Track ──
 class CyberAudioEngine {
-  private ctx: AudioContext | null = null;
-  private oscBase: OscillatorNode | null = null;
-  private oscWarm: OscillatorNode | null = null;
-  private oscRes: OscillatorNode | null = null;
-  private filter: BiquadFilterNode | null = null;
-  private lfo: OscillatorNode | null = null;
-  private gainNode: GainNode | null = null;
+  private audio: HTMLAudioElement | null = null;
+  private fadeInterval: any = null;
+  private targetVolume: number = 0.18; // Volume around 15–20%
+
+  constructor() {
+    if (typeof window !== "undefined") {
+      this.audio = new Audio("/audio/ambient.mp3");
+      this.audio.loop = true;
+      this.audio.volume = 0;
+    }
+  }
 
   async start() {
-    if (this.ctx) return;
+    if (!this.audio) return;
     try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      this.ctx = new AudioCtx();
-      
-      if (this.ctx.state === "suspended") {
-        await this.ctx.resume();
+      clearInterval(this.fadeInterval);
+      if (this.audio.paused) {
+        await this.audio.play();
       }
 
-      this.oscBase = this.ctx.createOscillator();
-      this.oscWarm = this.ctx.createOscillator();
-      this.oscRes = this.ctx.createOscillator();
-      this.filter = this.ctx.createBiquadFilter();
-      this.lfo = this.ctx.createOscillator();
-      const lfoGain = this.ctx.createGain();
-      this.gainNode = this.ctx.createGain();
+      // Smooth fade-in over approximately 2 seconds
+      const steps = 20;
+      const stepDuration = 2000 / steps; // 100ms per step
+      const volumeStep = this.targetVolume / steps;
 
-      // Deep space console hum structure
-      this.oscBase.type = "sine";
-      this.oscBase.frequency.setValueAtTime(55.00, this.ctx.currentTime); // 55Hz sub hum
-      
-      this.oscWarm.type = "triangle";
-      this.oscWarm.frequency.setValueAtTime(82.41, this.ctx.currentTime); // 82.4Hz warm drone E2
-      
-      this.oscRes.type = "sine";
-      this.oscRes.frequency.setValueAtTime(220.00, this.ctx.currentTime); // 220Hz higher console resonance
-
-      // Lowpass server room resonance filter sweep (120Hz to 220Hz)
-      this.filter.type = "lowpass";
-      this.filter.frequency.setValueAtTime(160, this.ctx.currentTime);
-      this.filter.Q.setValueAtTime(2.5, this.ctx.currentTime);
-
-      // Very slow LFO sweep mimicking cooling airflow cycles
-      this.lfo.frequency.setValueAtTime(0.04, this.ctx.currentTime); // 25s period
-      lfoGain.gain.setValueAtTime(60, this.ctx.currentTime);
-
-      this.lfo.connect(lfoGain);
-      lfoGain.connect(this.filter.frequency);
-      
-      this.oscBase.connect(this.filter);
-      this.oscWarm.connect(this.filter);
-      this.oscRes.connect(this.filter);
-      
-      this.filter.connect(this.gainNode);
-      this.gainNode.connect(this.ctx.destination);
-
-      // Smooth fade-in target levels
-      this.gainNode.gain.setValueAtTime(0, this.ctx.currentTime);
-      this.gainNode.gain.linearRampToValueAtTime(0.045, this.ctx.currentTime + 2.2);
-
-      this.oscBase.start();
-      this.oscWarm.start();
-      this.oscRes.start();
-      this.lfo.start();
+      this.fadeInterval = setInterval(() => {
+        if (this.audio) {
+          if (this.audio.volume < this.targetVolume) {
+            this.audio.volume = Math.min(this.targetVolume, this.audio.volume + volumeStep);
+          } else {
+            clearInterval(this.fadeInterval);
+          }
+        }
+      }, stepDuration);
     } catch (e) {
-      console.warn("Web Audio initialize failed:", e);
+      console.warn("Audio play failed:", e);
     }
   }
 
   stop() {
-    if (!this.ctx) return;
-    try {
-      const current = this.ctx.currentTime;
-      this.gainNode?.gain.linearRampToValueAtTime(0, current + 1.2);
-      setTimeout(() => {
-        this.oscBase?.stop();
-        this.oscWarm?.stop();
-        this.oscRes?.stop();
-        this.lfo?.stop();
-        this.ctx?.close();
-        this.ctx = null;
-      }, 1300);
-    } catch (e) {}
+    if (!this.audio) return;
+    clearInterval(this.fadeInterval);
+
+    // Smooth fade-out over approximately 1.5 seconds
+    const steps = 20;
+    const stepDuration = 1500 / steps; // 75ms per step
+    const volumeStep = this.audio.volume / steps;
+
+    this.fadeInterval = setInterval(() => {
+      if (this.audio) {
+        if (this.audio.volume > 0) {
+          this.audio.volume = Math.max(0, this.audio.volume - volumeStep);
+        } else {
+          clearInterval(this.fadeInterval);
+          this.audio.pause();
+        }
+      }
+    }, stepDuration);
   }
 }
 
@@ -271,10 +247,10 @@ export default function Home() {
               <button
                 onClick={toggleAudio}
                 className="flex items-center gap-2 px-3 py-1.5 rounded border border-white/5 bg-white/5 hover:bg-white/10 text-[9px] font-mono text-slate-400 uppercase tracking-widest transition-all"
-                title="Toggle ambient drone"
+                title="Toggle ambient track"
               >
                 {audioOn ? <Volume2 className="h-3.5 w-3.5 text-cyan-400" /> : <VolumeX className="h-3.5 w-3.5 text-slate-600" />}
-                <span className="hidden xs:inline">{audioOn ? "OBSERVATORY HUM: ACTIVE" : "OBSERVATORY HUM: STANDBY"}</span>
+                <span className="hidden xs:inline">{audioOn ? "AMBIENT: ACTIVE" : "AMBIENT: STANDBY"}</span>
               </button>
 
               <Link
