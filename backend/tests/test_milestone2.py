@@ -157,7 +157,7 @@ def test_supervisor_closure_approvals_workflow(client: TestClient, db: Session):
     # 1. Register supervisor user
     client.post("/api/v1/users/register", json={
         "email": "supervisor@ccgp.gov.in",
-        "password": "password123",
+        "password": "SecurePassword123!",
         "name": "Supervisor",
         "role": "supervisor"
     })
@@ -165,7 +165,7 @@ def test_supervisor_closure_approvals_workflow(client: TestClient, db: Session):
     # 2. Login to retrieve token
     login_resp = client.post(
         "/api/v1/auth/login",
-        json={"email": "supervisor@ccgp.gov.in", "password": "password123"}
+        json={"email": "supervisor@ccgp.gov.in", "password": "SecurePassword123!"}
     )
     token = login_resp.json()["data"]["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
@@ -248,7 +248,7 @@ def test_evidence_uploads_versioning_and_zipping(client: TestClient, db: Session
     # 1. Register investigator user
     client.post("/api/v1/users/register", json={
         "email": "investigator@ccgp.gov.in",
-        "password": "password123",
+        "password": "SecurePassword123!",
         "name": "Investigator",
         "role": "investigator"
     })
@@ -256,7 +256,7 @@ def test_evidence_uploads_versioning_and_zipping(client: TestClient, db: Session
     # 2. Login
     login_resp = client.post(
         "/api/v1/auth/login",
-        json={"email": "investigator@ccgp.gov.in", "password": "password123"}
+        json={"email": "investigator@ccgp.gov.in", "password": "SecurePassword123!"}
     )
     token = login_resp.json()["data"]["access_token"]
     headers = {"Authorization": f"Bearer {token}"}

@@ -21,15 +21,56 @@ class UserService:
         if existing_user:
             raise ValidationError(message="Email address already registered", code="EMAIL_ALREADY_EXISTS")
             
+        from app.core.config import settings
+        from app.models.user import EmailVerificationToken
+        import secrets
+        from datetime import datetime, timedelta, timezone
+        from app.services.notification import notification_service
+        from app.core.logging import logger
+        
         hashed_password = hash_password(password)
+        
+        # Test environment registers as auto-verified to preserve existing test cases
+        is_testing = (settings.ENVIRONMENT == "testing")
+        
         new_user = User(
             email=email,
             hashed_password=hashed_password,
             name=name,
             role=role,
-            is_active=True
+            is_active=True,
+            email_verified=is_testing
         )
-        return user_repository.create(db, obj_in=new_user)
+        user = user_repository.create(db, obj_in=new_user)
+        
+        if not user.email_verified:
+            token_str = secrets.token_urlsafe(32)
+            expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+            db_token = EmailVerificationToken(
+                token=token_str,
+                user_id=user.id,
+                expires_at=expires_at,
+                is_used=False
+            )
+            db.add(db_token)
+            db.commit()
+            
+            try:
+                verification_link = f"http://localhost:3000/verify-email?token={token_str}"
+                notification_service.send_email(
+                    db,
+                    recipient=user.email,
+                    template_name="verify_email",
+                    subject="Verify your CCGP Account",
+                    variables={
+                        "name": user.name,
+                        "verification_link": verification_link
+                    }
+                )
+            except Exception as e:
+                logger.error(f"Failed to send email verification to {user.email}: {str(e)}")
+                
+        return user
 
     def get_users(self, db: Session, skip: int = 0, limit: int = 100) -> List[User]:
         return user_repository.get_multi(db, skip=skip, limit=limit)

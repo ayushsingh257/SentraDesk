@@ -63,15 +63,25 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
-        logger.info(f"Schema validation error handled: {exc.errors()}", extra={"request_id": getattr(request.state, "request_id", None)})
+        sanitized_errors = []
+        for error in exc.errors():
+            err = dict(error)
+            if "ctx" in err and isinstance(err["ctx"], dict):
+                ctx = dict(err["ctx"])
+                if "error" in ctx and isinstance(ctx["error"], Exception):
+                    ctx["error"] = str(ctx["error"])
+                err["ctx"] = ctx
+            sanitized_errors.append(err)
+            
+        logger.info(f"Schema validation error handled: {sanitized_errors}", extra={"request_id": getattr(request.state, "request_id", None)})
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={
                 "success": False,
                 "error": {
                     "code": "SCHEMA_VALIDATION_FAILED",
-                    "message": "Invalid request parameter parameters",
-                    "details": exc.errors()
+                    "message": "Invalid request parameters",
+                    "details": sanitized_errors
                 }
             }
         )

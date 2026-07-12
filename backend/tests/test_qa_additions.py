@@ -9,13 +9,13 @@ def test_threat_intelligence_api(client: TestClient, db: Session):
     # 1. Register and login as an officer
     client.post("/api/v1/users/register", json={
         "email": "officer_qa@ccgp.gov.in",
-        "password": "password123",
+        "password": "SecurePassword123!",
         "name": "Officer QA",
         "role": "cyber_cell_officer"
     })
     login_resp = client.post("/api/v1/auth/login", json={
         "email": "officer_qa@ccgp.gov.in",
-        "password": "password123"
+        "password": "SecurePassword123!"
     })
     token = login_resp.json()["data"]["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
@@ -96,13 +96,13 @@ def test_blockchain_audit_verification(client: TestClient):
     # 1. Register and login as security auditor
     client.post("/api/v1/users/register", json={
         "email": "auditor_qa@ccgp.gov.in",
-        "password": "password123",
+        "password": "SecurePassword123!",
         "name": "Auditor QA",
         "role": "security_auditor"
     })
     login_resp = client.post("/api/v1/auth/login", json={
         "email": "auditor_qa@ccgp.gov.in",
-        "password": "password123"
+        "password": "SecurePassword123!"
     })
     token = login_resp.json()["data"]["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
@@ -132,13 +132,13 @@ def test_bi_exports_auth_and_format(client: TestClient):
     # 1. Register and login as security auditor
     client.post("/api/v1/users/register", json={
         "email": "auditor_qa_2@ccgp.gov.in",
-        "password": "password123",
+        "password": "SecurePassword123!",
         "name": "Auditor QA 2",
         "role": "security_auditor"
     })
     login_resp = client.post("/api/v1/auth/login", json={
         "email": "auditor_qa_2@ccgp.gov.in",
-        "password": "password123"
+        "password": "SecurePassword123!"
     })
     token = login_resp.json()["data"]["access_token"]
     headers = {"Authorization": f"Bearer {token}"}

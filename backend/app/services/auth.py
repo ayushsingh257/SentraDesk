@@ -106,4 +106,88 @@ class AuthService:
             db.add(db_token)
             db.commit()
 
+    def verify_email(self, db: Session, *, token: str) -> dict:
+        from app.models.user import EmailVerificationToken
+        db_token = db.query(EmailVerificationToken).filter(
+            EmailVerificationToken.token == token,
+            EmailVerificationToken.is_used == False
+        ).first()
+        
+        if not db_token:
+            raise AuthError(message="Invalid or expired verification token", code="INVALID_TOKEN")
+            
+        if db_token.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
+            raise AuthError(message="Verification token has expired", code="EXPIRED_TOKEN")
+            
+        user = db_token.user
+        user.email_verified = True
+        db_token.is_used = True
+        db.commit()
+        return {"email": user.email, "verified": True}
+
+    def generate_forgot_password_link(self, db: Session, *, email: str) -> None:
+        from app.models.user import User, PasswordResetToken
+        from app.services.notification import notification_service
+        import secrets
+        
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            raise AuthError(message="User with this email address does not exist", code="USER_NOT_FOUND")
+            
+        # Invalidate any previous reset tokens for this user
+        db.query(PasswordResetToken).filter(
+            PasswordResetToken.user_id == user.id,
+            PasswordResetToken.is_used == False
+        ).update({PasswordResetToken.is_used: True})
+        
+        token_str = secrets.token_urlsafe(32)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+        db_token = PasswordResetToken(
+            token=token_str,
+            user_id=user.id,
+            expires_at=expires_at,
+            is_used=False
+        )
+        db.add(db_token)
+        db.commit()
+        
+        reset_link = f"http://localhost:3000/reset-password?token={token_str}"
+        try:
+            notification_service.send_email(
+                db,
+                recipient=user.email,
+                template_name="reset_password",
+                subject="Reset your CCGP Account Password",
+                variables={
+                    "name": user.name,
+                    "reset_link": reset_link
+                }
+            )
+        except Exception as e:
+            from app.core.logging import logger
+            logger.error(f"Failed to send reset password email to {user.email}: {str(e)}")
+
+    def reset_password(self, db: Session, *, token: str, new_password: str) -> None:
+        from app.models.user import PasswordResetToken, RefreshToken
+        from app.core.security import hash_password
+        
+        db_token = db.query(PasswordResetToken).filter(
+            PasswordResetToken.token == token,
+            PasswordResetToken.is_used == False
+        ).first()
+        
+        if not db_token:
+            raise AuthError(message="Invalid or expired reset token", code="INVALID_TOKEN")
+            
+        if db_token.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
+            raise AuthError(message="Reset token has expired", code="EXPIRED_TOKEN")
+            
+        user = db_token.user
+        user.hashed_password = hash_password(new_password)
+        db_token.is_used = True
+        
+        # Invalidate all active session tokens for the user to force re-authentication
+        db.query(RefreshToken).filter(RefreshToken.user_id == user.id).update({RefreshToken.is_revoked: True})
+        db.commit()
+
 auth_service = AuthService()

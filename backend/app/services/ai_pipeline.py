@@ -273,21 +273,18 @@ class AIPipelineService:
             if sum(abs(x) for x in vector) == 0:
                 return []
                 
-            from qdrant_client.http import models
-            results_wrapper = qdrant_client.http.search_api.search_points(
+            res = qdrant_client.query_points(
                 collection_name="complaints",
-                search_request=models.SearchRequest(
-                    vector=vector,
-                    limit=limit + 1 if exclude_id else limit,
-                    with_payload=True
-                )
+                query=vector,
+                limit=limit + 1 if exclude_id else limit,
+                with_payload=True
             )
-            results = results_wrapper.result
+            results = res.points
             
             output = []
             for item in results:
                 # Exclude self
-                if exclude_id and item.id == str(exclude_id):
+                if exclude_id and str(item.id) == str(exclude_id):
                     continue
                 output.append({
                     "ticket_id": item.id,

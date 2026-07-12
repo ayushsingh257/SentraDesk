@@ -5,7 +5,10 @@ import redis
 from app.core.database import get_db, get_redis
 from app.core.security import JWTBearer
 from app.schemas.response import StandardResponse
-from app.schemas.user import UserLogin, TokenResponse, TokenRefreshRequest, TokenRefreshResponse, LogoutRequest
+from app.schemas.user import (
+    UserLogin, TokenResponse, TokenRefreshRequest, TokenRefreshResponse, LogoutRequest,
+    ForgotPasswordRequest, ResetPasswordRequest, EmailVerificationRequest
+)
 from app.services.auth import auth_service
 
 router = APIRouter()
@@ -49,5 +52,44 @@ def logout(
     return {
         "success": True,
         "data": "Successfully logged out and invalidated session",
+        "error": None
+    }
+
+@router.post("/verify-email", response_model=StandardResponse[dict])
+def verify_email(
+    payload: EmailVerificationRequest,
+    db: Session = Depends(get_db)
+):
+    """Verify citizen email address with token from verification link."""
+    res = auth_service.verify_email(db, token=payload.token)
+    return {
+        "success": True,
+        "data": res,
+        "error": None
+    }
+
+@router.post("/forgot-password", response_model=StandardResponse[str])
+def forgot_password(
+    payload: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """Initiate password recovery flow: send secure reset links to registered email."""
+    auth_service.generate_forgot_password_link(db, email=payload.email)
+    return {
+        "success": True,
+        "data": "Password reset instructions dispatched to email",
+        "error": None
+    }
+
+@router.post("/reset-password", response_model=StandardResponse[str])
+def reset_password(
+    payload: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """Commit password change using reset token."""
+    auth_service.reset_password(db, token=payload.token, new_password=payload.new_password)
+    return {
+        "success": True,
+        "data": "Password changed successfully",
         "error": None
     }

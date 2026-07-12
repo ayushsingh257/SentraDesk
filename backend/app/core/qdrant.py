@@ -3,13 +3,18 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from app.core.logging import logger
 
+from app.core.config import settings
+
 QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT = int(os.getenv("QDRANT_PORT", 6333))
 QDRANT_URL = os.getenv("QDRANT_URL", f"http://{QDRANT_HOST}:{QDRANT_PORT}")
 
 logger.info(f"Connecting to Qdrant at: {QDRANT_URL}")
 
-qdrant_client = QdrantClient(url=QDRANT_URL, check_compatibility=False)
+if settings.ENVIRONMENT == "testing":
+    qdrant_client = QdrantClient(":memory:")
+else:
+    qdrant_client = QdrantClient(url=QDRANT_URL, check_compatibility=False)
 
 def init_qdrant_schema():
     """Create collection 'complaints' for duplicate detection search (Phase 61)."""

@@ -133,11 +133,14 @@ class NotificationService:
 
         try:
             # Connect and send
-            with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as server:
-                if settings.ENVIRONMENT != "development":
-                    server.starttls()
-                    server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-                server.sendmail(settings.SMTP_FROM_EMAIL, [recipient], msg.as_string())
+            if settings.ENVIRONMENT == "testing":
+                logger.info(f"[MOCK EMAIL DISPATCH] To: {recipient} | Subject: {subject}")
+            else:
+                with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as server:
+                    if settings.ENVIRONMENT != "development":
+                        server.starttls()
+                        server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+                    server.sendmail(settings.SMTP_FROM_EMAIL, [recipient], msg.as_string())
             
             # Update log as sent
             log.status = "Sent"

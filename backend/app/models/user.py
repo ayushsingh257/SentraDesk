@@ -13,6 +13,7 @@ class User(Base, TimestampMixin):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(50), default="citizen", nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationships
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
@@ -29,3 +30,26 @@ class RefreshToken(Base, TimestampMixin):
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="refresh_tokens")
+
+class EmailVerificationToken(Base, TimestampMixin):
+    __tablename__ = "email_verification_tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    token: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    is_used: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    user: Mapped["User"] = relationship()
+
+class PasswordResetToken(Base, TimestampMixin):
+    __tablename__ = "password_reset_tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    token: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    is_used: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    user: Mapped["User"] = relationship()
+
