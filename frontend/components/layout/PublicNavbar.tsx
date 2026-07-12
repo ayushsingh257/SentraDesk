@@ -34,41 +34,44 @@ export function PublicNavbar() {
             </div>
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  'px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150',
-                  pathname === link.href
-                    ? 'text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-950'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
+          {/* Right section container */}
+          <div className="flex items-center gap-6">
+            {/* Desktop nav */}
+            <div className="hidden md:flex items-center gap-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    'px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150',
+                    pathname === link.href
+                      ? 'text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-950'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Link
-              href="/auth/login"
-              className="btn btn-primary btn-sm hidden sm:inline-flex"
-              id="navbar-signin-btn"
-            >
-              Sign In
-            </Link>
-            <button
-              className="md:hidden p-2 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Link
+                href="/auth/login"
+                className="btn btn-primary btn-sm hidden sm:inline-flex"
+                id="navbar-signin-btn"
+              >
+                Sign In
+              </Link>
+              <button
+                className="md:hidden p-2 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                onClick={() => setMobileOpen(!mobileOpen)}
+                aria-label="Toggle menu"
+              >
+                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
           </div>
         </nav>
       </div>

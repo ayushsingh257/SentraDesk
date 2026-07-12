@@ -27,24 +27,27 @@ function HeroSection() {
 
       <div className="page-container relative">
         <div className="py-20 sm:py-28 lg:py-32 max-w-4xl">
-          {/* Version badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 text-xs font-semibold mb-6">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse-soft" />
-            Version 1.0 — Production Release
+          {/* Brand & Version */}
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-4xl sm:text-5xl font-black tracking-wider text-primary-700 dark:text-primary-400">CCGP</span>
+            <span className="px-2.5 py-0.5 rounded-full bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 text-xs font-semibold">
+              Version 1.0
+            </span>
           </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-neutral-900 dark:text-white tracking-tight leading-none">
-            Cyber Complaint{' '}
-            <span className="text-primary-700 dark:text-primary-400">Governance</span>{' '}
-            Platform
+          <h1 className="text-5xl sm:text-6xl font-extrabold text-neutral-900 dark:text-white tracking-tight leading-none mb-4">
+            Cyber Complaint Governance Platform
           </h1>
 
-          <p className="mt-6 text-xl text-neutral-500 dark:text-neutral-400 max-w-2xl leading-relaxed">
-            File cyber complaints online. AI classifies and routes your case to the right officer instantly.
-            Track every step of the investigation in real-time.
+          <p className="text-xl sm:text-2xl text-neutral-600 dark:text-neutral-300 font-semibold leading-relaxed mb-6">
+            Secure AI-Powered Cyber Complaint & Investigation System
           </p>
 
-          <div className="mt-10 flex flex-wrap gap-4">
+          <p className="text-base text-neutral-500 dark:text-neutral-400 max-w-2xl leading-relaxed mb-8">
+            File cyber complaints online. Automated classification instantly routes files to specialized cyber divisions. Track every phase of the investigation journey securely and transparently.
+          </p>
+
+          <div className="flex flex-wrap gap-4">
             <Link
               href="/auth/register"
               id="hero-register-btn"
@@ -65,10 +68,10 @@ function HeroSection() {
           {/* Trust indicators */}
           <div className="mt-12 flex flex-wrap gap-6">
             {[
-              { icon: '🔒', text: 'End-to-end encrypted' },
-              { icon: '🤖', text: 'AI-powered investigation' },
-              { icon: '⚡', text: 'Real-time status tracking' },
-              { icon: '🛡️', text: 'Cryptographic audit trail' },
+              { icon: '🔒', text: 'Secure Complaint Handling' },
+              { icon: '🤖', text: 'AI-Assisted Investigation' },
+              { icon: '⚡', text: 'Transparent Status Tracking' },
+              { icon: '🛡️', text: 'Enterprise-Grade Governance' },
             ].map((item) => (
               <div key={item.text} className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
                 <span>{item.icon}</span>
@@ -342,18 +345,13 @@ function FeaturesSection() {
   )
 }
 
-// ============================================================
-// Section 5 — Why Choose CCGP
-// ============================================================
 function WhyCCGP() {
   const points = [
-    'AI-assisted investigation saves hours of manual analysis per case',
-    'Complete case history preserved permanently — no data is ever lost',
-    'Citizens always know the status of their complaint in real-time',
-    'Two-tier approval ensures every case is reviewed before closure',
-    'Cryptographic audit trail satisfies evidentiary requirements',
-    'Built to align with IT Act 2000/2008 and CERT-In guidelines',
-    'Production-ready security — not a prototype or demo',
+    'Faster Cyber Complaint Resolution: Automated triage routes cases to specialized units, reducing response and investigation times.',
+    'Secure Handling of Complaints: Comprehensive data access controls and encryption protect sensitive personal and financial details.',
+    'AI-Assisted Investigation: Machine intelligence helps officers analyze complex fraud patterns and retrieve relevant facts quickly.',
+    'Transparent Ticket Tracking: Citizens monitor real-time progress on case milestones with clear communication at every step.',
+    'Enterprise-Grade Security: Compliance with national cyber governance guidelines ensures secure, reliable, and auditable case management.',
   ]
 
   return (
@@ -361,35 +359,39 @@ function WhyCCGP() {
       <div className="page-container">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
-            <p className="section-label">Why CCGP</p>
-            <h2 className="section-title">Built for Production. Not for Show.</h2>
+            <p className="section-label">Trust & Value</p>
+            <h2 className="section-title">A Secure Ecosystem for Cyber Governance</h2>
             <p className="section-subtitle">
-              CCGP is designed around real operational requirements of cyber crime departments,
-              not generic ticketing software repurposed for law enforcement.
+              CCGP provides a secure, structured, and auditable platform that ensures cyber complaints are resolved rapidly and tracked transparently, giving both citizens and authorities peace of mind.
             </p>
 
-            <ul className="mt-8 space-y-3">
-              {points.map((point) => (
-                <li key={point} className="flex items-start gap-3">
-                  <CheckCircle size={18} className="text-primary-600 dark:text-primary-400 flex-shrink-0 mt-0.5" />
-                  <span className="text-sm text-neutral-600 dark:text-neutral-400">{point}</span>
-                </li>
-              ))}
+            <ul className="mt-8 space-y-4">
+              {points.map((point) => {
+                const [title, desc] = point.split(': ')
+                return (
+                  <li key={title} className="flex items-start gap-3">
+                    <CheckCircle size={18} className="text-primary-600 dark:text-primary-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                      <strong className="text-neutral-950 dark:text-neutral-100">{title}:</strong> {desc}
+                    </span>
+                  </li>
+                )
+              })}
             </ul>
           </div>
 
-          {/* Stats panel */}
+          {/* Value Highlights Grid */}
           <div className="grid grid-cols-2 gap-4">
             {[
-              { value: '7', label: 'AI Modules', sublabel: 'Classification, NER, Severity, Dedup, Assistant, Language, Confidence' },
-              { value: '8', label: 'User Roles', sublabel: 'From Citizen to System Administrator with granular RBAC' },
-              { value: 'SHA-256', label: 'Audit Chain', sublabel: 'Cryptographic hash chain on every audit log entry' },
-              { value: '2-Tier', label: 'Approvals', sublabel: 'L1 + L2 supervisor sign-off before any case closure' },
+              { value: 'Verified', label: 'Case Security', sublabel: 'Every case evidence file is cryptographically locked to ensure absolute integrity.' },
+              { value: 'Real-Time', label: 'Citizen Tracking', sublabel: 'Receive instant notifications and timeline updates on your complaint status.' },
+              { value: 'Multi-Tier', label: 'Case Oversight', sublabel: 'Two-tier supervisor sign-off guarantees quality and correctness for closed tickets.' },
+              { value: 'Instant', label: 'Triage & Routing', sublabel: 'AI-assisted analysis routes complaints immediately to specialized divisions.' },
             ].map((stat) => (
-              <div key={stat.label} className="card card-body text-center">
-                <div className="text-2xl font-bold text-primary-700 dark:text-primary-400 mb-1">{stat.value}</div>
+              <div key={stat.label} className="card card-body text-center flex flex-col items-center justify-center p-6">
+                <div className="text-xl font-bold text-primary-700 dark:text-primary-400 mb-1">{stat.value}</div>
                 <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-1">{stat.label}</div>
-                <div className="text-xs text-neutral-400 dark:text-neutral-500 leading-relaxed">{stat.sublabel}</div>
+                <div className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">{stat.sublabel}</div>
               </div>
             ))}
           </div>
