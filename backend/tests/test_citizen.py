@@ -163,3 +163,20 @@ def test_citizen_ticket_lifecycle(client, db):
     assert resp_notif.status_code == 200
     assert len(resp_notif.json()["data"]) > 0
     assert resp_notif.json()["data"][0]["recipient"] == "citizen_a@ccgp.gov.in"
+
+    # 15. Check citizen stats endpoint
+    resp_stats_a = client.get("/api/v1/users/me/stats", headers=headers_a)
+    assert resp_stats_a.status_code == 200
+    stats_data_a = resp_stats_a.json()["data"]
+    assert stats_data_a["total_cases"] == 1
+    assert stats_data_a["open_cases"] == 1
+    assert stats_data_a["closed_cases"] == 0
+    assert stats_data_a["pending_followups"] == 0
+
+    resp_stats_b = client.get("/api/v1/users/me/stats", headers=headers_b)
+    assert resp_stats_b.status_code == 200
+    stats_data_b = resp_stats_b.json()["data"]
+    assert stats_data_b["total_cases"] == 0
+    assert stats_data_b["open_cases"] == 0
+    assert stats_data_b["closed_cases"] == 0
+

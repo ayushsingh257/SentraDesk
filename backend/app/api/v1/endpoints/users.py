@@ -82,3 +82,45 @@ def get_user_notifications(
         "data": notifications,
         "error": None
     }
+
+@router.get("/me/stats", response_model=StandardResponse[Dict[str, Any]])
+def get_user_stats(
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
+):
+    """Retrieve ticket stats (total, open, closed, average resolution time) for the authenticated citizen."""
+    actor_id = uuid.UUID(current_user.get("sub"))
+    user = user_service.get_user_by_id(db, user_id=actor_id)
+    if not user:
+        from app.core.exceptions import NotFoundError
+        raise NotFoundError("User not found")
+
+    from app.models.ticket import Ticket, Complaint
+    tickets = db.query(Ticket).join(Complaint).filter(Complaint.citizen_id == actor_id).all()
+
+    total = len(tickets)
+    open_cases = sum(1 for t in tickets if t.complaint.status not in ("Closed", "Resolved"))
+    closed_cases = sum(1 for t in tickets if t.complaint.status in ("Closed", "Resolved"))
+    pending_followups = sum(1 for t in tickets if t.complaint.status == "Pending Response")
+
+    # Calculate average resolution time in hours for closed tickets
+    resolution_times = []
+    for t in tickets:
+        if t.complaint.status in ("Closed", "Resolved") and t.updated_at and t.created_at:
+            delta = t.updated_at - t.created_at
+            resolution_times.append(delta.total_seconds() / 3600.0)
+
+    avg_res_time = sum(resolution_times) / len(resolution_times) if resolution_times else 0.0
+
+    return {
+        "success": True,
+        "data": {
+            "total_cases": total,
+            "open_cases": open_cases,
+            "closed_cases": closed_cases,
+            "pending_followups": pending_followups,
+            "avg_resolution_time_hours": round(avg_res_time, 1)
+        },
+        "error": None
+    }
+
