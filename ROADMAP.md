@@ -1,684 +1,356 @@
-# 🚀 Cyber Complaint Governance Platform (CCGP) — Consolidated Roadmap
+# CCGP V1 — Project Roadmap
 
-This is the consolidated enterprise implementation roadmap for the **Cyber Complaint Governance Platform (CCGP)**, built in accordance with national cyber cell specifications and enterprise governance guidelines. 
-
-The roadmap is structured into **12 Eras** spanning **100 logical phases** (Phases 0 to 99). 
-
----
-
-## 🗺️ Roadmap Overview
-
-| Era | Focus | Phase Range | Status |
-| --- | --- | --- | --- |
-| **1. Foundation Era** | Project initialization, Docker, core libraries, and db configurations | Phases 0 - 9 | Completed ✅ |
-| **2. Security & Auth Era** | JWT, session management, RBAC, hardening, audit logger foundations | Phases 10 - 19 | Completed ✅ |
-| **3. Intake & Ticket Era** | Multi-channel schema, ticket state machine, assignment, comments, search | Phases 20 - 32 | Completed ✅ |
-| **4. Email Automation Era** | IMAP integration, email parsing, threading, SMTP notifications, and queues | Phases 33 - 41 | Not Started ⏳ |
-| **5. Workflow & SLA Era** | SLA engine, deadline tracking, escalations, L1/L2 approval workflows | Phases 42 - 49 | Not Started ⏳ |
-| **6. Evidence & Storage Era** | MinIO integration, hashing, file verification, evidence management | Phases 50 - 55 | Not Started ⏳ |
-| **7. AI Intelligence Era** | Language detection, categorization, extraction, duplicates, similar cases | Phases 56 - 67 | Not Started ⏳ |
-| **8. Search & Threat Intel** | Global search index, entity search, VirusTotal, reputation feeds | Phases 68 - 73 | Not Started ⏳ |
-| **9. Blockchain Audit Era** | Cryptographic hash chains, Merkle roots, immutable ledger anchoring | Phases 74 - 79 | Not Started ⏳ |
-| **10. Governance & Analytics** | BI dashboards, Leaflet heatmaps, performance indicators, report exports | Phases 80 - 89 | Not Started ⏳ |
-| **11. DevOps & Operations** | Auto backups, restores, Prometheus metrics, Grafana, SIEM routing | Phases 90 - 95 | Not Started ⏳ |
-| **12. Deployment & Release** | CI/CD actions, NGINX configuration, performance/load testing, v1.0 release | Phases 96 - 99 | Not Started ⏳ |
+> **Single source of truth for all development phases.**
+> Updated automatically at the end of every Era.
+> ✅ Completed | ⏳ Pending | 🔄 In Progress
 
 ---
 
-## 🏗️ ERA 1: FOUNDATION ERA (Phases 0 - 9)
-> **Goal:** Set up the repository, configurations, multi-container Docker structures, logging, exception handling, and database interfaces.
+## ERA 0 — Repository Reset & Master Documents
+🔄 **In Progress**
 
-### Phase 0: Project Planning & Repository Architecture
-* **Status:** Completed ✅
-* **Dependencies:** None
-* **Deliverables:** Architecture design, `.gitignore`, licensing, style guidelines (`CONTRIBUTING.md`, `SECURITY.md`).
-* **Acceptance Criteria:** Directory layout is finalized; Git repository is initialized with default rules.
+### Phase 0.1 — Repository Cleanup
+- ✅ Delete obsolete root-level markdown files (CHANGELOG, CONTRIBUTING, FUNCTIONAL_AUDIT_REPORT, RELEASE_NOTES, ROADMAP, SOFTWARE_TEST_CASES)
+- ✅ Delete obsolete frontend source (galaxy homepage, all old components, old pages)
+- ✅ Delete backend artifact files (.db files, scratch)
+- ✅ Update .gitignore (prevent re-committing artifacts)
 
-### Phase 1: Backend Project Initialization
-* **Status:** Completed ✅
-* **Dependencies:** Phase 0
-* **Deliverables:** FastAPI core backend, Pydantic configuration loader, dependencies requirements file.
-* **Acceptance Criteria:** FastAPI server starts successfully and exposes basic setup metrics.
+### Phase 0.2 — Master Documents
+- ✅ Create `brain.md` — permanent project memory
+- ⏳ Create `roadmap.md` — this document
+- ⏳ Rewrite `README.md` — enterprise-grade
+- ⏳ Rewrite `SECURITY.md` — enterprise security policy
+- ⏳ Update `.env.example`
+- ⏳ Update `docker-compose.yml`
 
-### Phase 2: Frontend Project Initialization
-* **Status:** Completed ✅
-* **Dependencies:** Phase 0
-* **Deliverables:** Next.js 15 application initialization with TypeScript and Tailwind CSS.
-* **Acceptance Criteria:** React development server launches and renders the main page.
-
-### Phase 3: PostgreSQL & SQLAlchemy Database Integration
-* **Status:** Completed ✅
-* **Dependencies:** Phase 1
-* **Deliverables:** Database connection pooling, ORM base models, and Alembic database migration config.
-* **Acceptance Criteria:** Health check API verifies database connection connectivity.
-
-### Phase 4: Modular Architecture & Folder Structure
-* **Status:** Completed ✅
-* **Dependencies:** Phase 1, Phase 2
-* **Deliverables:** Segregated routers, services, repositories, schemas, models, and utility folders.
-* **Acceptance Criteria:** Implements clean architecture separation without circular dependencies.
-
-### Phase 5: Environment Configuration & Docker Compose Foundation
-* **Status:** Completed ✅
-* **Dependencies:** Phase 3, Phase 4
-* **Deliverables:** Multi-service `docker-compose.yml` including db, Redis, MinIO, Qdrant, backend, and frontend.
-* **Acceptance Criteria:** All services start and interconnect successfully via `docker compose up --build`.
-
-### Phase 6: Alembic Migrations System & DB Seeding
-* **Status:** Completed ✅
-* **Dependencies:** Phase 3, Phase 5
-* **Deliverables:** Alembic version history folders, db migration script, base data seeding commands.
-* **Acceptance Criteria:** Running migrations applies schema changes without errors; test users are seeded.
-
-### Phase 7: Logging & Diagnostics Infrastructure
-* **Status:** Completed ✅
-* **Dependencies:** Phase 1
-* **Deliverables:** Structured JSON logger, unified application logging middleware.
-* **Acceptance Criteria:** Application actions produce clear logs containing Request-IDs.
-
-### Phase 8: Exception Handling & Global Response Formatting
-* **Status:** Completed ✅
-* **Dependencies:** Phase 1, Phase 4
-* **Deliverables:** Global exception handler, unified JSON response wrapper for error and success states.
-* **Acceptance Criteria:** Any backend error returns standard structured JSON with error detail.
-
-### Phase 9: Redis Caching & Connection Pools
-* **Status:** Completed ✅
-* **Dependencies:** Phase 5
-* **Deliverables:** Centralized Redis service class, connection manager with reuse helper utilities.
-* **Acceptance Criteria:** Redis connection is established; client successfully caches and retrieves keys.
+### Phase 0.3 — Era 0 Verification
+- ⏳ Backend tests pass
+- ⏳ TypeScript check passes
+- ⏳ Commit: `chore: Era 0 - complete repository reset and master documents`
+- ⏳ Push to GitHub
+- ⏳ GitHub Actions green checkmark
 
 ---
 
-## 🔐 ERA 2: SECURITY & AUTHENTICATION FOUNDATION ERA (Phases 10 - 19)
-> **Goal:** Secure the platform using JWT token rotation, Active Session Management, Role-Based Access Control, Rate Limiting, and Secret Enclaves.
+## ERA 1 — Foundation & Design System
+⏳ **Pending**
 
-### Phase 10: JWT Authentication Infrastructure
-* **Status:** Completed ✅
-* **Dependencies:** Phase 3, Phase 6
-* **Deliverables:** Login, Access Token generation APIs, and secure bcrypt password hashing.
-* **Acceptance Criteria:** User can log in with a valid password and receive a signed JWT access token.
+### Phase 1.1 — Design System
+- ⏳ `tailwind.config.js` with design tokens
+- ⏳ `globals.css` — complete design system (colors, typography, spacing, components)
+- ⏳ Root `layout.tsx` with ThemeProvider and AuthProvider
 
-### Phase 11: Refresh Token & Session Management
-* **Status:** Completed ✅
-* **Dependencies:** Phase 10
-* **Deliverables:** Refresh token endpoint, active database-backed session model.
-* **Acceptance Criteria:** Requesting refresh returns new access token; handles token rotation securely.
+### Phase 1.2 — Reusable UI Components
+- ⏳ Button, Card, Badge, Input, Select, Textarea
+- ⏳ Modal, Alert, Avatar, Spinner
+- ⏳ Pagination, StatusBadge, ThemeToggle, Tooltip
 
-### Phase 12: Role-Based Access Control (RBAC) Core
-* **Status:** Completed ✅
-* **Dependencies:** Phase 10, Phase 11
-* **Deliverables:** Core application role configurations (Citizen, Operator, Officer, Investigator, Supervisor, Admin, Auditor).
-* **Acceptance Criteria:** Endpoints verify role flags before executing handlers.
+### Phase 1.3 — Public Layout
+- ⏳ PublicNavbar (CCGP logo, About, Contact, Disclosure, Theme Toggle, Sign In)
+- ⏳ PublicFooter (links to all footer pages)
 
-### Phase 13: Session Revocation & Token Denylist
-* **Status:** Completed ✅
-* **Dependencies:** Phase 9, Phase 11
-* **Deliverables:** Logout API, Redis-backed JWT token denylisting, and administrator session revocation endpoint.
-* **Acceptance Criteria:** Logout invalidates the current access token and deletes the refresh session.
+### Phase 1.4 — Homepage
+- ⏳ Hero section (CCGP name, version, tagline)
+- ⏳ What is CCGP? section
+- ⏳ How CCGP Works section (complete lifecycle diagram/steps)
+- ⏳ Enterprise Features section (AI, Threat Intel, Duplicate Detection, Evidence, RBAC, Audit, Security)
+- ⏳ Why Choose CCGP section
+- ⏳ Track Your Ticket CTA (links to login)
+- ⏳ Footer
 
-### Phase 14: Protected APIs Routing & Auth Middleware
-* **Status:** Completed ✅
-* **Dependencies:** Phase 4, Phase 12
-* **Deliverables:** Route protection dependency decorators, frontend authentication middleware handler.
-* **Acceptance Criteria:** Unauthenticated requests to protected endpoints return `401 Unauthorized`.
+### Phase 1.5 — Static Pages
+- ⏳ About page
+- ⏳ Contact page
+- ⏳ Disclosure page
+- ⏳ Privacy Policy page
+- ⏳ Terms of Service page
+- ⏳ Cookie Policy page
+- ⏳ 404 not-found page
 
-### Phase 15: Security Hardening & Rate Limiting
-* **Status:** Completed ✅
-* **Dependencies:** Phase 9, Phase 14
-* **Deliverables:** Redis rate-limiting decorator, XSS/SQLi sanitizer filters, secure HTTP headers.
-* **Acceptance Criteria:** Exceeding requests/second threshold returns `429 Too Many Requests`.
+### Phase 1.6 — Core Libraries
+- ⏳ `lib/api.ts` — centralized axios instance with JWT injection
+- ⏳ `lib/constants.ts` — roles, statuses, categories
+- ⏳ `lib/utils.ts` — date formatting, ticket number helpers
+- ⏳ `types/index.ts` — all TypeScript interfaces
 
-### Phase 16: Secrets Management Infrastructure
-* **Status:** Completed ✅
-* **Dependencies:** Phase 5
-* **Deliverables:** Pydantic environment loader securing keys and token signing algorithms.
-* **Acceptance Criteria:** Sensitive credentials cannot be checked into source control and load dynamically.
-
-### Phase 17: Step-Up Authentication Framework
-* **Status:** Completed ✅
-* **Dependencies:** Phase 14
-* **Deliverables:** Step-up action flags, multi-factor authorization checkpoints placeholder.
-* **Acceptance Criteria:** Accessing highly sensitive APIs triggers a step-up verify challenge request.
-
-### Phase 18: Application Audit Logging Infrastructure
-* **Status:** Completed ✅
-* **Dependencies:** Phase 7, Phase 12
-* **Deliverables:** Audit logger middleware recording actor, action, timestamp, IP, and target data.
-* **Acceptance Criteria:** User logins, profile changes, and security breaches produce logs in the DB.
-
-### Phase 19: Identity Federation Preps
-* **Status:** Completed ✅
-* **Dependencies:** Phase 14
-* **Deliverables:** SSO-ready configuration files, OIDC endpoint interfaces mapping external roles.
-* **Acceptance Criteria:** Authentication services support extensions for multi-tenant identity.
+### Phase 1.7 — Era 1 Verification
+- ⏳ `npx tsc --noEmit` — zero errors
+- ⏳ `npm run build` — compiles without errors
+- ⏳ All 6 homepage sections visible
+- ⏳ All footer links navigate correctly
+- ⏳ Theme toggle works (light ↔ dark)
+- ⏳ All static pages load
+- ⏳ Responsive on mobile viewport
+- ⏳ Update brain.md, roadmap.md, README.md
+- ⏳ Commit: `feat: Era 1 - Foundation and design system`
+- ⏳ Push, GitHub Actions green
 
 ---
 
-## 🎫 Intakes & Tickets: ERA 3: MULTI-CHANNEL INTAKE & TICKET MANAGEMENT ERA (Phases 20 - 32)
-> **Goal:** Create complaints, automatically track them as tickets, define a strict state-machine workflow, and build management interfaces.
+## ERA 2 — Authentication Flows
+⏳ **Pending**
 
-### Phase 20: Multi-channel Complaint Schema & Data Models
-* **Status:** Completed ✅
-* **Dependencies:** Phase 6
-* **Deliverables:** DB Schema for Complaints and Tickets (supporting Portal, Email, Mobile, Helpline, Police Station).
-* **Acceptance Criteria:** Database updates compile; columns cover title, description, source, and severity.
+### Phase 2.1 — Auth Pages
+- ⏳ Login page (email + password, JWT, role-based redirect)
+- ⏳ Register page (password strength meter, Zod validation, common password rejection)
+- ⏳ Email verification page
+- ⏳ Forgot password page
+- ⏳ Reset password page
 
-### Phase 21: Complaint Submission APIs
-* **Status:** Completed ✅
-* **Dependencies:** Phase 20
-* **Deliverables:** Public submission API, citizen complaint creation validations.
-* **Acceptance Criteria:** Citizen submission accepts inputs, saves to Database, and returns receipt.
+### Phase 2.2 — Auth Infrastructure
+- ⏳ `useAuth.ts` hook
+- ⏳ `AuthProvider` context (JWT storage, refresh logic)
+- ⏳ Route guards at layout level for citizen, officer, admin
+- ⏳ `lib/auth.ts` — token decode, role check, logout
 
-### Phase 22: Ticket Generation Engine
-* **Status:** Completed ✅
-* **Dependencies:** Phase 21
-* **Deliverables:** Ticket creation background worker, sequence-based ticket number generator.
-* **Acceptance Criteria:** Submitting a complaint automatically generates a ticket with tag `CCGP-2026-XXXX`.
+### Phase 2.3 — Backend Refactors
+- ⏳ `POST /complaints/submit` — add system_administrator guard
+- ⏳ `GET /users/list` — raise minimum role to system_administrator
+- ⏳ `POST /email/receive-mock` — add system_administrator guard
+- ⏳ `GET /metrics` — add system_administrator guard
 
-### Phase 23: Ticket Lifecycle & State Machine
-* **Status:** Completed ✅
-* **Dependencies:** Phase 22
-* **Deliverables:** State transition rules engine, valid state transition guard middleware.
-* **Acceptance Criteria:** Validates lifecycle changes (e.g. Assigned -> Investigation; denies Assigned -> Closed directly).
-
-### Phase 24: Ticket Versioning & History Model
-* **Status:** Completed ✅
-* **Dependencies:** Phase 20
-* **Deliverables:** Ticket version table saving before/after JSON structures on every ticket change.
-* **Acceptance Criteria:** Modifying ticket attributes inserts history record with author ID.
-
-### Phase 25: Ticket Assignment Rules Engine
-* **Status:** Completed ✅
-* **Dependencies:** Phase 22
-* **Deliverables:** Automatic routing rules evaluating Category, Severity, and Jurisdiction.
-* **Acceptance Criteria:** Tickets are auto-routed to matching regional cyber cell teams.
-
-### Phase 26: Assignment Groups & Distribution Lists
-* **Status:** Completed ✅
-* **Dependencies:** Phase 25
-* **Deliverables:** Database mapping of user officers to specific teams (e.g. Fraud Investigation Unit).
-* **Acceptance Criteria:** Assignment APIs support assigning tickets to a group or team.
-
-### Phase 27: Ticket Merge & Linking Engine
-* **Status:** Completed ✅
-* **Dependencies:** Phase 22
-* **Deliverables:** Endpoints to link related tickets, merge duplicates, and mark parent-child relations.
-* **Acceptance Criteria:** Merging links duplicate tickets to primary ticket and synchronizes updates.
-
-### Phase 28: Internal Comment System
-* **Status:** Completed ✅
-* **Dependencies:** Phase 22
-* **Deliverables:** DB models, GET/POST APIs for officer ticket comments and attachment details.
-* **Acceptance Criteria:** Authenticated officers can read/write ticket comments.
-
-### Phase 29: Officer Private Notes System
-* **Status:** Completed ✅
-* **Dependencies:** Phase 28
-* **Deliverables:** Database schema for internal-only notes flag, hide-from-citizen permissions.
-* **Acceptance Criteria:** Only authorized officers can view private comments/notes.
-
-### Phase 30: Activity Feed & Timeline Generator
-* **Status:** Completed ✅
-* **Dependencies:** Phase 24, Phase 28
-* **Deliverables:** Aggregator service combining history, comments, and status events into a single sorted timeline.
-* **Acceptance Criteria:** GET API returns a chronologically sorted feed of events for any ticket ID.
-
-### Phase 31: Ticket Search & Advanced Filter Backend
-* **Status:** Completed ✅
-* **Dependencies:** Phase 20
-* **Deliverables:** PostgreSQL indexing, flexible query endpoints (status, priority, reporter, assigned).
-* **Acceptance Criteria:** Filter API filters tickets instantly and returns matching lists.
-
-### Phase 32: Frontend Ticket Queue & Detail View
-* **Status:** Completed ✅
-* **Dependencies:** Phase 2, Phase 14
-* **Deliverables:** Ticket management dashboards, sorting lists, card components, detailed ticket logs view.
-* **Acceptance Criteria:** Authenticated officer can view, search, and navigate ticket lists in browser.
+### Phase 2.4 — Era 2 Verification
+- ⏳ Backend tests pass
+- ⏳ `npx tsc --noEmit` — zero errors
+- ⏳ Citizen registers → email verification → login → citizen dashboard
+- ⏳ Invalid password rejected (strength, common passwords)
+- ⏳ Login redirects by role (citizen/officer/admin)
+- ⏳ Unauthenticated access redirects to login
+- ⏳ Citizen cannot access officer/admin routes
+- ⏳ Forgot/reset password flow complete
+- ⏳ Update brain.md, roadmap.md, README.md
+- ⏳ Commit: `feat: Era 2 - Authentication flows`
+- ⏳ Push, GitHub Actions green
 
 ---
 
-## 📧 ERA 4: EMAIL AUTOMATION ERA (Phases 33 - 41)
-> **Goal:** Connect systems to external mailbox, parse incoming emails, automatically create tickets, and dispatch status alerts.
+## ERA 3 — Citizen Portal
+⏳ **Pending**
 
-### Phase 33: Email Listener Infrastructure
-* **Status:** Completed ✅
-* **Dependencies:** Phase 9, Phase 22
-* **Deliverables:** IMAP connection library, background worker listener polling mailbox.
-* **Acceptance Criteria:** Worker establishes TLS connection, reads new emails from Inbox.
+### Phase 3.1 — Citizen Dashboard
+- ⏳ KPI cards (Open, Closed, Under Investigation, Pending Response)
+- ⏳ Recent notifications panel
+- ⏳ Recent ticket activity
+- ⏳ Citizen sidebar navigation
 
-### Phase 34: Email Parsing Engine
-* **Status:** Completed ✅
-* **Dependencies:** Phase 33
-* **Deliverables:** Email message headers parser, body plain-text/HTML decoder helper.
-* **Acceptance Criteria:** Parses fields like from, subject, date, body contents successfully.
+### Phase 3.2 — Raise Complaint
+- ⏳ Full complaint form (all fields)
+- ⏳ Multi-file upload (images, PDF, docs)
+- ⏳ Form validation with Zod
+- ⏳ Success screen with ticket number
+- ⏳ Acknowledgement email + in-app notification
 
-### Phase 35: Attachment Processing & Storage
-* **Status:** Completed ✅
-* **Dependencies:** Phase 34
-* **Deliverables:** Attachment files reader, storage pipeline streaming attachments.
-* **Acceptance Criteria:** Downloads attachment file byte-arrays, prepares metadata headers.
+### Phase 3.3 — Ticket Management
+- ⏳ My Tickets list (status filter, search, sort)
+- ⏳ Ticket card component
+- ⏳ Ticket Detail page
+- ⏳ Visual timeline component
+- ⏳ Evidence panel (list + upload)
+- ⏳ Conversation thread (public messages)
+- ⏳ Follow-up message submission
+- ⏳ Additional evidence upload
 
-### Phase 36: Email Threading & Conversation History
-* **Status:** Completed ✅
-* **Dependencies:** Phase 34
-* **Deliverables:** Database index tracking headers (`In-Reply-To`, `References`).
-* **Acceptance Criteria:** Map incoming email replies to existing ticket threads instead of creating new ones.
+### Phase 3.4 — Notifications & Profile
+- ⏳ Notification Center page
+- ⏳ Mark as read / mark all read
+- ⏳ Notification bell badge (unread count)
+- ⏳ Profile page
+- ⏳ Settings page (password change, preferences)
 
-### Phase 37: Automatic Ticket Creation from Email
-* **Status:** Completed ✅
-* **Dependencies:** Phase 22, Phase 34
-* **Deliverables:** Intake parser executing complaint creation parameters from email body.
-* **Acceptance Criteria:** Valid email complaint creates active ticket with email source indicator.
+### Phase 3.5 — Post-Closure
+- ⏳ Feedback modal (rating + comments)
+- ⏳ Ticket reopen flow
 
-### Phase 38: SMTP Mail Dispatcher
-* **Status:** Completed ✅
-* **Dependencies:** Phase 1
-* **Deliverables:** SMTP mail delivery service wrapper.
-* **Acceptance Criteria:** Dispatches test email with HTML templates securely.
+### Phase 3.6 — New Backend APIs
+- ⏳ `GET /api/v1/users/me/stats`
+- ⏳ `PUT /api/v1/users/me`
+- ⏳ `PUT /api/v1/users/me/password`
+- ⏳ `GET /api/v1/users/notifications/unread-count`
+- ⏳ `PUT /api/v1/users/notifications/{id}/read`
+- ⏳ `PUT /api/v1/users/notifications/read-all`
 
-### Phase 39: Notification Templates Engine
-* **Status:** Completed ✅
-* **Dependencies:** Phase 38
-* **Deliverables:** Jinja2 dynamic template folders (Ticket Created, SLA Alert, Closed status).
-* **Acceptance Criteria:** Combines ticket variables with template HTML dynamically.
-
-### Phase 40: Notification History & Delivery Tracking
-* **Status:** Completed ✅
-* **Dependencies:** Phase 38
-* **Deliverables:** Notification logs table saving target, template, status (Sent, Failed), retry count.
-* **Acceptance Criteria:** Dispatched notifications insert status logs into Database.
-
-### Phase 41: Email Queue & Reliability Retry Engine
-* **Status:** Completed ✅
-* **Dependencies:** Phase 9, Phase 40
-* **Deliverables:** Celery background tasks retry handler.
-* **Acceptance Criteria:** Automatic retry for failed notifications with exponential backoff.
-
----
-
-## ⚖️ ERA 5: WORKFLOW & SLA MANAGEMENT ERA (Phases 42 - 49)
-> **Goal:** Track SLAs, configure escalations, enforce two-layer human-in-the-loop approvals.
-
-### Phase 42: SLA Model & Configuration
-* **Status:** Completed ✅
-* **Dependencies:** Phase 20
-* **Deliverables:** SLA rules table assigning deadlines by severity.
-* **Acceptance Criteria:** SLA policies can be saved and mapped dynamically.
-
-### Phase 43: SLA Engine & Timer Service
-* **Status:** Completed ✅
-* **Dependencies:** Phase 42
-* **Deliverables:** Expiration times calculation logic, remaining-time active timers in DB.
-* **Acceptance Criteria:** Ticket record displays SLA deadline datetime on initialization.
-
-### Phase 44: SLA Breach Monitoring & Alerts
-* **Status:** Completed ✅
-* **Dependencies:** Phase 43
-* **Deliverables:** Celery cron checking imminent SLA deadlines.
-* **Acceptance Criteria:** Triggers alarms when ticket remains open past threshold limit.
-
-### Phase 45: SLA Escalation Engine
-* **Status:** Completed ✅
-* **Dependencies:** Phase 44
-* **Deliverables:** Automatic escalations dispatcher (reassigns team, boosts ticket priority).
-* **Acceptance Criteria:** Breached tickets escalate to Supervisor category automatically.
-
-### Phase 46: Ticket Closure Approval Workflow
-* **Status:** Completed ✅
-* **Dependencies:** Phase 23
-* **Deliverables:** Approval request flag, closure-requested status transition guards.
-* **Acceptance Criteria:** Transitioning ticket to closed requires active approvals.
-
-### Phase 47: L1 Approval Workflow & Verification
-* **Status:** Completed ✅
-* **Dependencies:** Phase 46
-* **Deliverables:** L1 approval validation routes, comments, decisions logging database schema.
-* **Acceptance Criteria:** Supervisor reviews and signs off; pushes ticket to L2 status.
-
-### Phase 48: L2 Approval Workflow & Final Resolution
-* **Status:** Completed ✅
-* **Dependencies:** Phase 47
-* **Deliverables:** L2 approval sign-off endpoints.
-* **Acceptance Criteria:** Senior Supervisor approves; ticket state changes to Closed.
-
-### Phase 49: Workflow Dashboard
-* **Status:** Completed ✅
-* **Dependencies:** Phase 32, Phase 46
-* **Deliverables:** Multi-level pending approval listings in the dashboard UI.
-* **Acceptance Criteria:** Supervisors can view and action all pending approvals in grid format.
+### Phase 3.7 — Era 3 Verification
+- ⏳ Backend tests pass
+- ⏳ `npx tsc --noEmit` — zero errors
+- ⏳ Complete citizen journey: register → login → complaint → ticket → track → follow-up → notification
+- ⏳ Ticket number format correct (CCGP-YYYY-NNNNNN)
+- ⏳ Profile, settings, password change all work
+- ⏳ No data loss after logout + re-login
+- ⏳ Update brain.md, roadmap.md, README.md
+- ⏳ Commit: `feat: Era 3 - Citizen portal`
+- ⏳ Push, GitHub Actions green
 
 ---
 
-## 📂 ERA 6: EVIDENCE & STORAGE ERA (Phases 50 - 55)
-> **Goal:** Integrate MinIO Object Storage, hash uploads, manage file versions.
+## ERA 4 — Officer Portal
+⏳ **Pending**
 
-### Phase 50: MinIO Storage Client Service
-* **Status:** Completed ✅
-* **Dependencies:** Phase 5
-* **Deliverables:** MinIO Python API adapter, bucket initialization logic.
-* **Acceptance Criteria:** Backend uploads and downloads file bytes using mock storage.
+### Phase 4.1 — Officer Dashboard
+- ⏳ KPI cards (Assigned, Open, Under Investigation, Pending, Closed, Avg Resolution, SLA)
+- ⏳ High priority queue
+- ⏳ Officer sidebar navigation
 
-### Phase 51: Evidence Upload & Metadata Schema
-* **Status:** Completed ✅
-* **Dependencies:** Phase 50
-* **Deliverables:** Evidence schema, pre-signed upload URLs generator endpoints.
-* **Acceptance Criteria:** Client requests secure pre-signed link, uploads file to bucket.
+### Phase 4.2 — Ticket Investigation
+- ⏳ Assigned Tickets list (role-filtered)
+- ⏳ Officer Ticket Detail page
+- ⏳ AI Assistant panel
+- ⏳ Threat Intelligence panel
+- ⏳ Private Notes (officer-only)
+- ⏳ Public Conversation thread
+- ⏳ Evidence Manager (download, verify, upload)
+- ⏳ Status workflow (validated transitions)
 
-### Phase 52: Evidence Cryptographic Hashing
-* **Status:** Completed ✅
-* **Dependencies:** Phase 51
-* **Deliverables:** SHA-256 calculation middleware processing uploads.
-* **Acceptance Criteria:** Database records secure hash signature alongside file details.
+### Phase 4.3 — Closure & Approvals
+- ⏳ Closure request workflow
+- ⏳ Confirmation popup
+- ⏳ L1/L2 Approval UI (supervisor view)
+- ⏳ PDF report download
 
-### Phase 53: Evidence Versioning & History
-* **Status:** Completed ✅
-* **Dependencies:** Phase 51
-* **Deliverables:** File versions history log, parent-version mapping indexes.
-* **Acceptance Criteria:** Re-uploading evidence creates new file version while retaining the old one.
+### Phase 4.4 — Backend Refactors
+- ⏳ `PUT /tickets/{id}/status` — add transition validation matrix
+- ⏳ Remove duplicate approval route from tickets.py
+- ⏳ `GET /api/v1/officer/dashboard` — new endpoint
+- ⏳ `GET /api/v1/tickets/{id}/notes` — implement fetch endpoint
 
-### Phase 54: Bulk Evidence Retrieval & Zipping
-* **Status:** Completed ✅
-* **Dependencies:** Phase 50
-* **Deliverables:** Zip compilation service.
-* **Acceptance Criteria:** Requests download of multiple evidence assets; returns single ZIP archive.
-
-### Phase 55: Evidence Management UI
-* **Status:** Completed ✅
-* **Dependencies:** Phase 32, Phase 51
-* **Deliverables:** Upload fields, evidence viewer grid in Next.js portal.
-* **Acceptance Criteria:** Officers drag-and-drop evidence, see file status and validation checks.
-
----
-
-## 🤖 ERA 7: AI FOUNDATION & INTELLIGENCE ERA (Phases 56 - 67)
-> **Goal:** Deploy MLflow, detect language, classify categories, extract entities, run similarity searches on Qdrant, calculate confidence.
-
-### Phase 56: AI Architecture & Framework Setup
-* **Status:** Completed ✅
-* **Dependencies:** Phase 5
-* **Deliverables:** MLflow interface setup, pipeline execution base class.
-* **Acceptance Criteria:** MLflow logs initialization data, models registry interface is ready.
-
-### Phase 57: Language Detection Service
-* **Status:** Completed ✅
-* **Dependencies:** Phase 56
-* **Deliverables:** Language identification utility (supporting English, Hindi, regional dialects).
-* **Acceptance Criteria:** Categorizes input text language accurately before AI processing.
-
-### Phase 58: AI Complaint Classification Model
-* **Status:** Completed ✅
-* **Dependencies:** Phase 57
-* **Deliverables:** Text classifier service predicting complaint class (e.g. Cyber Financial Fraud).
-* **Acceptance Criteria:** ML model categorizes complaint with probability distribution list.
-
-### Phase 59: AI Entity Extraction Engine
-* **Status:** Completed ✅
-* **Dependencies:** Phase 57
-* **Deliverables:** Named Entity Recognition (NER) pipeline (Phone, Email, UPI, Wallet, PAN).
-* **Acceptance Criteria:** Processes complaint body, returns lists of extracted technical entities.
-
-### Phase 60: AI Severity & Risk Scoring Engine
-* **Status:** Completed ✅
-* **Dependencies:** Phase 58
-* **Deliverables:** Risk calculation engine (scores 0-100 based on financial loss, victim profiles).
-* **Acceptance Criteria:** Returns risk score and category classification (Critical, High, Medium, Low).
-
-### Phase 61: Vector Search Database Integration
-* **Status:** Completed ✅
-* **Dependencies:** Phase 5
-* **Deliverables:** Qdrant DB Python wrapper, collection schemas.
-* **Acceptance Criteria:** Connects to Qdrant cluster, initializes vectors collection.
-
-### Phase 62: AI Duplicate Complaint Detection
-* **Status:** Completed ✅
-* **Dependencies:** Phase 61
-* **Deliverables:** Text embeddings generator, similarity threshold matcher.
-* **Acceptance Criteria:** Checks Qdrant index; flags similar incoming complaints as possible duplicates.
-
-### Phase 63: AI Complaint Similarity Search
-* **Status:** Completed ✅
-* **Dependencies:** Phase 62
-* **Deliverables:** Similarity search API.
-* **Acceptance Criteria:** GET api returns listing of related past complaints with similarity scores.
-
-### Phase 64: Human-in-the-Loop Review Queue
-* **Status:** Completed ✅
-* **Dependencies:** Phase 23, Phase 58
-* **Deliverables:** Low-confidence queue model, routing logic.
-* **Acceptance Criteria:** Routes complaints with confidence score < threshold to Operator review queue.
-
-### Phase 65: AI Confidence Scores & Explainability
-* **Status:** Completed ✅
-* **Dependencies:** Phase 58
-* **Deliverables:** Explainability logger, confidence tracker.
-* **Acceptance Criteria:** Stores confidence percentage and brief decision reasoning alongside prediction.
-
-### Phase 66: Investigator AI Assistant
-* **Status:** Completed ✅
-* **Dependencies:** Phase 59, Phase 65
-* **Deliverables:** Summary generator API, list of recommended next steps.
-* **Acceptance Criteria:** Provides case summary to the officer in the detailed ticket view.
-
-### Phase 67: AI Decision Logs & Performance Monitoring
-* **Status:** Completed ✅
-* **Dependencies:** Phase 18, Phase 56
-* **Deliverables:** AI model audit logs in DB, logs metrics to MLflow.
-* **Acceptance Criteria:** Logs inputs, outputs, models version, and latency statistics.
+### Phase 4.5 — Era 4 Verification
+- ⏳ Backend tests pass
+- ⏳ Officer KPI cards load with real data
+- ⏳ Officer sees only assigned tickets
+- ⏳ AI Assistant, Threat Intel panels work
+- ⏳ Private note NOT visible to citizen
+- ⏳ Public reply visible to citizen + notification triggered
+- ⏳ Closure → L1 approval → L2 approval → closed (full flow)
+- ⏳ Citizen receives closure notification
+- ⏳ Update brain.md, roadmap.md, README.md, SECURITY.md
+- ⏳ Commit: `feat: Era 4 - Officer portal`
+- ⏳ Push, GitHub Actions green
 
 ---
 
-## 🔍 ERA 8: SEARCH & THREAT INTELLIGENCE ERA (Phases 68 - 73)
-> **Goal:** Run advanced keyword/vector search, index entities, scan files via VirusTotal.
+## ERA 5 — Admin Portal
+⏳ **Pending**
 
-### Phase 68: Global Advanced Search Backend
-* **Status:** Completed ✅
-* **Dependencies:** Phase 31, Phase 61
-* **Deliverables:** Unified SQL + Vector Search service class.
-* **Acceptance Criteria:** Performs combined queries across text databases and vector collections.
+### Phase 5.1 — Admin Dashboard & Navigation
+- ⏳ Admin KPI cards (platform-wide stats)
+- ⏳ Admin sidebar navigation
 
-### Phase 69: Entity-Specific Search Index
-* **Status:** Completed ✅
-* **Dependencies:** Phase 59
-* **Deliverables:** Specialized indexes for Phone, UPI, Email, Bank Account, Wallet, PAN.
-* **Acceptance Criteria:** Searching a phone number immediately lists all tickets where it was extracted.
+### Phase 5.2 — User & Officer Management
+- ⏳ User Management page (CRUD, role assignment)
+- ⏳ Officer Management page (performance, assignments)
 
-### Phase 70: Threat Intelligence Core
-* **Status:** Completed ✅
-* **Dependencies:** Phase 4
-* **Deliverables:** Indicators of Compromise (IoC) database mappings.
-* **Acceptance Criteria:** Defines models to host blacklisted IPs, malicious domains, fraudulent accounts.
+### Phase 5.3 — Configuration
+- ⏳ Assignment Rules configuration
+- ⏳ Email Directory management
+- ⏳ Notification Templates management
+- ⏳ System Configuration (SLA rules, categories)
 
-### Phase 71: VirusTotal Integration API
-* **Status:** Completed ✅
-* **Dependencies:** Phase 50
-* **Deliverables:** VirusTotal API adapter scanning uploaded evidence files.
-* **Acceptance Criteria:** Flag uploaded binaries/files that contain matching malware hashes.
+### Phase 5.4 — Monitoring & Compliance
+- ⏳ System Health page (all 6 services)
+- ⏳ Audit Log viewer (hash chain, integrity check)
+- ⏳ Analytics page (trends, performance, satisfaction)
 
-### Phase 72: AbuseIPDB & OTX Reputation Integrations
-* **Status:** Completed ✅
-* **Dependencies:** Phase 70
-* **Deliverables:** Reputation check services queries dispatcher.
-* **Acceptance Criteria:** Queries external APIs; returns threat score for IP/domains.
+### Phase 5.5 — New Backend APIs
+- ⏳ `GET /api/v1/admin/dashboard`
+- ⏳ `GET /api/v1/admin/users`
+- ⏳ `PUT /api/v1/admin/users/{id}`
+- ⏳ `GET /api/v1/admin/system-health` (extended)
+- ⏳ Fix `GET /governance/kpis` hardcoded mock data
 
-### Phase 73: Unified Search UI
-* **Status:** Completed ✅
-* **Dependencies:** Phase 32, Phase 68
-* **Deliverables:** Faceted search page with tags, date sliders, exports controls.
-* **Acceptance Criteria:** Display query results with highlights and filters in the web browser.
-
----
-
-## ⛓ ERA 9: BLOCKCHAIN AUDIT & INTEGRITY ERA (Phases 74 - 79)
-> **Goal:** Hash-chain audit logs, build Merkle roots, anchor hashes, implement verification dashboard.
-
-### Phase 74: Hash-Based Audit Chain Service
-* **Status:** Completed ✅
-* **Dependencies:** Phase 18
-* **Deliverables:** Row-level hashing triggers in DB.
-* **Acceptance Criteria:** Each audit log insert contains a hash computed from data + previous log hash.
-
-### Phase 75: Merkle Tree Generator
-* **Status:** Completed ✅
-* **Dependencies:** Phase 74
-* **Deliverables:** Merkle tree compiler library.
-* **Acceptance Criteria:** Groups audit records in batch interval; outputs Merkle root hash.
-
-### Phase 76: Hyperledger / Verifiable Journal Client
-* **Status:** Completed ✅
-* **Dependencies:** Phase 75
-* **Deliverables:** Permissioned ledger driver / journaling mock service.
-* **Acceptance Criteria:** Submits batch Merkle root to external ledger node; saves tx index.
-
-### Phase 77: Audit Verification Engine
-* **Status:** Completed ✅
-* **Dependencies:** Phase 74, Phase 76
-* **Deliverables:** Integrity check script re-hashing rows and verifying anchors.
-* **Acceptance Criteria:** Detects alterations (modified values, deleted rows, gap breaks).
-
-### Phase 78: Auditor Workspace & Verification UI
-* **Status:** Completed ✅
-* **Dependencies:** Phase 32, Phase 77
-* **Deliverables:** Auditor dashboard panel showing ledger status, mismatch alarms.
-* **Acceptance Criteria:** Auditor runs verification check, visually monitors validation logs.
-
-### Phase 79: Audit Logs Exporter
-* **Status:** Completed ✅
-* **Dependencies:** Phase 78
-* **Deliverables:** PDF report compiler with verification signatures.
-* **Acceptance Criteria:** Generates signed audit log exports for court evidence.
+### Phase 5.6 — Era 5 Verification
+- ⏳ Backend tests pass
+- ⏳ Admin platform stats show real data
+- ⏳ User management CRUD works
+- ⏳ System health shows correct status for all services
+- ⏳ Audit logs display with hash chain
+- ⏳ Update brain.md, roadmap.md, README.md, SECURITY.md
+- ⏳ Commit: `feat: Era 5 - Admin portal`
+- ⏳ Push, GitHub Actions green
 
 ---
 
-## 📊 ERA 10: GOVERNANCE, ANALYTICS & REPORTING ERA (Phases 80 - 89)
-> **Goal:** Deploy Leaflet maps, show investigator KPIs, generate complaint PDFs.
+## ERA 6 — Backend Polish & AI Modules
+⏳ **Pending**
 
-### Phase 80: Executive Governance Dashboard
-* **Status:** Completed ✅
-* **Dependencies:** Phase 32
-* **Deliverables:** High-level metrics view: active complaints, solve rates, SLA status.
-* **Acceptance Criteria:** Shows real-time statistics panels for cyber cell executives.
+### Phase 6.1 — AI Module Verification
+- ⏳ Classification module verified
+- ⏳ Entity extraction verified
+- ⏳ Severity engine verified
+- ⏳ Duplicate detection verified
+- ⏳ Investigator assistant verified
+- ⏳ Language detection verified
+- ⏳ Confidence scoring verified
 
-### Phase 81: Operations & Analytics Dashboard
-* **Status:** Completed ✅
-* **Dependencies:** Phase 80
-* **Deliverables:** Recharts-based statistics graphs, category-wise breakdowns.
-* **Acceptance Criteria:** Visual analytics load correctly.
+### Phase 6.2 — Enterprise Modules
+- ⏳ Threat Intelligence integrations verified
+- ⏳ Email automation engine verified
+- ⏳ SLA engine verified
+- ⏳ Notification engine verified
+- ⏳ Evidence integrity (hash, versioning) verified
+- ⏳ Search engine verified
+- ⏳ PDF reporting verified
 
-### Phase 82: District & State Heatmaps
-* **Status:** Completed ✅
-* **Dependencies:** Phase 81
-* **Deliverables:** React Leaflet geo maps component mapping regional incident counts.
-* **Acceptance Criteria:** Renders visual heat map indicating high-activity sectors.
+### Phase 6.3 — Admin API Module
+- ⏳ `backend/app/api/v1/endpoints/admin.py` complete
+- ⏳ Governance KPI endpoint fixed (no mock data)
 
-### Phase 83: Investigator Performance Analytics
-* **Status:** Completed ✅
-* **Dependencies:** Phase 80
-* **Deliverables:** Performance logs parser showing average close times, backlog counts.
-* **Acceptance Criteria:** Admins can view individual officer workload metrics.
-
-### Phase 84: Complaint Reports Generator
-* **Status:** Completed ✅
-* **Dependencies:** Phase 20
-* **Deliverables:** PDF exporter for single complaint sheets.
-* **Acceptance Criteria:** Exports detailed complaint report file upon clicking print.
-
-### Phase 85: Investigation Reports Generator
-* **Status:** Completed ✅
-* **Dependencies:** Phase 51, Phase 84
-* **Deliverables:** Case report generator compile-service.
-* **Acceptance Criteria:** Compiles timeline, evidence logs, notes, metadata into single PDF.
-
-### Phase 86: Executive Governance Reports Scheduler
-* **Status:** Completed ✅
-* **Dependencies:** Phase 41, Phase 85
-* **Deliverables:** Celery background scheduling, auto-emails reports.
-* **Acceptance Criteria:** Automates delivery of monthly analytics reports to supervisors.
-
-### Phase 87: AI Model Decision Reports
-* **Status:** Completed ✅
-* **Dependencies:** Phase 67
-* **Deliverables:** Model classification evaluation reports.
-* **Acceptance Criteria:** Reports accuracy percentages, drift values, override counts.
-
-### Phase 88: SLA & Escalation Reporting
-* **Status:** Completed ✅
-* **Dependencies:** Phase 44, Phase 85
-* **Deliverables:** SLA violations report compiler.
-* **Acceptance Criteria:** Identifies department queues having the highest breach percentages.
-
-### Phase 89: BI Data Export API
-* **Status:** Completed ✅
-* **Dependencies:** Phase 14
-* **Deliverables:** Secure, token-authorized database exports API (JSON/CSV).
-* **Acceptance Criteria:** External reporting platforms (PowerBI) retrieve analytics securely.
+### Phase 6.4 — Era 6 Verification
+- ⏳ All backend tests pass (100%)
+- ⏳ E2E functional test suite passes
+- ⏳ AI pipeline processes test complaint correctly
+- ⏳ Evidence upload → hash → download → verified
+- ⏳ Celery offline — application still functions
+- ⏳ Update brain.md, roadmap.md, README.md
+- ⏳ Commit: `feat: Era 6 - Backend polish and AI modules`
+- ⏳ Push, GitHub Actions green
 
 ---
 
-## 🛡️ ERA 11: DEVOPS, BACKUP & OPERATIONS ERA (Phases 90 - 95)
-> **Goal:** Automate database/MinIO backups, deploy Prometheus/Grafana, implement SIEM.
+## ERA 7 — Testing, CI/CD & Final Documentation
+⏳ **Pending**
 
-### Phase 90: Automated PostgreSQL Backup Manager
-* **Status:** Completed ✅
-* **Dependencies:** Phase 5, Phase 9
-* **Deliverables:** Celery database backup scheduler.
-* **Acceptance Criteria:** Generates `.sql` backup files, compresses and saves them.
+### Phase 7.1 — Test Suite
+- ⏳ Review all existing tests for gaps
+- ⏳ Add missing unit tests
+- ⏳ Add missing integration tests
+- ⏳ All tests pass with no warnings
 
-### Phase 91: Evidence Storage Backup System
-* **Status:** Completed ✅
-* **Dependencies:** Phase 50, Phase 90
-* **Deliverables:** Object replication utility backing up MinIO buckets.
-* **Acceptance Criteria:** Syncs local evidence files with backup directories.
+### Phase 7.2 — CI/CD
+- ⏳ Update `.github/workflows/ci.yml` for new structure
+- ⏳ Frontend build check in CI
+- ⏳ Backend tests in CI
 
-### Phase 92: Restore & Disaster Recovery Verification
-* **Status:** Completed ✅
-* **Dependencies:** Phase 90
-* **Deliverables:** Recovery testing shell commands/scripts.
-* **Acceptance Criteria:** Validates backups integrity by restoring to test db instance automatically.
+### Phase 7.3 — Final Documentation
+- ⏳ `README.md` final pass (screenshots, full API docs)
+- ⏳ `brain.md` all sections current
+- ⏳ `roadmap.md` all eras marked complete
+- ⏳ `SECURITY.md` final review
 
-### Phase 93: Prometheus Metrics & Health-Check Endpoints
-* **Status:** Completed ✅
-* **Dependencies:** Phase 7
-* **Deliverables:** Prometheus client library integration in FastAPI.
-* **Acceptance Criteria:** `/metrics` endpoint exports CPU, request count, db pool count.
-
-### Phase 94: Grafana Dashboard Setup
-* **Status:** Completed ✅
-* **Dependencies:** Phase 93
-* **Deliverables:** Configured Grafana UI dashboards.
-* **Acceptance Criteria:** Graphically displays metrics metrics.
-
-### Phase 95: SIEM Integration System
-* **Status:** Completed ✅
-* **Dependencies:** Phase 7
-* **Deliverables:** Syslog JSON output configuration.
-* **Acceptance Criteria:** Forwards audit and error events to external collectors.
+### Phase 7.4 — Final Verification
+- ⏳ Complete localhost walkthrough: citizen → officer → admin full journey
+- ⏳ No TypeScript errors
+- ⏳ No ESLint errors
+- ⏳ All links work
+- ⏳ All forms validate correctly
+- ⏳ No hardcoded URLs anywhere
+- ⏳ Commit: `feat: Era 7 - Complete testing and documentation`
+- ⏳ Push, GitHub Actions green
 
 ---
 
-## 🚀 ERA 12: DEPLOYMENT & ENTERPRISE VALIDATION ERA (Phases 96 - 99)
-> **Goal:** Setup CI/CD, configure NGINX, load test, deploy v1.0.
+## Future Expansion (Post V1)
 
-### Phase 96: GitHub Actions CI/CD Pipeline
-* **Status:** Completed ✅
-* **Dependencies:** None
-* **Deliverables:** `.github/workflows/ci.yml` file.
-* **Acceptance Criteria:** Checks out code, triggers linting (ruff, eslint), runs tests.
+- LLM integration for deeper complaint analysis
+- OCR for evidence document extraction
+- Voice complaint intake (speech-to-text)
+- Mobile application (React Native)
+- SMS and WhatsApp notification channels
+- Predictive analytics and fraud pattern detection
+- Network graph analysis (relationship mapping between complainants/suspects)
+- Multi-language complaint support
+- Blockchain anchoring for audit logs
+- Multi-tenancy (multiple cyber departments)
+- API gateway for external integrations
 
-### Phase 97: NGINX Reverse Proxy & TLS Configuration
-* **Status:** Completed ✅
-* **Dependencies:** Phase 5
-* **Deliverables:** NGINX config file setting up proxies, headers, SSL paths.
-* **Acceptance Criteria:** NGINX handles traffic, terminates TLS.
+---
 
-### Phase 98: Production Stability & Load Testing
-* **Status:** Completed ✅
-* **Dependencies:** Phase 97
-* **Deliverables:** Locust test scripts simulating concurrent requests.
-* **Acceptance Criteria:** Application maintains <200ms latency under benchmark load.
-
-### Phase 99: CCGP Enterprise Edition v1.0 Release
-* **Status:** Completed ✅
-* **Dependencies:** All previous phases
-* **Deliverables:** Final deployment builds, version release documentation, git tags.
-* **Acceptance Criteria:** Complete platform verified; passes checklist; builds clean.
+*Last updated: Era 0 — Repository Reset*
