@@ -107,14 +107,20 @@ CCGP is a production-oriented, AI-assisted cyber complaint governance platform d
 6. **Language Detection** — Automatic language identification for future multilingual support
 7. **Confidence Scoring** — Low-confidence predictions routed to human review queue
 
-### Enterprise Modules
-- **Evidence Management** — Presigned MinIO URLs, SHA-256 hashing, versioning, chain of custody
-- **SLA Engine** — Deadline tracking by severity with automatic escalation
-- **Notification Engine** — Email + in-app notifications for all major ticket events
-- **Approval Workflow** — Two-tier supervisor approval for complaint closure
-- **Audit Trail** — Cryptographic SHA-256 hash chain with tamper detection
-- **Search Engine** — Hybrid keyword + semantic vector search across all tickets
-- **Email Automation** — IMAP polling, email-to-ticket conversion, threading
+### Enterprise Modules & Governance
+
+- **Multi-Channel Intake** — Support for complaint ingestion from web portal, email channels, helplines, and API gateways.
+- **Email Automation** — Periodic IMAP polling, automated email-to-ticket conversion, conversational reply threading, and automated notification dispatches.
+- **Workflow & Approval** — Dual-tier supervisor approval (L1 Supervisor + L2 Senior Supervisor validation) with confirmation prompts before final case closure.
+- **Notification Engine** — Multi-channel notification pipeline (SMTP email dispatches + real-time in-app bell notification drawers with read/unread flags).
+- **Analytics & SLA Engine** — Dynamic dashboard KPI charts calculating case volume, SLA breach thresholds, and average resolution times.
+- **AI Intelligence** — Automatic fraud categorisation (SGD Classifier), entity extraction (regex parser), severity risk mapping, and Vector Similarity duplicate matching (via Qdrant).
+- **Compliance & Audit Trail** — Tamper-evident cryptographic SHA-256 hash chains connecting all actions, alongside detailed multi-point system diagnostics checks.
+
+### Long-Term Documentation Goals
+- **System Architecture Document (SAD)**: A comprehensive design specification (topology, collections, schema details, sequence flows) will be generated in `docs/system_architecture_document.md` following Era 5/6.
+- **API Documentation Reference**: A detailed REST API guide (validation schemas, error mappings, Swagger/Postman imports) will be generated in `docs/api_documentation.md` following Era 5/6.
+
 
 ---
 

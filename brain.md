@@ -25,6 +25,7 @@
 15. [Development Rules & Coding Standards](#15-development-rules--coding-standards)
 16. [API Endpoint Reference](#16-api-endpoint-reference)
 17. [Era Completion Log](#17-era-completion-log)
+18. [Long-Term Documentation Goals (SAD & API Docs)](#18-long-term-documentation-goals-sad--api-docs)
 
 ---
 
@@ -951,5 +952,25 @@ refactor: description of refactoring
 ---
 
 *Last updated: Era 2 — Authentication Flows*
+
+---
+
+## 18. Long-Term Documentation Goals (SAD & API Docs)
+
+### System Architecture Document (SAD)
+A formal System Architecture Document will be generated in `docs/system_architecture_document.md` after the completion of Era 5 or Era 6. It will cover:
+- High-level system topology and architectural patterns.
+- Detailed component relationships, sequence flows, and network boundary conditions.
+- Schema definitions and entity-relationship models for all data stores (PostgreSQL, Redis, MinIO, Qdrant).
+- Vector indexing strategies and semantic search pipelines.
+- Security enclaves, rate limit parameters, and encryption-at-rest policies.
+
+### API Documentation
+A consolidated API reference guide will be generated in `docs/api_documentation.md` after the completion of Era 5 or Era 6. It will cover:
+- Authentication schemas and token rotation lifecycles.
+- Request/Response validation payloads (Zod, Pydantic schemas) for all endpoints.
+- Detailed status response definitions and standardized error codes.
+- Postman or Swagger JSON specifications matching live application endpoints.
+
 
 

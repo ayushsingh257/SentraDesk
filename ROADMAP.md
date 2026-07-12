@@ -263,6 +263,7 @@
 - ⏳ User management CRUD works
 - ⏳ System health shows correct status for all services
 - ⏳ Audit logs display with hash chain
+- ⏳ Generate System Architecture Document (SAD) in docs/system_architecture_document.md
 - ⏳ Update brain.md, roadmap.md, README.md, SECURITY.md
 - ⏳ Commit: `feat: Era 5 - Admin portal`
 - ⏳ Push, GitHub Actions green
@@ -300,6 +301,7 @@
 - ⏳ AI pipeline processes test complaint correctly
 - ⏳ Evidence upload → hash → download → verified
 - ⏳ Celery offline — application still functions
+- ⏳ Generate API Documentation document in docs/api_documentation.md
 - ⏳ Update brain.md, roadmap.md, README.md
 - ⏳ Commit: `feat: Era 6 - Backend polish and AI modules`
 - ⏳ Push, GitHub Actions green
@@ -354,4 +356,4 @@
 
 ---
 
-*Last updated: Era 0 — Repository Reset*
+*Last updated: Era 2 — Authentication Flows*
