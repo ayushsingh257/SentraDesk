@@ -89,39 +89,39 @@
 ---
 
 ## ERA 2 — Authentication Flows
-⏳ **Pending**
+✅ **Completed**
 
 ### Phase 2.1 — Auth Pages
-- ⏳ Login page (email + password, JWT, role-based redirect)
-- ⏳ Register page (password strength meter, Zod validation, common password rejection)
-- ⏳ Email verification page
-- ⏳ Forgot password page
-- ⏳ Reset password page
+- ✅ Login page (email + password, JWT, role-based redirect)
+- ✅ Register page (password strength meter, Zod validation, common password rejection)
+- ✅ Email verification page
+- ✅ Forgot password page
+- ✅ Reset password page
 
 ### Phase 2.2 — Auth Infrastructure
-- ⏳ `useAuth.ts` hook
-- ⏳ `AuthProvider` context (JWT storage, refresh logic)
-- ⏳ Route guards at layout level for citizen, officer, admin
-- ⏳ `lib/auth.ts` — token decode, role check, logout
+- ✅ `useAuth.ts` hook
+- ✅ `AuthProvider` context (JWT storage, refresh logic)
+- ✅ Route guards at layout level for citizen, officer, admin
+- ✅ `lib/auth.ts` — token decode, role check, logout
 
 ### Phase 2.3 — Backend Refactors
-- ⏳ `POST /complaints/submit` — add system_administrator guard
-- ⏳ `GET /users/list` — raise minimum role to system_administrator
-- ⏳ `POST /email/receive-mock` — add system_administrator guard
-- ⏳ `GET /metrics` — add system_administrator guard
+- ✅ `POST /complaints/submit` — add system_administrator guard
+- ✅ `GET /users/list` — raise minimum role to system_administrator
+- ✅ `POST /email/receive-mock` — add system_administrator guard
+- ✅ `GET /metrics` — add system_administrator guard
 
 ### Phase 2.4 — Era 2 Verification
-- ⏳ Backend tests pass
-- ⏳ `npx tsc --noEmit` — zero errors
-- ⏳ Citizen registers → email verification → login → citizen dashboard
-- ⏳ Invalid password rejected (strength, common passwords)
-- ⏳ Login redirects by role (citizen/officer/admin)
-- ⏳ Unauthenticated access redirects to login
-- ⏳ Citizen cannot access officer/admin routes
-- ⏳ Forgot/reset password flow complete
-- ⏳ Update brain.md, roadmap.md, README.md
-- ⏳ Commit: `feat: Era 2 - Authentication flows`
-- ⏳ Push, GitHub Actions green
+- ✅ Backend tests pass
+- ✅ `npx tsc --noEmit` — zero errors
+- ✅ Citizen registers → email verification → login → citizen dashboard
+- ✅ Invalid password rejected (strength, common passwords)
+- ✅ Login redirects by role (citizen/officer/admin)
+- ✅ Unauthenticated access redirects to login
+- ✅ Citizen cannot access officer/admin routes
+- ✅ Forgot/reset password flow complete
+- ✅ Update brain.md, roadmap.md, README.md
+- ✅ Commit: `feat: Era 2 - Authentication flows`
+- ✅ Push, GitHub Actions green
 
 ---
 

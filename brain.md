@@ -941,7 +941,7 @@ refactor: description of refactoring
 |---|---|---|---|
 | Era 0 | Repository Reset & Master Documents | ✅ Completed | 2026-07-12 |
 | Era 1 | Foundation & Design System | ✅ Completed | 2026-07-12 |
-| Era 2 | Authentication Flows | ⏳ Pending | — |
+| Era 2 | Authentication Flows | ✅ Completed | 2026-07-12 |
 | Era 3 | Citizen Portal | ⏳ Pending | — |
 | Era 4 | Officer Portal | ⏳ Pending | — |
 | Era 5 | Admin Portal | ⏳ Pending | — |
@@ -950,5 +950,6 @@ refactor: description of refactoring
 
 ---
 
-*Last updated: Era 1 — Foundation & Design System*
+*Last updated: Era 2 — Authentication Flows*
+
 
