@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any, Optional
+from datetime import datetime
 import uuid
 
 from app.core.database import get_db
 from app.core.security import JWTBearer, RoleRequirement
+from app.core.exceptions import AuthError, NotFoundError, ValidationError
 from app.schemas.response import StandardResponse
 from app.schemas.ticket import (
     ComplaintCreate,
@@ -28,10 +30,38 @@ router = APIRouter()
 def create_ticket(
     payload: ComplaintCreate,
     db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("complaint_operator"))
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
 ):
-    """File a new complaint and generate a corresponding ticket (requires operator or higher permissions)."""
+    """File a new complaint and generate a corresponding ticket."""
     actor_id = uuid.UUID(current_user.get("sub"))
+    role = current_user.get("role")
+    
+    citizen_id = None
+    if role == "citizen":
+        citizen_id = actor_id
+        
+    meta = payload.metadata_json or {}
+    if payload.category:
+        meta["category"] = payload.category
+    if payload.fraud_amount is not None:
+        meta["amount"] = payload.fraud_amount
+    if payload.incident_date:
+        meta["incident_date"] = payload.incident_date
+    if payload.suspect_name:
+        meta["suspect_name"] = payload.suspect_name
+    if payload.suspect_phone:
+        meta["suspect_phone"] = payload.suspect_phone
+    if payload.upi_id:
+        meta["upi_id"] = payload.upi_id
+    if payload.bank_account:
+        meta["bank_account"] = payload.bank_account
+    if payload.wallet_address:
+        meta["wallet_address"] = payload.wallet_address
+    if payload.url:
+        meta["url"] = payload.url
+    if payload.email:
+        meta["email"] = payload.email
+
     res = ticket_service.create_complaint_and_ticket(
         db,
         title=payload.title,
@@ -40,7 +70,8 @@ def create_ticket(
         reporter_name=payload.reporter_name,
         reporter_email=payload.reporter_email,
         reporter_phone=payload.reporter_phone,
-        metadata_json=payload.metadata_json
+        citizen_id=citizen_id,
+        metadata_json=meta
     )
     return {
         "success": True,
@@ -77,14 +108,70 @@ def list_tickets(
         "error": None
     }
 
+@router.get("/my-tickets", response_model=StandardResponse[List[TicketResponse]])
+def get_my_tickets(
+    status: Optional[str] = None,
+    category: Optional[str] = None,
+    search: Optional[str] = None,
+    sort_by: str = Query("created_at", pattern="^(created_at|ticket_number)$"),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
+):
+    """Retrieve complaints filed by the authenticated citizen."""
+    actor_id = uuid.UUID(current_user.get("sub"))
+    from app.models.ticket import Ticket, Complaint
+    query = db.query(Ticket).join(Complaint).filter(Complaint.citizen_id == actor_id)
+    
+    if status:
+        query = query.filter(Complaint.status == status)
+    if category:
+        query = query.filter(Ticket.category == category)
+    if search:
+        search_like = f"%{search}%"
+        query = query.filter(
+            (Ticket.ticket_number.ilike(search_like)) |
+            (Complaint.title.ilike(search_like)) |
+            (Complaint.description.ilike(search_like))
+        )
+        
+    order_column = Ticket.created_at
+    if sort_by == "ticket_number":
+        order_column = Ticket.ticket_number
+        
+    if sort_order == "desc":
+        query = query.order_by(order_column.desc())
+    else:
+        query = query.order_by(order_column.asc())
+        
+    res = query.all()
+    return {
+        "success": True,
+        "data": res,
+        "error": None
+    }
+
 @router.get("/{id}", response_model=StandardResponse[TicketResponse])
 def get_ticket_details(
     id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
 ):
-    """Retrieve detailed properties of a specific ticket (requires officer or higher permissions)."""
+    """Retrieve detailed properties of a specific ticket."""
     res = ticket_repository.get(db, id)
+    if not res:
+        raise NotFoundError("Ticket not found")
+        
+    role = current_user.get("role")
+    actor_id = uuid.UUID(current_user.get("sub"))
+    if role == "citizen":
+        if res.complaint.citizen_id != actor_id:
+            raise AuthError(
+                message="Access denied. You can only view your own complaints.",
+                code="FORBIDDEN_TICKET_ACCESS",
+                status_code=403
+            )
+            
     return {
         "success": True,
         "data": res,
@@ -139,10 +226,23 @@ def add_comment(
     id: uuid.UUID,
     payload: CommentCreate,
     db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
 ):
-    """Submit a public discussion thread comment (requires officer or higher permissions)."""
+    """Submit a public discussion thread comment."""
+    ticket = ticket_repository.get(db, id)
+    if not ticket:
+        raise NotFoundError("Ticket not found")
+        
+    role = current_user.get("role")
     actor_id = uuid.UUID(current_user.get("sub"))
+    if role == "citizen":
+        if ticket.complaint.citizen_id != actor_id:
+            raise AuthError(
+                message="Access denied. You can only comment on your own complaints.",
+                code="FORBIDDEN_TICKET_ACCESS",
+                status_code=403
+            )
+            
     res = ticket_service.submit_comment(
         db,
         ticket_id=id,
@@ -180,9 +280,23 @@ def add_private_note(
 def get_timeline(
     id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
 ):
-    """Retrieve chronologically ordered lifecycle logs for a ticket (requires officer or higher permissions)."""
+    """Retrieve chronologically ordered lifecycle logs for a ticket."""
+    ticket = ticket_repository.get(db, id)
+    if not ticket:
+        raise NotFoundError("Ticket not found")
+        
+    role = current_user.get("role")
+    actor_id = uuid.UUID(current_user.get("sub"))
+    if role == "citizen":
+        if ticket.complaint.citizen_id != actor_id:
+            raise AuthError(
+                message="Access denied. You can only view timeline for your own complaints.",
+                code="FORBIDDEN_TICKET_ACCESS",
+                status_code=403
+            )
+            
     res = ticket_repository.get_timeline(db, ticket_id=id)
     return {
         "success": True,
@@ -442,3 +556,124 @@ def download_case_investigation_report_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": f"attachment; filename=case_report_{ticket.ticket_number}.pdf"}
     )
+
+@router.get("/{id}/comments", response_model=StandardResponse[List[CommentResponse]])
+def get_comments(
+    id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
+):
+    """Retrieve public discussion comments for a ticket."""
+    ticket = ticket_repository.get(db, id)
+    if not ticket:
+        raise NotFoundError("Ticket not found")
+        
+    role = current_user.get("role")
+    actor_id = uuid.UUID(current_user.get("sub"))
+    if role == "citizen":
+        if ticket.complaint.citizen_id != actor_id:
+            raise AuthError(
+                message="Access denied. You can only view comments for your own complaints.",
+                code="FORBIDDEN_TICKET_ACCESS",
+                status_code=403
+            )
+            
+    return {
+        "success": True,
+        "data": ticket.comments,
+        "error": None
+    }
+
+from app.schemas.ticket import FeedbackSubmit, ReopenRequest
+from app.models.ticket import ActivityTimeline
+
+@router.post("/{id}/feedback", response_model=StandardResponse[TicketResponse])
+def submit_ticket_feedback(
+    id: uuid.UUID,
+    payload: FeedbackSubmit,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
+):
+    """Submit feedback and star rating for a closed ticket."""
+    ticket = ticket_repository.get(db, id)
+    if not ticket:
+        raise NotFoundError("Ticket not found")
+        
+    role = current_user.get("role")
+    actor_id = uuid.UUID(current_user.get("sub"))
+    if role == "citizen":
+        if ticket.complaint.citizen_id != actor_id:
+            raise AuthError("Access denied. You can only rate your own tickets.", status_code=403)
+            
+    if ticket.complaint.status != "Closed":
+        raise ValidationError("Feedback can only be submitted for closed tickets.", status_code=400)
+        
+    ticket.rating = payload.rating
+    ticket.feedback = payload.feedback
+    db.commit()
+    db.refresh(ticket)
+    
+    # Log timeline event
+    new_event = ActivityTimeline(
+        ticket_id=ticket.id,
+        event_type="FeedbackSubmitted",
+        description=f"Citizen submitted feedback: Rating {payload.rating}/5",
+        actor_id=actor_id
+    )
+    ticket_repository.add_timeline_event(db, event=new_event)
+    db.commit()
+    
+    return {
+        "success": True,
+        "data": ticket,
+        "error": None
+    }
+
+from datetime import timezone
+
+@router.post("/{id}/reopen", response_model=StandardResponse[TicketResponse])
+def reopen_ticket(
+    id: uuid.UUID,
+    payload: ReopenRequest,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
+):
+    """Reopen a closed ticket with a specified reason."""
+    ticket = ticket_repository.get(db, id)
+    if not ticket:
+        raise NotFoundError("Ticket not found")
+        
+    role = current_user.get("role")
+    actor_id = uuid.UUID(current_user.get("sub"))
+    if role == "citizen":
+        if ticket.complaint.citizen_id != actor_id:
+            raise AuthError("Access denied. You can only reopen your own tickets.", status_code=403)
+            
+    if ticket.complaint.status != "Closed":
+        raise ValidationError("Only closed tickets can be reopened.", status_code=400)
+        
+    ticket.complaint.status = "Under Investigation"
+    ticket.reopened_at = datetime.now(timezone.utc)
+    ticket.reopen_reason = payload.reason
+    
+    # Reset approval flags since it's reopened
+    ticket.l1_approved = False
+    ticket.l2_approved = False
+    db.commit()
+    db.refresh(ticket)
+    
+    # Log timeline event
+    new_event = ActivityTimeline(
+        ticket_id=ticket.id,
+        event_type="TicketReopened",
+        description=f"Ticket reopened by citizen. Reason: {payload.reason}",
+        actor_id=actor_id
+    )
+    ticket_repository.add_timeline_event(db, event=new_event)
+    db.commit()
+    
+    return {
+        "success": True,
+        "data": ticket,
+        "error": None
+    }

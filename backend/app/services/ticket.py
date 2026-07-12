@@ -21,6 +21,7 @@ class TicketService:
         reporter_name: str,
         reporter_email: Optional[str] = None,
         reporter_phone: Optional[str] = None,
+        citizen_id: Optional[uuid.UUID] = None,
         metadata_json: Optional[dict] = None
     ) -> Ticket:
         """Create a new citizen complaint and automatically provision a tracked ticket."""
@@ -73,6 +74,7 @@ class TicketService:
             reporter_name=reporter_name,
             reporter_email=reporter_email,
             reporter_phone=reporter_phone,
+            citizen_id=citizen_id,
             metadata_json=meta
         )
         complaint = ticket_repository.create_complaint(db, complaint=new_complaint)

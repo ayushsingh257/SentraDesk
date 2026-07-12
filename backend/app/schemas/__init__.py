@@ -1,5 +1,6 @@
 from app.schemas.response import StandardResponse, ErrorDetail
 from app.schemas.user import UserLogin, UserRegister, TokenResponse, TokenRefreshRequest, TokenRefreshResponse, UserResponse, LogoutRequest
+from app.schemas.notification import NotificationLogResponse
 from app.schemas.ticket import (
     ComplaintCreate,
     ComplaintResponse,
@@ -36,5 +37,6 @@ __all__ = [
     "NoteResponse",
     "TimelineResponse",
     "ApprovalAction",
-    "MergeRequest"
+    "MergeRequest",
+    "NotificationLogResponse"
 ]

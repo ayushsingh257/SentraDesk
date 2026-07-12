@@ -103,14 +103,39 @@ export default function Dashboard() {
   const [newCategory, setNewCategory] = useState("Cyber Financial Fraud");
   const [newAmount, setNewAmount] = useState("");
 
+  // Citizen Dashboard additions
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState("overview"); // overview, raise-complaint, notifications, profile
+  const [citizenRating, setCitizenRating] = useState(5);
+  const [citizenFeedbackText, setCitizenFeedbackText] = useState("");
+  const [reopenReasonText, setReopenReasonText] = useState("");
+  const [showCitizenReopenModal, setShowCitizenReopenModal] = useState(false);
+
+  // New Citizen Incident Form Fields
+  const [newIncidentDate, setNewIncidentDate] = useState("");
+  const [newSuspectName, setNewSuspectName] = useState("");
+  const [newSuspectPhone, setNewSuspectPhone] = useState("");
+  const [newUpiId, setNewUpiId] = useState("");
+  const [newBankAccount, setNewBankAccount] = useState("");
+  const [newWalletAddress, setNewWalletAddress] = useState("");
+  const [newUrl, setNewUrl] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+
   // ── Init ──────────────────────────────────────────────────────
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
+    const role = localStorage.getItem("role") || "cyber_cell_officer";
     setUserName(localStorage.getItem("name") || "Officer");
-    setUserRole(localStorage.getItem("role") || "cyber_cell_officer");
-    fetchTickets();
-    fetchUsers();
+    setUserRole(role);
+    
+    if (role === "citizen") {
+      fetchTicketsForRole("citizen");
+      fetchNotifications();
+    } else {
+      fetchTicketsForRole(role);
+      fetchUsers();
+    }
   }, [router]);
 
   // ── SLA Timer ──────────────────────────────────────────────────
@@ -130,18 +155,76 @@ export default function Dashboard() {
   }, [selectedTicket]);
 
   // ── API Calls (all preserved exactly) ─────────────────────────
-  const fetchTickets = async () => {
+  const fetchTickets = () => {
+    fetchTicketsForRole(userRole);
+  };
+
+  const fetchTicketsForRole = async (role: string) => {
     setLoading(true);
     try {
       const token = localStorage.getItem("access_token");
-      let url = "http://localhost:8000/api/v1/tickets?";
+      let url = "";
+      if (role === "citizen") {
+        url = "http://localhost:8000/api/v1/tickets/my-tickets?";
+      } else {
+        url = "http://localhost:8000/api/v1/tickets?";
+        if (severityFilter) url += `severity=${severityFilter}&`;
+      }
       if (statusFilter) url += `status=${statusFilter}&`;
-      if (severityFilter) url += `severity=${severityFilter}&`;
       if (search) url += `search=${search}&`;
       const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
       const r = await res.json();
       if (r.success) setTickets(r.data);
     } catch { } finally { setLoading(false); }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch("http://localhost:8000/api/v1/users/notifications", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const r = await res.json();
+      if (r.success) setNotifications(r.data);
+    } catch { }
+  };
+
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`http://localhost:8000/api/v1/tickets/${selectedTicket.id}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ rating: citizenRating, feedback: citizenFeedbackText })
+      });
+      const r = await res.json();
+      if (r.success) {
+        setCitizenFeedbackText("");
+        handleSelectTicket(r.data);
+        fetchTickets();
+      }
+    } catch {}
+  };
+
+  const handleReopenSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reopenReasonText.trim()) return;
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`http://localhost:8000/api/v1/tickets/${selectedTicket.id}/reopen`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ reason: reopenReasonText })
+      });
+      const r = await res.json();
+      if (r.success) {
+        setShowCitizenReopenModal(false);
+        setReopenReasonText("");
+        handleSelectTicket(r.data);
+        fetchTickets();
+      }
+    } catch {}
   };
 
   const fetchUsers = async () => {
@@ -235,12 +318,48 @@ export default function Dashboard() {
     e.preventDefault();
     try {
       const token = localStorage.getItem("access_token");
+      const payload = {
+        title: newTitle,
+        description: newDesc,
+        source: "portal",
+        reporter_name: newReporter,
+        reporter_email: newReporterEmail || null,
+        reporter_phone: newReporterPhone || null,
+        category: newCategory,
+        fraud_amount: parseFloat(newAmount) || 0,
+        incident_date: newIncidentDate || null,
+        suspect_name: newSuspectName || null,
+        suspect_phone: newSuspectPhone || null,
+        upi_id: newUpiId || null,
+        bank_account: newBankAccount || null,
+        wallet_address: newWalletAddress || null,
+        url: newUrl || null,
+        email: newEmail || null,
+        metadata_json: {}
+      };
       const res = await fetch("http://localhost:8000/api/v1/tickets", {
         method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ title: newTitle, description: newDesc, source: "portal", reporter_name: newReporter, reporter_email: newReporterEmail, reporter_phone: newReporterPhone, metadata_json: { category: newCategory, amount: parseFloat(newAmount) || 0 } }),
+        body: JSON.stringify(payload),
       });
       const r = await res.json();
-      if (r.success) { setShowCreateModal(false); setNewTitle(""); setNewDesc(""); setNewReporter(""); setNewReporterEmail(""); setNewReporterPhone(""); setNewAmount(""); fetchTickets(); }
+      if (r.success) {
+        setShowCreateModal(false);
+        setNewTitle("");
+        setNewDesc("");
+        setNewReporter("");
+        setNewReporterEmail("");
+        setNewReporterPhone("");
+        setNewAmount("");
+        setNewIncidentDate("");
+        setNewSuspectName("");
+        setNewSuspectPhone("");
+        setNewUpiId("");
+        setNewBankAccount("");
+        setNewWalletAddress("");
+        setNewUrl("");
+        setNewEmail("");
+        fetchTickets();
+      }
     } catch { }
   };
 
@@ -325,6 +444,542 @@ export default function Dashboard() {
   const isSlaBreach = selectedTicket?.is_escalated || remainingSlaText.includes("BREACHED");
   const criticalCount = tickets.filter(t => t.severity === "Critical").length;
   const openCount = tickets.filter(t => t.complaint?.status !== "Closed").length;
+
+  const renderCitizenView = () => {
+    const totalFiled = tickets.length;
+    const activeInv = tickets.filter(t => t.complaint?.status !== "Closed").length;
+    const resolvedCount = tickets.filter(t => t.complaint?.status === "Closed").length;
+
+    return (
+      <div className="flex h-screen flex-col overflow-hidden bg-[#02040a] font-sans relative">
+        <div className="pointer-events-none fixed inset-0 z-0">
+          <div className="absolute inset-0 cyber-grid-dense opacity-[0.18]" />
+          <div className="absolute top-[10%] left-[20%] w-[500px] h-[500px] rounded-full bg-blue-950/5 blur-[120px]" />
+        </div>
+
+        {/* Top Header Nav */}
+        <header className="flex h-13 shrink-0 items-center justify-between border-b border-slate-950 bg-[#02040a]/80 px-5 backdrop-blur-md z-45 relative">
+          <div className="flex items-center gap-3">
+            <div className="relative h-8 w-8 rounded bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center border border-cyan-400/25">
+              <Shield className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <span className="text-sm font-black tracking-[0.2em] text-white uppercase font-mono">CCGP</span>
+              <span className="text-[7.5px] font-bold tracking-[0.2em] text-cyan-400/60 uppercase font-mono block">Citizen Hub</span>
+            </div>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="flex gap-1.5 font-mono text-[9.5px]">
+            {[
+              { id: "overview", label: "My Tickets" },
+              { id: "raise-complaint", label: "File Incident" },
+              { id: "notifications", label: "Inbox" }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id); if (tab.id === "notifications") fetchNotifications(); }}
+                className={`px-3 py-1.5 rounded transition-all uppercase tracking-wider ${
+                  activeTab === tab.id
+                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                    : "text-slate-500 hover:text-slate-300"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3.5">
+            <div className="text-[10px] font-mono text-slate-400">
+              <span className="uppercase tracking-wider mr-2">{userName}</span>
+              <span className="rounded border border-emerald-500/20 bg-emerald-500/5 px-1.5 py-0.5 text-[8.5px] text-emerald-400 font-bold uppercase">Citizen</span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="h-7.5 w-7.5 rounded border border-slate-900 flex items-center justify-center text-slate-500 hover:border-red-500/30 hover:bg-red-500/5 hover:text-red-400 transition-all"
+            >
+              <Power className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </header>
+
+        {/* Content body */}
+        <div className="flex flex-1 overflow-hidden relative z-10">
+          <AnimatePresence mode="wait">
+            
+            {/* Tab: Overview (My Tickets Queue + Details) */}
+            {activeTab === "overview" && (
+              <motion.div
+                key="overview"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-1 overflow-hidden"
+              >
+                {/* Tickets list panel */}
+                <div className="flex w-[320px] shrink-0 flex-col border-r border-slate-950 bg-black/25">
+                  <div className="px-4 py-3 border-b border-slate-950 bg-slate-950/20 flex justify-between items-center">
+                    <span className="text-[9.5px] font-bold font-mono uppercase tracking-[0.2em] text-slate-400">Incidents Registry</span>
+                    <button
+                      onClick={fetchTickets}
+                      className="h-6 w-6 rounded border border-slate-900 flex items-center justify-center text-slate-500 hover:text-white hover:bg-slate-950 transition-all"
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                    </button>
+                  </div>
+
+                  {/* Statistics cards */}
+                  <div className="p-3 grid grid-cols-3 gap-2 border-b border-slate-950 bg-slate-950/10">
+                    <div className="bg-slate-950/40 p-2 rounded border border-slate-900 text-center">
+                      <div className="text-slate-500 text-[8px] font-mono">TOTAL</div>
+                      <div className="text-white text-xs font-mono font-bold">{totalFiled}</div>
+                    </div>
+                    <div className="bg-slate-950/40 p-2 rounded border border-slate-900 text-center">
+                      <div className="text-slate-500 text-[8px] font-mono">ACTIVE</div>
+                      <div className="text-cyan-400 text-xs font-mono font-bold">{activeInv}</div>
+                    </div>
+                    <div className="bg-slate-950/40 p-2 rounded border border-slate-900 text-center">
+                      <div className="text-slate-500 text-[8px] font-mono">CLOSED</div>
+                      <div className="text-slate-400 text-xs font-mono font-bold">{resolvedCount}</div>
+                    </div>
+                  </div>
+
+                  {/* Search/Filters */}
+                  <div className="p-3 border-b border-slate-950 bg-slate-950/10 space-y-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-600" />
+                      <input
+                        type="text"
+                        placeholder="Search incident..."
+                        value={search}
+                        onChange={e => { setSearch(e.target.value); fetchTickets(); }}
+                        className="w-full pl-8 pr-3 py-1.5 text-[10px] font-mono rounded bg-slate-950 border border-slate-900 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/30"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Queue container */}
+                  <div className="flex-1 overflow-y-auto divide-y divide-slate-950">
+                    {loading ? (
+                      Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
+                    ) : tickets.length === 0 ? (
+                      <div className="p-8 text-center text-slate-600 text-[10px] font-mono">No incidents filed.</div>
+                    ) : (
+                      tickets.map(t => (
+                        <div
+                          key={t.id}
+                          onClick={() => handleSelectTicket(t)}
+                          className={`p-4 border-l-2 cursor-pointer transition-all ${
+                            selectedTicket?.id === t.id
+                              ? "border-cyan-500 bg-cyan-950/5"
+                              : "border-transparent hover:bg-slate-950/20"
+                          }`}
+                        >
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-[10px] font-mono font-bold text-cyan-400">{t.ticket_number}</span>
+                            <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono ${getStatusColor(t.complaint?.status).bg} ${getStatusColor(t.complaint?.status).text}`}>
+                              {t.complaint?.status}
+                            </span>
+                          </div>
+                          <h4 className="text-[11px] font-sans text-slate-300 font-bold line-clamp-1">{t.complaint?.title}</h4>
+                          <div className="flex justify-between items-center text-[9px] font-mono text-slate-500 mt-2">
+                            <span>{t.category}</span>
+                            <span>{new Date(t.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Details workspace panel */}
+                <div className="flex-1 flex flex-col overflow-y-auto bg-slate-950/10 p-6 space-y-6">
+                  {selectedTicket ? (
+                    <motion.div
+                      key={selectedTicket.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-6 max-w-4xl w-full mx-auto"
+                    >
+                      {/* Ticket header block */}
+                      <div className="glass rounded-xl p-5 border-slate-900 space-y-4">
+                        <div className="flex justify-between items-start border-b border-slate-900 pb-3">
+                          <div>
+                            <h2 className="text-base font-extrabold text-white font-mono">{selectedTicket.ticket_number}</h2>
+                            <p className="text-[10px] font-mono text-slate-500 uppercase mt-0.5">Incident Reference Record</p>
+                          </div>
+                          <span className={`px-2 py-1 rounded text-[9.5px] font-mono border ${getStatusColor(selectedTicket.complaint?.status).bg} ${getStatusColor(selectedTicket.complaint?.status).text}`}>
+                            {selectedTicket.complaint?.status}
+                          </span>
+                        </div>
+
+                        {/* Overview content */}
+                        <div className="grid gap-4 sm:grid-cols-2 text-[11px] font-mono">
+                          <div className="space-y-2">
+                            <div><span className="text-slate-500 uppercase block text-[9px]">Title / Subject</span><span className="text-slate-300 font-bold">{selectedTicket.complaint?.title}</span></div>
+                            <div><span className="text-slate-500 uppercase block text-[9px]">Classification Category</span><span className="text-cyan-400 font-bold">{selectedTicket.category}</span></div>
+                            <div><span className="text-slate-500 uppercase block text-[9px]">Quantified Loss</span><span className="text-slate-300">{selectedTicket.complaint?.metadata_json?.amount || 0} INR</span></div>
+                          </div>
+                          <div className="space-y-2">
+                            <div><span className="text-slate-500 uppercase block text-[9px]">Incident Date</span><span className="text-slate-300">{selectedTicket.complaint?.metadata_json?.incident_date || "Not Specified"}</span></div>
+                            <div><span className="text-slate-500 uppercase block text-[9px]">Reporter Email</span><span className="text-slate-300">{selectedTicket.complaint?.reporter_email || "Anonymous"}</span></div>
+                            <div><span className="text-slate-500 uppercase block text-[9px]">Submitted Date</span><span className="text-slate-300">{new Date(selectedTicket.created_at).toLocaleString()}</span></div>
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <div className="border-t border-slate-900 pt-3">
+                          <span className="text-slate-500 uppercase block text-[9px] font-mono mb-1">Details Description</span>
+                          <p className="text-slate-400 leading-relaxed font-sans text-xs bg-slate-950/30 p-3 rounded border border-slate-900/60">
+                            {selectedTicket.complaint?.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Timeline Tracker Progress Bar */}
+                      <div className="glass rounded-xl p-5 border-slate-900">
+                        <PanelHeader icon={Clock} title="Incident Resolution Timeline" color="#8b5cf6" />
+                        <div className="relative pl-5 ml-2 border-l border-slate-900 space-y-4">
+                          {timeline.map((event) => (
+                            <div key={event.id} className="relative text-[11px]">
+                              <div className="absolute -left-[24.5px] top-1 h-2 w-2 rounded-full bg-cyan-500 border border-[#02040a]" />
+                              <div className="flex justify-between items-center font-mono">
+                                <span className="font-bold text-white text-[10px] tracking-wide uppercase">{event.event_type}</span>
+                                <span className="text-[8.5px] text-slate-600">{new Date(event.created_at).toLocaleString()}</span>
+                              </div>
+                              <p className="text-slate-500 mt-0.5 font-sans">{event.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Evidence Files Zone */}
+                      <div className="glass rounded-xl p-5 border-slate-900 space-y-4">
+                        <PanelHeader icon={HardDrive} title="Evidence Assets Registry" color="#f59e0b" />
+                        
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {evidenceList.map(ev => (
+                            <div key={ev.id} className="flex justify-between items-center p-3 rounded border border-slate-900 bg-slate-950/40 font-mono text-[10.5px]">
+                              <div>
+                                <div className="text-slate-300 font-bold line-clamp-1">{ev.filename}</div>
+                                <div className="text-[8.5px] text-slate-500">{(ev.file_size / 1024).toFixed(1)} KB · {ev.mime_type}</div>
+                              </div>
+                              <button
+                                onClick={() => handleDownloadAsset(ev.id)}
+                                className="text-cyan-400 hover:underline text-[9px] uppercase tracking-wider font-bold"
+                              >
+                                Download
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* File picker */}
+                        <div className="border border-dashed border-slate-900 rounded-lg p-5 text-center bg-slate-950/20">
+                          <label className="cursor-pointer block">
+                            <Upload className="h-6 w-6 text-slate-600 mx-auto mb-2" />
+                            <span className="text-[10px] font-mono text-slate-400 block">
+                              {uploading ? "Uploading attachment..." : "Select Incident Evidence screenshot or document"}
+                            </span>
+                            <input
+                              type="file"
+                              onChange={handleUploadFile}
+                              disabled={uploading}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Discussion Correspondences board */}
+                      <div className="glass rounded-xl p-5 border-slate-900 space-y-4">
+                        <PanelHeader icon={MessageSquare} title="Case Correspondence History" />
+                        <div className="space-y-3.5 max-h-60 overflow-y-auto pr-2">
+                          {selectedTicket.comments?.length === 0 ? (
+                            <p className="text-[9.5px] font-mono text-slate-600 text-center py-4">No conversation threads logged.</p>
+                          ) : (
+                            selectedTicket.comments?.map((comment: any) => (
+                              <div key={comment.id} className="p-3 rounded border border-slate-900 bg-slate-950/20 space-y-1">
+                                <div className="flex justify-between text-[9px] font-mono text-slate-500">
+                                  <span className="font-bold uppercase tracking-wider text-cyan-500/75">
+                                    {comment.author_id === selectedTicket.complaint?.citizen_id ? "Citizen (You)" : "Investigating Officer"}
+                                  </span>
+                                  <span>{new Date(comment.created_at).toLocaleString()}</span>
+                                </div>
+                                <p className="text-slate-300 text-xs font-sans whitespace-pre-wrap">{comment.content}</p>
+                              </div>
+                            ))
+                          )}
+                        </div>
+
+                        {/* Add Comment input */}
+                        <form onSubmit={handleAddComment} className="flex gap-2 border-t border-slate-900 pt-3">
+                          <input
+                            type="text"
+                            placeholder="Type a follow-up message..."
+                            value={newComment}
+                            onChange={e => setNewComment(e.target.value)}
+                            className="cyber-input flex-1 text-[10.5px] border-slate-900 bg-slate-950"
+                          />
+                          <button
+                            type="submit"
+                            className="btn-cyber text-[9.5px] px-4"
+                          >
+                            Send
+                          </button>
+                        </form>
+                      </div>
+
+                      {/* Closed Rating & Reopen Section */}
+                      {selectedTicket.complaint?.status === "Closed" && (
+                        <div className="glass rounded-xl p-5 border-slate-900 space-y-4">
+                          <PanelHeader icon={ShieldAlert} title="Case Closed Out Options" color="#ef4444" />
+                          
+                          {/* Rating display or form */}
+                          {selectedTicket.rating ? (
+                            <div className="p-4 rounded border border-emerald-500/20 bg-emerald-500/5 text-center font-mono">
+                              <span className="text-emerald-400 text-xs font-bold block uppercase tracking-widest mb-1">Feedback Logged</span>
+                              <div className="text-yellow-500 text-sm">{"★".repeat(selectedTicket.rating)}{"☆".repeat(5 - selectedTicket.rating)}</div>
+                              <p className="text-slate-400 mt-2 text-[10.5px] font-sans">"{selectedTicket.feedback}"</p>
+                            </div>
+                          ) : (
+                            <form onSubmit={handleFeedbackSubmit} className="space-y-3 p-4 rounded border border-slate-900 bg-slate-950/20">
+                              <div className="flex justify-between items-center">
+                                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">Submit Feedback rating:</span>
+                                <select
+                                  value={citizenRating}
+                                  onChange={e => setCitizenRating(parseInt(e.target.value))}
+                                  className="cyber-input border-slate-900 bg-slate-950 text-slate-300 w-24 text-[10.5px]"
+                                >
+                                  {[5, 4, 3, 2, 1].map(r => <option key={r} value={r}>{r} Stars</option>)}
+                                </select>
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="Describe your experience with the incident resolution..."
+                                value={citizenFeedbackText}
+                                onChange={e => setCitizenFeedbackText(e.target.value)}
+                                className="cyber-input border-slate-900 bg-slate-950 text-[10.5px]"
+                              />
+                              <button type="submit" className="btn-cyber w-full py-2 text-[9.5px]">
+                                Submit Case Rating
+                              </button>
+                            </form>
+                          )}
+
+                          {/* Reopen Action button */}
+                          <div className="pt-2">
+                            {showCitizenReopenModal ? (
+                              <form onSubmit={handleReopenSubmit} className="space-y-3 p-4 rounded border border-red-500/25 bg-red-500/5 mt-2">
+                                <label className="text-[9px] font-bold font-mono uppercase tracking-wider text-red-400 block">Reopen Reason details:</label>
+                                <input
+                                  type="text"
+                                  placeholder="Why are you reopening this case? (Min 5 chars)"
+                                  value={reopenReasonText}
+                                  onChange={e => setReopenReasonText(e.target.value)}
+                                  className="cyber-input border-slate-900 bg-slate-950 text-[10.5px]"
+                                />
+                                <div className="flex gap-2">
+                                  <button type="button" onClick={() => setShowCitizenReopenModal(false)} className="rounded border border-slate-900 bg-slate-950 px-3 py-1.5 text-[9.5px] font-mono text-slate-500 hover:text-white transition-all">Cancel</button>
+                                  <button type="submit" className="rounded border border-red-500/25 bg-red-500/10 px-4 py-1.5 text-[9.5px] font-mono font-bold text-red-400 hover:bg-red-500/20 transition-all">Confirm Reopen</button>
+                                </div>
+                              </form>
+                            ) : (
+                              <button
+                                onClick={() => setShowCitizenReopenModal(true)}
+                                className="w-full py-2.5 rounded border border-red-500/30 bg-red-500/5 hover:bg-red-500/10 transition-all text-red-400 font-mono text-[9.5px] uppercase tracking-wider"
+                              >
+                                Reopen Incident Request
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center p-16 gap-4 text-center mt-12">
+                      <FolderOpen className="h-10 w-10 text-slate-700" />
+                      <div>
+                        <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">Select a Complaint</h3>
+                        <p className="text-[9.5px] font-mono text-slate-600 leading-relaxed mt-1">
+                          Click any ticket on the left list panel to view timelines, evidence logs, or corresponding discussion threads.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Tab: Raise Complaint (File Incident Form) */}
+            {activeTab === "raise-complaint" && (
+              <motion.div
+                key="raise-complaint"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="flex-1 flex justify-center overflow-y-auto p-8"
+              >
+                <div className="glass rounded-xl p-8 border-slate-900 w-full max-w-2xl shadow-xl h-fit">
+                  <div className="flex items-center gap-3 border-b border-slate-950 pb-4 mb-6">
+                    <Plus className="h-5 w-5 text-cyan-400" />
+                    <div>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Report Cyber Incident</h3>
+                      <p className="text-[8.5px] font-mono text-slate-600 uppercase tracking-widest">Formal governance database register</p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleCreateTicket} className="space-y-4">
+                    {/* Reporter credentials */}
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Reporter Name</label>
+                        <input type="text" required value={newReporter} onChange={e => setNewReporter(e.target.value)} className="cyber-input border-slate-900 bg-slate-950" placeholder="Your name" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Reporter Email</label>
+                        <input type="email" value={newReporterEmail} onChange={e => setNewReporterEmail(e.target.value)} className="cyber-input border-slate-900 bg-slate-950" placeholder="complainant@example.com" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Reporter Phone</label>
+                        <input type="text" value={newReporterPhone} onChange={e => setNewReporterPhone(e.target.value)} className="cyber-input border-slate-900 bg-slate-950" placeholder="+919999988888" />
+                      </div>
+                    </div>
+
+                    {/* Incidents Details */}
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Complaint Category</label>
+                        <select value={newCategory} onChange={e => setNewCategory(e.target.value)} className="cyber-input border-slate-900 bg-slate-950 text-slate-300">
+                          <option value="Cyber Financial Fraud">Cyber Financial Fraud</option>
+                          <option value="Hacking">Hacking</option>
+                          <option value="Ransomware">Ransomware</option>
+                          <option value="Cyber Stalking">Cyber Stalking</option>
+                          <option value="Online Harassment">Online Harassment</option>
+                          <option value="Identity Theft">Identity Theft</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Quantified Loss (INR)</label>
+                        <input type="number" value={newAmount} onChange={e => setNewAmount(e.target.value)} className="cyber-input border-slate-900 bg-slate-950" placeholder="0.0" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Incident Date</label>
+                        <input type="date" value={newIncidentDate} onChange={e => setNewIncidentDate(e.target.value)} className="cyber-input border-slate-900 bg-slate-950" />
+                      </div>
+                    </div>
+
+                    {/* Suspect credentials */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Suspect Name (Optional)</label>
+                        <input type="text" value={newSuspectName} onChange={e => setNewSuspectName(e.target.value)} className="cyber-input border-slate-900 bg-slate-950" placeholder="Suspect name" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Suspect Phone (Optional)</label>
+                        <input type="text" value={newSuspectPhone} onChange={e => setNewSuspectPhone(e.target.value)} className="cyber-input border-slate-900 bg-slate-950" placeholder="Suspect phone" />
+                      </div>
+                    </div>
+
+                    {/* Technical details */}
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Fraudulent UPI ID</label>
+                        <input type="text" value={newUpiId} onChange={e => setNewUpiId(e.target.value)} className="cyber-input border-slate-900 bg-slate-950" placeholder="fraudster@upi" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Fraudulent Bank Account</label>
+                        <input type="text" value={newBankAccount} onChange={e => setNewBankAccount(e.target.value)} className="cyber-input border-slate-900 bg-slate-950" placeholder="12345678901" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Crypto Wallet Address</label>
+                        <input type="text" value={newWalletAddress} onChange={e => setNewWalletAddress(e.target.value)} className="cyber-input border-slate-900 bg-slate-950" placeholder="0xabc..." />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Phishing URL / Domain</label>
+                        <input type="text" value={newUrl} onChange={e => setNewUrl(e.target.value)} className="cyber-input border-slate-900 bg-slate-950" placeholder="http://fraud-link.com" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Phishing Email Address</label>
+                        <input type="text" value={newEmail} onChange={e => setNewEmail(e.target.value)} className="cyber-input border-slate-900 bg-slate-950" placeholder="spammer@phish.com" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Incident Header</label>
+                      <input type="text" required value={newTitle} onChange={e => setNewTitle(e.target.value)} className="cyber-input border-slate-900 bg-slate-950" placeholder="Brief subject heading" />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[8.5px] font-bold font-mono uppercase tracking-wider text-slate-500">Incident Description</label>
+                      <textarea required value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={4} className="cyber-input resize-none border-slate-900 bg-slate-950 text-slate-300" placeholder="Provide complete facts about what happened..." />
+                    </div>
+
+                    <button type="submit" className="btn-cyber w-full py-3 mt-3 font-mono tracking-widest text-[10px] uppercase">
+                      Submit Incident Report
+                    </button>
+                  </form>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Tab: Inbox (Notifications Center list) */}
+            {activeTab === "notifications" && (
+              <motion.div
+                key="notifications"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="flex-1 overflow-y-auto p-8 max-w-2xl w-full mx-auto"
+              >
+                <div className="glass rounded-xl p-6 border-slate-900 space-y-4">
+                  <div className="flex items-center gap-3 border-b border-slate-950 pb-4 mb-4">
+                    <Radio className="h-5 w-5 text-cyan-400 animate-pulse" />
+                    <div>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Notifications Center Inbox</h3>
+                      <p className="text-[8.5px] font-mono text-slate-600 uppercase tracking-widest">Real-time CCGP dispatcher telemetry</p>
+                    </div>
+                  </div>
+
+                  <div className="divide-y divide-slate-950 space-y-2">
+                    {notifications.length === 0 ? (
+                      <p className="text-slate-600 text-center font-mono py-8 text-[10px]">Your inbox queue is clear.</p>
+                    ) : (
+                      notifications.map(log => (
+                        <div key={log.id} className="py-3 flex justify-between items-start font-mono text-[11px]">
+                          <div>
+                            <div className="text-white font-bold tracking-wide uppercase">
+                              Template: {log.template_name}
+                            </div>
+                            <div className="text-slate-500 text-[9px] mt-0.5">Recipient Address: {log.recipient}</div>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[8.5px] text-slate-600 block">{new Date(log.created_at).toLocaleString()}</span>
+                            <span className="px-1.5 py-0.5 rounded text-[8px] bg-cyan-500/10 text-cyan-400 uppercase tracking-wider mt-1 inline-block">
+                              {log.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+          </AnimatePresence>
+        </div>
+      </div>
+    );
+  };
+
+  if (userRole === "citizen") {
+    return renderCitizenView();
+  }
 
   // ─────────────────────────────────────────────────────────────
   return (

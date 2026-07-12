@@ -19,8 +19,11 @@ class Complaint(Base, TimestampMixin):
     reporter_phone: Mapped[str] = mapped_column(String(50), nullable=True)
     metadata_json: Mapped[dict] = mapped_column(JSON, default=dict, nullable=True)
 
+    citizen_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
     # Relationships
     ticket: Mapped["Ticket"] = relationship(back_populates="complaint", cascade="all, delete-orphan")
+    citizen: Mapped["User"] = relationship(foreign_keys=[citizen_id])
 
 class Ticket(Base, TimestampMixin):
     __tablename__ = "tickets"
@@ -41,6 +44,12 @@ class Ticket(Base, TimestampMixin):
     is_escalated: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     l1_approved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     l2_approved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    # Citizen Feedback & Reopen
+    rating: Mapped[int] = mapped_column(Integer, nullable=True)
+    feedback: Mapped[str] = mapped_column(String(1000), nullable=True)
+    reopened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+    reopen_reason: Mapped[str] = mapped_column(String(1000), nullable=True)
 
     # Relationships
     complaint: Mapped["Complaint"] = relationship(back_populates="ticket")

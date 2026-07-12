@@ -10,6 +10,16 @@ class ComplaintCreate(BaseModel):
     reporter_name: str = Field(..., min_length=2)
     reporter_email: Optional[EmailStr] = None
     reporter_phone: Optional[str] = None
+    category: Optional[str] = None
+    fraud_amount: Optional[float] = None
+    incident_date: Optional[str] = None
+    suspect_name: Optional[str] = None
+    suspect_phone: Optional[str] = None
+    upi_id: Optional[str] = None
+    bank_account: Optional[str] = None
+    wallet_address: Optional[str] = None
+    url: Optional[str] = None
+    email: Optional[str] = None
     metadata_json: Optional[Dict[str, Any]] = None
 
 class ComplaintResponse(BaseModel):
@@ -21,6 +31,7 @@ class ComplaintResponse(BaseModel):
     reporter_name: str
     reporter_email: Optional[str]
     reporter_phone: Optional[str]
+    citizen_id: Optional[uuid.UUID] = None
     metadata_json: Optional[Dict[str, Any]]
     created_at: datetime
     updated_at: datetime
@@ -41,11 +52,22 @@ class TicketResponse(BaseModel):
     is_escalated: bool
     l1_approved: bool
     l2_approved: bool
+    rating: Optional[int] = None
+    feedback: Optional[str] = None
+    reopened_at: Optional[datetime] = None
+    reopen_reason: Optional[str] = None
     created_at: datetime
     complaint: ComplaintResponse
 
     class Config:
         from_attributes = True
+
+class FeedbackSubmit(BaseModel):
+    rating: int = Field(..., ge=1, le=5)
+    feedback: Optional[str] = Field(None, max_length=1000)
+
+class ReopenRequest(BaseModel):
+    reason: str = Field(..., min_length=5, max_length=1000)
 
 class AssignmentUpdate(BaseModel):
     officer_id: Optional[uuid.UUID] = None

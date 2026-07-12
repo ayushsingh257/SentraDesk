@@ -9,15 +9,29 @@ from app.schemas.response import StandardResponse
 from app.schemas.evidence import EvidenceUploadRequest, EvidenceUploadResponse, EvidenceSaveRequest, EvidenceResponse
 from app.services.evidence import evidence_service
 
+from app.core.exceptions import AuthError, NotFoundError
+from app.repositories.ticket import ticket_repository
+
 router = APIRouter()
 
 @router.post("/{ticket_id}/upload-link", response_model=StandardResponse[EvidenceUploadResponse])
 def get_upload_link(
     ticket_id: uuid.UUID,
     payload: EvidenceUploadRequest,
-    current_user: Dict[str, Any] = Depends(RoleRequirement("investigator"))
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
 ):
     """Generate secure presigned upload URL gateway link (Phase 51)."""
+    ticket = ticket_repository.get(db, ticket_id)
+    if not ticket:
+        raise NotFoundError("Ticket not found")
+        
+    role = current_user.get("role")
+    actor_id = uuid.UUID(current_user.get("sub"))
+    if role == "citizen":
+        if ticket.complaint.citizen_id != actor_id:
+            raise AuthError("Access denied. You can only attach evidence to your own complaints.", status_code=403)
+            
     res = evidence_service.get_presigned_upload_url(ticket_id, payload.filename)
     return {
         "success": True,
@@ -54,9 +68,19 @@ def save_uploaded_evidence(
 def list_ticket_evidence(
     ticket_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("investigator"))
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
 ):
     """List all evidence assets associated with a ticket (Phase 55)."""
+    ticket = ticket_repository.get(db, ticket_id)
+    if not ticket:
+        raise NotFoundError("Ticket not found")
+        
+    role = current_user.get("role")
+    actor_id = uuid.UUID(current_user.get("sub"))
+    if role == "citizen":
+        if ticket.complaint.citizen_id != actor_id:
+            raise AuthError("Access denied. You can only view evidence for your own complaints.", status_code=403)
+            
     res = evidence_service.list_evidence(db, ticket_id)
     return {
         "success": True,
@@ -68,9 +92,22 @@ def list_ticket_evidence(
 def get_download_link(
     evidence_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("investigator"))
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
 ):
     """Retrieve pre-signed secure download URL (Phase 51)."""
+    # Fetch evidence metadata to confirm ownership
+    from app.models.evidence import Evidence
+    evidence = db.query(Evidence).filter(Evidence.id == evidence_id).first()
+    if not evidence:
+        raise NotFoundError("Evidence record not found")
+        
+    role = current_user.get("role")
+    actor_id = uuid.UUID(current_user.get("sub"))
+    if role == "citizen":
+        ticket = ticket_repository.get(db, evidence.ticket_id)
+        if not ticket or ticket.complaint.citizen_id != actor_id:
+            raise AuthError("Access denied. You can only access evidence for your own complaints.", status_code=403)
+            
     url = evidence_service.get_presigned_download_url(db, evidence_id)
     return {
         "success": True,

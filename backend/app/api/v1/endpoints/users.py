@@ -57,3 +57,28 @@ def list_users(
         "data": res,
         "error": None
     }
+
+from app.schemas.notification import NotificationLogResponse
+from app.models.notification import NotificationLog
+
+@router.get("/notifications", response_model=StandardResponse[List[NotificationLogResponse]])
+def get_user_notifications(
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
+):
+    """Retrieve notifications sent to the logged-in user."""
+    actor_id = uuid.UUID(current_user.get("sub"))
+    user = user_service.get_user_by_id(db, user_id=actor_id)
+    if not user:
+        from app.core.exceptions import NotFoundError
+        raise NotFoundError("User not found")
+        
+    notifications = db.query(NotificationLog).filter(
+        NotificationLog.recipient == user.email
+    ).order_by(NotificationLog.created_at.desc()).all()
+    
+    return {
+        "success": True,
+        "data": notifications,
+        "error": None
+    }

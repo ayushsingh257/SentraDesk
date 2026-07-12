@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Filter, Download, ArrowRight, Calendar, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Search, Filter, Download, ArrowRight, Calendar, AlertTriangle, ShieldCheck, RefreshCw } from "lucide-react";
 
 export default function UnifiedSearch() {
   const [query, setQuery] = useState("");
