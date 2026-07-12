@@ -12,6 +12,20 @@ from app.services.email_listener import email_listener_service
 
 def test_email_intake_automation(client: TestClient, db: Session):
     """Test receiving email automatically triggers complaint creation and auto routing (Phase 37)."""
+    # Register and login system admin
+    client.post("/api/v1/users/register", json={
+        "email": "admin_qa_email@ccgp.gov.in",
+        "password": "SecurePassword123!",
+        "name": "Admin QA Email",
+        "role": "system_administrator"
+    })
+    login_resp = client.post("/api/v1/auth/login", json={
+        "email": "admin_qa_email@ccgp.gov.in",
+        "password": "SecurePassword123!"
+    })
+    token = login_resp.json()["data"]["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
     # 1. Dispatch mock email complaint
     sender = "citizen.reporter@example.com"
     subject = "Help: Cyber financial fraud of 600000 rupees"
@@ -19,7 +33,8 @@ def test_email_intake_automation(client: TestClient, db: Session):
     
     resp = client.post(
         "/api/v1/email/receive-mock",
-        json={"sender": sender, "subject": subject, "body": body}
+        json={"sender": sender, "subject": subject, "body": body},
+        headers=headers
     )
     assert resp.status_code == 200
     data = resp.json()["data"]

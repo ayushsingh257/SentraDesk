@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any
 
 from app.core.database import get_db
-from app.core.security import RoleRequirement
+from app.core.security import RoleRequirement, JWTBearer
 from app.schemas.response import StandardResponse
 from app.schemas.ticket import TicketResponse
 from app.schemas.notification import MockEmailRequest
@@ -14,7 +14,8 @@ router = APIRouter()
 @router.post("/receive-mock", response_model=StandardResponse[TicketResponse])
 def trigger_mock_email_intake(
     payload: MockEmailRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("system_administrator"))
 ):
     """Simulate receiving an incoming email complaint to trigger parser and ticketing logic (Phase 37)."""
     ticket, is_new = email_listener_service.receive_mock_email(

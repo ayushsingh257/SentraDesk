@@ -48,7 +48,7 @@ def get_current_user(
 @router.get("/list", response_model=StandardResponse[List[UserResponse]])
 def list_users(
     db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("supervisor"))
+    current_user: Dict[str, Any] = Depends(RoleRequirement("system_administrator"))
 ):
     """List registered users (requires supervisor or admin role permissions)."""
     res = user_service.get_users(db)

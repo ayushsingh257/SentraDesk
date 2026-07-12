@@ -122,7 +122,20 @@ def test_blockchain_audit_verification(client: TestClient):
 
 def test_prometheus_metrics(client: TestClient):
     # Verify prometheus metrics endpoint
-    metrics_resp = client.get("/api/v1/metrics")
+    client.post("/api/v1/users/register", json={
+        "email": "admin_qa_metrics@ccgp.gov.in",
+        "password": "SecurePassword123!",
+        "name": "Admin QA Metrics",
+        "role": "system_administrator"
+    })
+    login_resp = client.post("/api/v1/auth/login", json={
+        "email": "admin_qa_metrics@ccgp.gov.in",
+        "password": "SecurePassword123!"
+    })
+    token = login_resp.json()["data"]["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    metrics_resp = client.get("/api/v1/metrics", headers=headers)
     assert metrics_resp.status_code == 200
     assert "ccgp_uptime_seconds" in metrics_resp.text
     assert "ccgp_python_version" in metrics_resp.text

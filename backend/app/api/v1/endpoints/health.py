@@ -7,12 +7,15 @@ import time
 import os
 
 from app.core.database import get_db, get_redis
+from app.core.security import RoleRequirement
 from app.schemas.response import StandardResponse
+from typing import Dict, Any
 
 router = APIRouter()
 
 # Track process start time for uptime calculation
 _START_TIME = time.time()
+
 
 @router.get("/health", response_model=StandardResponse[dict])
 def health_check(
@@ -48,7 +51,8 @@ def health_check(
 
 @router.get("/metrics")
 def prometheus_metrics(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("system_administrator"))
 ):
     """Export Prometheus-compatible metrics: request counters, DB row counts, uptime (Phase 93)."""
     from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, Gauge, Counter, REGISTRY
