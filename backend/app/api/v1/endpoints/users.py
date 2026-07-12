@@ -5,8 +5,9 @@ from typing import List, Dict, Any
 from app.core.database import get_db
 from app.core.security import JWTBearer, RoleRequirement
 from app.schemas.response import StandardResponse
-from app.schemas.user import UserRegister, UserResponse
+from app.schemas.user import UserRegister, UserResponse, UserUpdate, PasswordChangeRequest
 from app.services.user import user_service
+
 
 router = APIRouter()
 
@@ -58,10 +59,10 @@ def list_users(
         "error": None
     }
 
-from app.schemas.notification import NotificationLogResponse
-from app.models.notification import NotificationLog
+from app.schemas.notification import InAppNotificationResponse, UnreadCountResponse
+from app.models.notification import InAppNotification
 
-@router.get("/notifications", response_model=StandardResponse[List[NotificationLogResponse]])
+@router.get("/notifications", response_model=StandardResponse[List[InAppNotificationResponse]])
 def get_user_notifications(
     db: Session = Depends(get_db),
     current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
@@ -73,13 +74,121 @@ def get_user_notifications(
         from app.core.exceptions import NotFoundError
         raise NotFoundError("User not found")
         
-    notifications = db.query(NotificationLog).filter(
-        NotificationLog.recipient == user.email
-    ).order_by(NotificationLog.created_at.desc()).all()
+    notifications = db.query(InAppNotification).filter(
+        InAppNotification.citizen_id == user.id
+    ).order_by(InAppNotification.created_at.desc()).all()
     
     return {
         "success": True,
         "data": notifications,
+        "error": None
+    }
+
+@router.get("/notifications/unread-count", response_model=StandardResponse[UnreadCountResponse])
+def get_unread_count(
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
+):
+    """Retrieve the count of unread notifications for the logged-in user."""
+    actor_id = uuid.UUID(current_user.get("sub"))
+    count = db.query(InAppNotification).filter(
+        InAppNotification.citizen_id == actor_id,
+        InAppNotification.is_read == False
+    ).count()
+    return {
+        "success": True,
+        "data": {"unread_count": count},
+        "error": None
+    }
+
+@router.put("/notifications/{id}/read", response_model=StandardResponse[InAppNotificationResponse])
+def mark_notification_as_read(
+    id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
+):
+    """Mark a notification as read."""
+    actor_id = uuid.UUID(current_user.get("sub"))
+    notification = db.query(InAppNotification).filter(
+        InAppNotification.id == id,
+        InAppNotification.citizen_id == actor_id
+    ).first()
+    
+    if not notification:
+        from app.core.exceptions import NotFoundError
+        raise NotFoundError("Notification not found")
+        
+    notification.is_read = True
+    db.commit()
+    db.refresh(notification)
+    return {
+        "success": True,
+        "data": notification,
+        "error": None
+    }
+
+@router.put("/notifications/read-all", response_model=StandardResponse[Dict[str, Any]])
+def mark_all_notifications_as_read(
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
+):
+    """Mark all notifications for the user as read."""
+    actor_id = uuid.UUID(current_user.get("sub"))
+    db.query(InAppNotification).filter(
+        InAppNotification.citizen_id == actor_id,
+        InAppNotification.is_read == False
+    ).update({InAppNotification.is_read: True}, synchronize_session=False)
+    db.commit()
+    return {
+        "success": True,
+        "data": {"message": "All notifications marked as read"},
+        "error": None
+    }
+
+@router.put("/me", response_model=StandardResponse[UserResponse])
+def update_profile(
+    payload: UserUpdate,
+    token_payload: Dict[str, Any] = Depends(JWTBearer()),
+    db: Session = Depends(get_db)
+):
+    """Update profile attributes for the logged-in user."""
+    user_id = uuid.UUID(token_payload.get("sub"))
+    user = user_service.get_user_by_id(db, user_id=user_id)
+    if not user:
+        from app.core.exceptions import NotFoundError
+        raise NotFoundError("User not found")
+    
+    if payload.name is not None:
+        user = user_service.update_profile(db, user=user, name=payload.name)
+        
+    return {
+        "success": True,
+        "data": user,
+        "error": None
+    }
+
+@router.put("/me/password", response_model=StandardResponse[UserResponse])
+def change_password(
+    payload: PasswordChangeRequest,
+    token_payload: Dict[str, Any] = Depends(JWTBearer()),
+    db: Session = Depends(get_db)
+):
+    """Change the password for the logged-in user after verifying current credentials."""
+    user_id = uuid.UUID(token_payload.get("sub"))
+    user = user_service.get_user_by_id(db, user_id=user_id)
+    if not user:
+        from app.core.exceptions import NotFoundError
+        raise NotFoundError("User not found")
+    
+    user = user_service.update_password(
+        db,
+        user=user,
+        old_password=payload.old_password,
+        new_password=payload.new_password
+    )
+    return {
+        "success": True,
+        "data": user,
         "error": None
     }
 
@@ -123,4 +232,5 @@ def get_user_stats(
         },
         "error": None
     }
+
 

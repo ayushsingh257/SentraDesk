@@ -89,3 +89,18 @@ class UserResponse(BaseModel):
         
 class LogoutRequest(BaseModel):
     refresh_token: str
+
+from typing import Optional
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2)
+
+class PasswordChangeRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def check_password(cls, v: str) -> str:
+        return validate_password_strength(v)
+

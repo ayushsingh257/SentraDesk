@@ -75,4 +75,23 @@ class UserService:
     def get_users(self, db: Session, skip: int = 0, limit: int = 100) -> List[User]:
         return user_repository.get_multi(db, skip=skip, limit=limit)
 
+    def update_profile(self, db: Session, *, user: User, name: str) -> User:
+        """Update current user profile metrics."""
+        user.name = name
+        db.commit()
+        db.refresh(user)
+        return user
+
+    def update_password(self, db: Session, *, user: User, old_password: str, new_password: str) -> User:
+        """Verify old password and change it to the new one."""
+        from app.core.security import verify_password
+        if not verify_password(old_password, user.hashed_password):
+            raise ValidationError(message="Current password is incorrect", code="INCORRECT_PASSWORD")
+        
+        user.hashed_password = hash_password(new_password)
+        db.commit()
+        db.refresh(user)
+        return user
+
 user_service = UserService()
+

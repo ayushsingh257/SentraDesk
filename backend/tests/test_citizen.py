@@ -150,11 +150,13 @@ def test_citizen_ticket_lifecycle(client, db):
     assert resp_dl_b.status_code == 403
 
     # 14. Query notifications
-    from app.models.notification import NotificationLog
-    notif = NotificationLog(
-        recipient="citizen_a@ccgp.gov.in",
-        template_name="verify_email",
-        status="Sent"
+    from app.models.notification import InAppNotification
+    notif = InAppNotification(
+        citizen_id=uuid.UUID(ticket_data["complaint"]["citizen_id"]),
+        ticket_id=uuid.UUID(ticket_id),
+        title="Ticket Created",
+        message="Your complaint has been successfully filed.",
+        is_read=False
     )
     db.add(notif)
     db.commit()
@@ -162,7 +164,38 @@ def test_citizen_ticket_lifecycle(client, db):
     resp_notif = client.get("/api/v1/users/notifications", headers=headers_a)
     assert resp_notif.status_code == 200
     assert len(resp_notif.json()["data"]) > 0
-    assert resp_notif.json()["data"][0]["recipient"] == "citizen_a@ccgp.gov.in"
+    assert resp_notif.json()["data"][0]["citizen_id"] == ticket_data["complaint"]["citizen_id"]
+    notif_id = resp_notif.json()["data"][0]["id"]
+
+    # 14.1 Unread count
+    resp_count = client.get("/api/v1/users/notifications/unread-count", headers=headers_a)
+    assert resp_count.status_code == 200
+    assert resp_count.json()["data"]["unread_count"] == 1
+
+    # 14.2 Mark read
+    resp_read = client.put(f"/api/v1/users/notifications/{notif_id}/read", headers=headers_a)
+    assert resp_read.status_code == 200
+    assert resp_read.json()["data"]["is_read"] == True
+
+    # 14.3 Unread count after read
+    resp_count_2 = client.get("/api/v1/users/notifications/unread-count", headers=headers_a)
+    assert resp_count_2.json()["data"]["unread_count"] == 0
+
+    # 14.4 Mark all read (create another notification first)
+    notif_2 = InAppNotification(
+        citizen_id=uuid.UUID(ticket_data["complaint"]["citizen_id"]),
+        title="Status Updated",
+        message="Your complaint is under investigation.",
+        is_read=False
+    )
+    db.add(notif_2)
+    db.commit()
+
+    resp_read_all = client.put("/api/v1/users/notifications/read-all", headers=headers_a)
+    assert resp_read_all.status_code == 200
+
+    resp_count_3 = client.get("/api/v1/users/notifications/unread-count", headers=headers_a)
+    assert resp_count_3.json()["data"]["unread_count"] == 0
 
     # 15. Check citizen stats endpoint
     resp_stats_a = client.get("/api/v1/users/me/stats", headers=headers_a)
@@ -179,4 +212,24 @@ def test_citizen_ticket_lifecycle(client, db):
     assert stats_data_b["total_cases"] == 0
     assert stats_data_b["open_cases"] == 0
     assert stats_data_b["closed_cases"] == 0
+
+    # 16. Update Profile
+    resp_prof = client.put("/api/v1/users/me", json={"name": "Citizen A Updated"}, headers=headers_a)
+    assert resp_prof.status_code == 200
+    assert resp_prof.json()["data"]["name"] == "Citizen A Updated"
+
+    # 17. Change password
+    resp_pw = client.put("/api/v1/users/me/password", json={
+        "old_password": "SecurePassword123!",
+        "new_password": "NewSecurePassword123!"
+    }, headers=headers_a)
+    assert resp_pw.status_code == 200
+
+    # Verify we can login with the new password
+    login_new = client.post("/api/v1/auth/login", json={
+        "email": "citizen_a@ccgp.gov.in",
+        "password": "NewSecurePassword123!"
+    })
+    assert login_new.status_code == 200
+
 

@@ -23,6 +23,7 @@ interface AuthContextType {
   isLoading: boolean
   login: (email: string, password: string) => Promise<UserRole>
   logout: () => Promise<void>
+  reloadSession: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -133,6 +134,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const reloadSession = async () => {
+    try {
+      const userRes = await api.get(API_ROUTES.me)
+      const freshUser: User = userRes.data.data
+      setUser(freshUser)
+      setStoredUser({
+        id: freshUser.id,
+        name: freshUser.name,
+        role: freshUser.role,
+      })
+    } catch (err) {
+      console.error('Failed to reload session:', err)
+    }
+  }
+
   const value = {
     user,
     accessToken,
@@ -140,6 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     login,
     logout,
+    reloadSession,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -125,4 +125,5 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
 }
 
 export { ThemeToggle } from './ThemeToggle'
+export { Card, CardHeader, CardBody, CardFooter, KPICard } from './Card'
 
