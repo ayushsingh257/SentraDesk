@@ -88,16 +88,19 @@ class AuthService:
 
     def invalidate_session(self, db: Session, r: redis.Redis, *, access_token: str, refresh_token: str) -> None:
         """Denylist active access token in Redis and revoke refresh session token in database."""
-        # Block access token
+        # Block access token in Redis (gracefully degrade if Redis is offline)
         try:
-            payload = decode_token(access_token)
-            exp = payload.get("exp")
-            now = datetime.now(timezone.utc).timestamp()
-            ttl = int(exp - now) if exp and exp > now else settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
-            r.setex(f"denylist:{access_token}", ttl, "1")
-        except Exception:
-            # If access token is corrupted or already expired, still block it with default expiry
-            r.setex(f"denylist:{access_token}", settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60, "1")
+            try:
+                payload = decode_token(access_token)
+                exp = payload.get("exp")
+                now = datetime.now(timezone.utc).timestamp()
+                ttl = int(exp - now) if exp and exp > now else settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+                r.setex(f"denylist:{access_token}", ttl, "1")
+            except Exception:
+                # If access token is corrupted or already expired, still block it with default expiry
+                r.setex(f"denylist:{access_token}", settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60, "1")
+        except (redis.exceptions.ConnectionError, Exception) as e:
+            logger.warning(f"Failed to record blacklisted token in Redis (service offline): {str(e)}")
             
         # Revoke database refresh token
         db_token = db.query(RefreshToken).filter(RefreshToken.token == refresh_token).first()

@@ -141,7 +141,7 @@ class TicketService:
         
         return ticket
 
-    def update_ticket_status(self, db: Session, *, ticket_id: uuid.UUID, new_status: str, actor_id: uuid.UUID) -> Ticket:
+    def update_ticket_status(self, db: Session, *, ticket_id: uuid.UUID, new_status: str, actor_id: uuid.UUID, actor_role: Optional[str] = None) -> Ticket:
         """Execute ticket state transitions under strict workflow constraints."""
         ticket = ticket_repository.get(db, ticket_id)
         if not ticket:
@@ -153,21 +153,45 @@ class TicketService:
         if old_status == new_status:
             return ticket
             
-        # Enforce State Machine Rules
+        # Enforce State Machine Rules with Role Requirements
+        # (old_status, new_status): minimum_required_role_level
         allowed_transitions = {
-            "New": ["Assigned", "Resolved"],
-            "Assigned": ["Under Investigation", "Resolved"],
-            "Under Investigation": ["Closure Requested", "Resolved"],
-            "Closure Requested": ["Closed", "Reopened"],
-            "Closed": ["Reopened"],
-            "Reopened": ["Assigned", "Under Investigation"]
+            ("New", "AI Processing"): 0,  # system (automatic)
+            ("New", "Assigned"): 0,       # system (automatic) or operator/officer
+            ("New", "Resolved"): 3,
+            ("AI Processing", "Assigned"): 0,
+            ("Assigned", "Under Investigation"): 3,  # cyber_cell_officer
+            ("Assigned", "Resolved"): 3,
+            ("Under Investigation", "Waiting for Citizen"): 3,
+            ("Under Investigation", "Evidence Received"): 3,
+            ("Under Investigation", "Closure Requested"): 4,  # investigator
+            ("Under Investigation", "Resolved"): 3,
+            ("Waiting for Citizen", "Under Investigation"): 3,
+            ("Evidence Received", "Under Investigation"): 3,
+            ("Closure Requested", "Closed"): 6,  # supervisor
+            ("Closure Requested", "Reopened"): 6, # supervisor reject
+            ("Closed", "Reopened"): 1,           # citizen
+            ("Closed", "Under Investigation"): 1,  # citizen reopen directly transitions to Under Investigation in endpoint
+            ("Reopened", "Assigned"): 3,
+            ("Reopened", "Under Investigation"): 3
         }
         
-        if new_status not in allowed_transitions.get(old_status, []):
+        transition = (old_status, new_status)
+        if transition not in allowed_transitions:
             raise ValidationError(
                 message=f"Invalid state transition: cannot transition ticket from {old_status} to {new_status}",
                 code="INVALID_STATE_TRANSITION"
             )
+            
+        if actor_role:
+            from app.core.security import ROLE_HIERARCHY
+            user_level = ROLE_HIERARCHY.get(actor_role, 1)
+            required_level = allowed_transitions[transition]
+            if user_level < required_level:
+                raise ValidationError(
+                    message=f"Insufficient permissions to transition ticket from {old_status} to {new_status}. Required role level: {required_level}",
+                    code="FORBIDDEN_STATE_TRANSITION"
+                )
             
         # Closure requires L1 and L2 approvals
         if new_status == "Closed":

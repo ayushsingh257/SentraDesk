@@ -944,16 +944,16 @@ refactor: description of refactoring
 | Era 1 | Foundation & Design System | ✅ Completed | 2026-07-12 |
 | Era 2 | Authentication Flows | ✅ Completed | 2026-07-12 |
 | Era 3 | Citizen Portal | ✅ Completed | 2026-07-13 |
-| Era 4 | Officer Portal | ⏳ Pending | — |
+| Era 4 | Officer Portal | ✅ Completed | 2026-07-13 |
 | Era 5 | Admin Portal | ⏳ Pending | — |
 | Era 6 | Backend Polish & AI Modules | ⏳ Pending | — |
 | Era 7 | Testing, CI/CD & Final Documentation | ⏳ Pending | — |
 
 ---
 
-*Last updated: Era 3 — Citizen Portal*
+*Last updated: Era 4 — Officer Portal*
 
-### Infrastructure Fix: Design System / Static Assets (2026-07-13)
+### Infrastructure Refactors: Parallel Routes & Redis Grace Fallback (2026-07-13)
 **Root Cause**: The Next.js dev server (`npm run dev`) was started once at the beginning of the project and kept running through multiple project restructuring phases. After bulk file deletions, route changes, and new component additions, the server's internal Webpack/HMR module graph became out of sync with the physical files on disk, causing all `_next/static/` asset requests to return 404.
 
 **Additional contributing factor**: `dashboard/page.tsx` imported `Card` and `KPICard` from `@/components/ui/index`, but those components were not exported from the index file — causing Webpack to fail to compile the module graph for those chunks.

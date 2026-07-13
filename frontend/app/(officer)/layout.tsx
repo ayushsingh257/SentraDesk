@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { isOfficer } from '@/lib/auth'
 import { Spinner } from '@/components/ui/index'
+import { OfficerSidebar } from '@/components/layout/OfficerSidebar'
 
 export default function OfficerLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading, isAuthenticated } = useAuth()
@@ -28,5 +29,12 @@ export default function OfficerLayout({ children }: { children: React.ReactNode 
     )
   }
 
-  return <>{children}</>
+  return (
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 lg:pl-64">
+      <OfficerSidebar />
+      <main className="py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pt-20 lg:pt-10">
+        {children}
+      </main>
+    </div>
+  )
 }

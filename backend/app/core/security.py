@@ -93,8 +93,11 @@ class JWTBearer:
         token = credentials.credentials
         
         # Check Redis token denylist
-        if r.exists(f"denylist:{token}"):
-            raise AuthError(message="Token has been blacklisted/logged out", code="TOKEN_REVOKED")
+        try:
+            if r.exists(f"denylist:{token}"):
+                raise AuthError(message="Token has been blacklisted/logged out", code="TOKEN_REVOKED")
+        except (redis.exceptions.ConnectionError, Exception) as e:
+            logger.warning(f"Redis lookup failed or is offline: {str(e)}. Proceeding with fallback JWT verification.")
             
         payload = decode_token(token)
         if payload.get("type") != "access":

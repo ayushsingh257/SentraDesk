@@ -18,7 +18,6 @@ from app.schemas.ticket import (
     NoteCreate,
     NoteResponse,
     TimelineResponse,
-    ApprovalAction,
     MergeRequest
 )
 from app.services.ticket import ticket_service
@@ -209,11 +208,13 @@ def update_ticket_status(
 ):
     """Transition the ticket lifecycle status (requires officer or higher permissions)."""
     actor_id = uuid.UUID(current_user.get("sub"))
+    actor_role = current_user.get("role")
     res = ticket_service.update_ticket_status(
         db,
         ticket_id=id,
         new_status=payload.status,
-        actor_id=actor_id
+        actor_id=actor_id,
+        actor_role=actor_role
     )
     return {
         "success": True,
@@ -276,6 +277,23 @@ def add_private_note(
         "error": None
     }
 
+@router.get("/{id}/notes", response_model=StandardResponse[List[NoteResponse]])
+def get_private_notes(
+    id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
+):
+    """Retrieve all private internal notes for a ticket (requires investigator or higher)."""
+    ticket = ticket_repository.get(db, id)
+    if not ticket:
+        raise NotFoundError("Ticket not found")
+        
+    return {
+        "success": True,
+        "data": ticket.private_notes,
+        "error": None
+    }
+
 @router.get("/{id}/timeline", response_model=StandardResponse[List[TimelineResponse]])
 def get_timeline(
     id: uuid.UUID,
@@ -304,28 +322,6 @@ def get_timeline(
         "error": None
     }
 
-@router.post("/{id}/approvals", response_model=StandardResponse[TicketResponse])
-def submit_approval(
-    id: uuid.UUID,
-    payload: ApprovalAction,
-    db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("supervisor"))
-):
-    """Review and submit approval actions for closure requests (requires supervisor permissions)."""
-    actor_id = uuid.UUID(current_user.get("sub"))
-    res = ticket_service.submit_approval_action(
-        db,
-        ticket_id=id,
-        approver_id=actor_id,
-        decision=payload.decision,
-        reason=payload.reason,
-        level=payload.level
-    )
-    return {
-        "success": True,
-        "data": res,
-        "error": None
-    }
 
 @router.post("/merge", response_model=StandardResponse[TicketResponse])
 def merge_tickets(
