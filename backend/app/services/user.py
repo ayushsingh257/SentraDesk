@@ -56,7 +56,7 @@ class UserService:
             db.commit()
             
             try:
-                verification_link = f"http://localhost:3000/verify-email?token={token_str}"
+                verification_link = f"{settings.FRONTEND_URL.rstrip('/')}/verify-email?token={token_str}"
                 notification_service.send_email(
                     db,
                     recipient=user.email,

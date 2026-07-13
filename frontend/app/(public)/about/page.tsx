@@ -51,10 +51,9 @@ export default function AboutPage() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">Technology</h2>
+          <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">About the Platform</h2>
           <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
-            CCGP is built with a production-grade stack: Next.js 15, FastAPI, PostgreSQL, Redis, MinIO, Qdrant, and Celery.
-            The backend is designed for correctness and auditability first. The frontend prioritizes clarity and usability over visual effects.
+            CCGP is a secure cyber complaint governance platform designed to help citizens report cyber incidents, communicate with investigating officers, and track investigations transparently while enabling law enforcement agencies to manage complaints efficiently.
           </p>
         </section>
       </div>

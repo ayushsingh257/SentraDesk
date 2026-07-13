@@ -157,7 +157,7 @@ class AuthService:
         db.add(db_token)
         db.commit()
         
-        reset_link = f"http://localhost:3000/reset-password?token={token_str}"
+        reset_link = f"{settings.FRONTEND_URL.rstrip('/')}/reset-password?token={token_str}"
         try:
             notification_service.send_email(
                 db,
