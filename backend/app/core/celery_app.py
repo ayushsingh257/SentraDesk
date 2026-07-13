@@ -52,3 +52,42 @@ celery_app.conf.beat_schedule = {
         "schedule": 3600.0,  # Every hour
     }
 }
+
+def dispatch_task(task, *args, **kwargs):
+    """
+    Safely dispatch a Celery task asynchronously.
+    If Redis (the broker) is offline or unavailable, fallback to running the task 
+    synchronously in a separate background thread to prevent blocking request cycles.
+    """
+    from app.core.database import get_redis
+    from app.core.logging import logger
+    import threading
+
+    redis_online = False
+    try:
+        import redis
+        from app.core.config import settings
+        # Connect with a very short timeout to fail fast if offline
+        r_ping = redis.Redis.from_url(
+            settings.REDIS_URL, 
+            socket_connect_timeout=0.2, 
+            socket_timeout=0.2
+        )
+        r_ping.ping()
+        redis_online = True
+    except Exception:
+        redis_online = False
+
+    if redis_online:
+        logger.info(f"Redis is online. Dispatching Celery task '{task.name}' asynchronously.")
+        task.delay(*args, **kwargs)
+    else:
+        logger.warning(
+            f"Redis is offline/disconnected. Falling back to background thread for Celery task '{task.name}'."
+        )
+        target_func = getattr(task, "run", task)
+        # Spin up a thread to execute the raw task logic
+        thread = threading.Thread(target=target_func, args=args, kwargs=kwargs)
+        thread.daemon = True
+        thread.start()
+

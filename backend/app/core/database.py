@@ -26,9 +26,18 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
-# Configure Redis Client Pool
-redis_pool = redis.ConnectionPool.from_url(settings.REDIS_URL, decode_responses=True)
+# Configure Redis Client Pool with strict timeouts to prevent offline hangs
+redis_pool = redis.ConnectionPool.from_url(
+    settings.REDIS_URL, 
+    decode_responses=True,
+    socket_connect_timeout=0.2,
+    socket_timeout=0.2
+)
 
 def get_redis() -> redis.Redis:
     """Helper service to fetch an active Redis connection client."""
-    return redis.Redis(connection_pool=redis_pool)
+    return redis.Redis(
+        connection_pool=redis_pool,
+        socket_connect_timeout=0.2,
+        socket_timeout=0.2
+    )

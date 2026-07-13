@@ -208,7 +208,9 @@ class ApprovalService:
                     from app.core.config import settings as _settings
                     if _settings.ENVIRONMENT != "testing":
                         from app.tasks.email import send_notification_task
-                        send_notification_task.delay(
+                        from app.core.celery_app import dispatch_task
+                        dispatch_task(
+                            send_notification_task,
                             recipient=officer_user.email,
                             template_name="ticket_rejected",
                             subject=f"❌ Closure Request Rejected: [{ticket.ticket_number}]",

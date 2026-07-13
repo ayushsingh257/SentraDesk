@@ -28,9 +28,11 @@ class TicketService:
         meta = metadata_json or {}
         import time
         from app.services.ai_pipeline import ai_pipeline_service
+        logger.info(f"AI processing started for complaint description (len={len(description)})")
         start_time = time.time()
         ai_res = ai_pipeline_service.process_complaint(description, meta)
         inference_time_ms = (time.time() - start_time) * 1000
+        logger.info(f"AI processing completed: predicted category '{ai_res['category']}', severity '{ai_res['severity']}' in {inference_time_ms:.2f}ms")
         
         # Prioritize AI predictions unless explicitly provided in request metadata
         category = meta.get("category") or ai_res["category"]
@@ -77,7 +79,9 @@ class TicketService:
             citizen_id=citizen_id,
             metadata_json=meta
         )
+        logger.info("Database insert started for complaint record")
         complaint = ticket_repository.create_complaint(db, complaint=new_complaint)
+        logger.info(f"Database insert completed: Complaint ID {complaint.id}")
         
         # Generate Sequential Ticket Number
         ticket_number = ticket_repository.generate_next_ticket_number(db)
@@ -96,13 +100,16 @@ class TicketService:
         new_ticket.complaint = complaint
         
         # Auto-assign investigator based on workload
+        logger.info(f"Auto-assigning investigator workload calculation started for ticket {ticket_number}")
         officer_id = self.auto_assign_investigator(db, new_ticket)
         if officer_id:
             new_ticket.assigned_officer_id = officer_id
             complaint.status = "Assigned"
             db.add(complaint)
             
+        logger.info(f"Database insert started for ticket {ticket_number}")
         ticket = ticket_repository.create(db, obj_in=new_ticket)
+        logger.info(f"Database insert completed: Ticket ID {ticket.id} | number {ticket_number}")
         
         # Dispatch notification to officer if auto-assigned
         if officer_id:
@@ -113,7 +120,9 @@ class TicketService:
                     from app.core.config import settings as _settings
                     if _settings.ENVIRONMENT != "testing":
                         from app.tasks.email import send_notification_task
-                        send_notification_task.delay(
+                        from app.core.celery_app import dispatch_task
+                        dispatch_task(
+                            send_notification_task,
                             recipient=officer_user.email,
                             template_name="ticket_assigned",
                             subject=f"CCGP Ticket Assigned [{ticket.ticket_number}]",
@@ -153,14 +162,20 @@ class TicketService:
                     db.add(entity_record)
         db.commit()
         
-        # Upsert vector representation into Qdrant for similarity search
-        ai_pipeline_service.upsert_complaint_vector(
-            ticket_id=ticket.id,
-            text=description,
-            ticket_number=ticket.ticket_number,
-            category=category,
-            severity=severity
+        # Upsert vector representation into Qdrant for similarity search asynchronously
+        import threading
+        thread = threading.Thread(
+            target=ai_pipeline_service.upsert_complaint_vector,
+            kwargs={
+                "ticket_id": ticket.id,
+                "text": description,
+                "ticket_number": ticket.ticket_number,
+                "category": category,
+                "severity": severity
+            }
         )
+        thread.daemon = True
+        thread.start()
         
         # Audit log inference metrics for SIEM scanning
         from app.core.logging import log_ai_inference
@@ -273,7 +288,9 @@ class TicketService:
                 from app.core.config import settings as _settings
                 if _settings.ENVIRONMENT != "testing":
                     from app.tasks.email import send_notification_task
-                    send_notification_task.delay(
+                    from app.core.celery_app import dispatch_task
+                    dispatch_task(
+                        send_notification_task,
                         recipient=ticket.complaint.reporter_email,
                         template_name="ticket_status_changed",
                         subject=f"CCGP Ticket Update [{ticket.ticket_number}] - {new_status}",
@@ -420,7 +437,9 @@ class TicketService:
                 from app.core.config import settings as _settings
                 if _settings.ENVIRONMENT != "testing":
                     from app.tasks.email import send_notification_task
-                    send_notification_task.delay(
+                    from app.core.celery_app import dispatch_task
+                    dispatch_task(
+                        send_notification_task,
                         recipient=recipient_email,
                         template_name="query_received",
                         subject=f"💬 New message on ticket [{ticket.ticket_number}]",

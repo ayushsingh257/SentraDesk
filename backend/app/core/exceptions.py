@@ -71,6 +71,9 @@ def register_exception_handlers(app: FastAPI) -> None:
                 if "error" in ctx and isinstance(ctx["error"], Exception):
                     ctx["error"] = str(ctx["error"])
                 err["ctx"] = ctx
+            # Convert bytes input to string to ensure JSON serializability
+            if "input" in err and isinstance(err["input"], bytes):
+                err["input"] = err["input"].decode("utf-8", errors="ignore")
             sanitized_errors.append(err)
             
         logger.info(f"Schema validation error handled: {sanitized_errors}", extra={"request_id": getattr(request.state, "request_id", None)})

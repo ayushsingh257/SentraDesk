@@ -12,9 +12,9 @@ QDRANT_URL = os.getenv("QDRANT_URL", f"http://{QDRANT_HOST}:{QDRANT_PORT}")
 logger.info(f"Connecting to Qdrant at: {QDRANT_URL}")
 
 if settings.ENVIRONMENT == "testing":
-    qdrant_client = QdrantClient(":memory:")
+    qdrant_client = QdrantClient(":memory:", timeout=1.0)
 else:
-    qdrant_client = QdrantClient(url=QDRANT_URL, check_compatibility=False)
+    qdrant_client = QdrantClient(url=QDRANT_URL, check_compatibility=False, timeout=1.0)
 
 def init_qdrant_schema():
     """Create collection 'complaints' for duplicate detection search (Phase 61)."""

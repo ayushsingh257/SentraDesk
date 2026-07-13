@@ -84,7 +84,8 @@ def dispatch_governance_report(
 ):
     """Trigger immediate monthly governance report dispatch to supervisors via Celery (Phase 86)."""
     from app.tasks.governance import send_governance_report_task
-    send_governance_report_task.delay("supervisor@ccgp.gov.in")
+    from app.core.celery_app import dispatch_task
+    dispatch_task(send_governance_report_task, "supervisor@ccgp.gov.in")
     return {
         "success": True,
         "data": {
