@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, users, tickets, complaints, health, evidence, approvals, email, threat_intel, audit, governance, officer
+from app.api.v1.endpoints import auth, users, tickets, complaints, health, evidence, approvals, email, threat_intel, audit, governance, officer, admin
 
 api_router = APIRouter()
 
@@ -15,3 +15,4 @@ api_router.include_router(email.router, prefix="/email", tags=["Email Automation
 api_router.include_router(threat_intel.router, prefix="/threat-intel", tags=["Threat Intelligence"])
 api_router.include_router(audit.router, prefix="/audit", tags=["Cryptographic Auditing"])
 api_router.include_router(governance.router, prefix="/governance", tags=["Executive Governance"])
+api_router.include_router(admin.router, prefix="/admin", tags=["Administrative Portals"])

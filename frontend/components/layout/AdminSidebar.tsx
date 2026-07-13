@@ -1,0 +1,164 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { 
+  LayoutDashboard, 
+  Users,
+  Settings, 
+  LogOut, 
+  Shield,
+  Menu,
+  X,
+  Database,
+  History,
+  ToggleLeft,
+  Settings2
+} from 'lucide-react'
+
+import { useAuth } from '@/components/providers/AuthProvider'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
+
+interface NavItem {
+  name: string
+  href: string
+  icon: any
+}
+
+export function AdminSidebar() {
+  const pathname = usePathname()
+  const { user, logout } = useAuth()
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  const navigation: NavItem[] = [
+    { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'User Management', href: '/admin/users', icon: Users },
+    { name: 'Rules Engine', href: '/admin/rules', icon: ToggleLeft },
+    { name: 'System Diagnostics', href: '/admin/health', icon: Database },
+    { name: 'Audit Logs', href: '/admin/audit', icon: History },
+    { name: 'Configurations', href: '/admin/config', icon: Settings2 },
+  ]
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (err) {
+      console.error('Logout error:', err)
+    }
+  }
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800">
+      {/* Brand logo */}
+      <div className="flex items-center gap-2 px-6 py-5 border-b border-neutral-100 dark:border-neutral-800">
+        <div className="w-9 h-9 bg-primary-700 rounded-xl flex items-center justify-center">
+          <Shield className="w-5 h-5 text-white" />
+        </div>
+        <div className="flex flex-col">
+          <span className="font-bold text-neutral-900 dark:text-white leading-none">CCGP</span>
+          <span className="text-[10px] text-primary-600 dark:text-primary-400 font-bold mt-0.5 tracking-wider uppercase">
+            Admin Console
+          </span>
+        </div>
+      </div>
+
+      {/* Navigation links */}
+      <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+        {navigation.map((item) => {
+          const isActive = pathname.startsWith(item.href)
+          const Icon = item.icon
+
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                isActive
+                  ? 'bg-primary-50 dark:bg-primary-950/40 text-primary-700 dark:text-primary-400'
+                  : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800/60 hover:text-neutral-900 dark:hover:text-white'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-105 ${
+                  isActive ? 'text-primary-600 dark:text-primary-400' : 'text-neutral-400 group-hover:text-neutral-500'
+                }`} />
+                <span>{item.name}</span>
+              </div>
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* User profile footer */}
+      <div className="p-4 border-t border-neutral-100 dark:border-neutral-800 space-y-4">
+        <div className="flex items-center gap-3 px-2">
+          <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-primary-700 dark:text-primary-400 font-bold border border-primary-200 dark:border-primary-800">
+            {user?.name?.charAt(0).toUpperCase() || 'A'}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-neutral-900 dark:text-white truncate">
+              {user?.name || 'Administrator'}
+            </p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+              System Admin
+            </p>
+          </div>
+          <ThemeToggle />
+        </div>
+
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-danger hover:bg-danger/10 dark:hover:bg-danger/20 transition-all duration-200"
+        >
+          <LogOut className="w-5 h-5" />
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </div>
+  )
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:z-30">
+        <SidebarContent />
+      </div>
+
+      {/* Mobile Drawer Trigger Bar */}
+      <div className="lg:hidden flex items-center justify-between px-6 py-4 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 fixed top-0 w-full z-20">
+        <Link href="/admin/dashboard" className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary-700 rounded-lg flex items-center justify-center">
+            <Shield className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-bold text-neutral-900 dark:text-white text-base">CCGP</span>
+        </Link>
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="p-1 rounded-lg text-neutral-500 hover:text-neutral-950 dark:hover:text-white focus:outline-none"
+          >
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Drawer Overlay */}
+      {mobileOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-neutral-950/50 backdrop-blur-sm z-30 transition-opacity duration-300"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile Drawer Navigation */}
+      <div className={`lg:hidden fixed inset-y-0 left-0 w-72 z-40 transform transition-transform duration-300 ease-in-out ${
+        mobileOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <SidebarContent />
+      </div>
+    </>
+  )
+}

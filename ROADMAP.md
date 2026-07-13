@@ -237,44 +237,44 @@
 ---
 
 ## ERA 5 — Admin Portal
-⏳ **Pending**
+✅ **Completed**
 
 ### Phase 5.1 — Admin Dashboard & Navigation
-- ⏳ Admin KPI cards (platform-wide stats)
-- ⏳ Admin sidebar navigation
+- ✅ Admin KPI cards (platform-wide stats)
+- ✅ Admin sidebar navigation
 
 ### Phase 5.2 — User & Officer Management
-- ⏳ User Management page (CRUD, role assignment)
-- ⏳ Officer Management page (performance, assignments)
+- ✅ User Management page (CRUD, role assignment)
+- ✅ Officer Management page (performance, assignments)
 
 ### Phase 5.3 — Configuration
-- ⏳ Assignment Rules configuration
-- ⏳ Email Directory management
-- ⏳ Notification Templates management
-- ⏳ System Configuration (SLA rules, categories)
+- ✅ Assignment Rules configuration
+- ✅ Email Directory management
+- ✅ Notification Templates management
+- ✅ System Configuration (SLA rules, categories)
 
 ### Phase 5.4 — Monitoring & Compliance
-- ⏳ System Health page (all 6 services)
-- ⏳ Audit Log viewer (hash chain, integrity check)
-- ⏳ Analytics page (trends, performance, satisfaction)
+- ✅ System Health page (all 6 services)
+- ✅ Audit Log viewer (hash chain, integrity check)
+- ✅ Analytics page (trends, performance, satisfaction)
 
 ### Phase 5.5 — New Backend APIs
-- ⏳ `GET /api/v1/admin/dashboard`
-- ⏳ `GET /api/v1/admin/users`
-- ⏳ `PUT /api/v1/admin/users/{id}`
-- ⏳ `GET /api/v1/admin/system-health` (extended)
-- ⏳ Fix `GET /governance/kpis` hardcoded mock data
+- ✅ `GET /api/v1/admin/dashboard`
+- ✅ `GET /api/v1/admin/users`
+- ✅ `PUT /api/v1/admin/users/{id}`
+- ✅ `GET /api/v1/admin/system-health` (extended)
+- ✅ Fix `GET /governance/kpis` hardcoded mock data
 
 ### Phase 5.6 — Era 5 Verification
-- ⏳ Backend tests pass
-- ⏳ Admin platform stats show real data
-- ⏳ User management CRUD works
-- ⏳ System health shows correct status for all services
-- ⏳ Audit logs display with hash chain
-- ⏳ Generate System Architecture Document (SAD) in docs/system_architecture_document.md
-- ⏳ Update brain.md, roadmap.md, README.md, SECURITY.md
-- ⏳ Commit: `feat: Era 5 - Admin portal`
-- ⏳ Push, GitHub Actions green
+- ✅ Backend tests pass
+- ✅ Admin platform stats show real data
+- ✅ User management CRUD works
+- ✅ System health shows correct status for all services
+- ✅ Audit logs display with hash chain
+- ✅ Generate System Architecture Document (SAD) in docs/system_architecture_document.md
+- ✅ Update brain.md, roadmap.md, README.md, SECURITY.md
+- ✅ Commit: `feat: Era 5 - Admin portal`
+- ✅ Push, GitHub Actions green
 
 ---
 
@@ -364,4 +364,4 @@
 
 ---
 
-*Last updated: Era 2 — Authentication Flows*
+*Last updated: Era 5 — Admin Portal*

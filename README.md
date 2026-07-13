@@ -361,12 +361,12 @@ See [SECURITY.md](SECURITY.md) for the complete enterprise security policy, incl
 
 | Era | Description | Status |
 |---|---|---|
-| Era 0 | Repository Reset & Master Documents | 🔄 In Progress |
-| Era 1 | Foundation & Design System | ⏳ Pending |
-| Era 2 | Authentication Flows | ⏳ Pending |
-| Era 3 | Citizen Portal | ⏳ Pending |
-| Era 4 | Officer Portal | ⏳ Pending |
-| Era 5 | Admin Portal | ⏳ Pending |
+| Era 0 | Repository Reset & Master Documents | ✅ Completed |
+| Era 1 | Foundation & Design System | ✅ Completed |
+| Era 2 | Authentication Flows | ✅ Completed |
+| Era 3 | Citizen Portal | ✅ Completed |
+| Era 4 | Officer Portal | ✅ Completed |
+| Era 5 | Admin Portal | ✅ Completed |
 | Era 6 | Backend Polish & AI Modules | ⏳ Pending |
 | Era 7 | Testing, CI/CD & Final Documentation | ⏳ Pending |
 

@@ -945,13 +945,13 @@ refactor: description of refactoring
 | Era 2 | Authentication Flows | ✅ Completed | 2026-07-12 |
 | Era 3 | Citizen Portal | ✅ Completed | 2026-07-13 |
 | Era 4 | Officer Portal | ✅ Completed | 2026-07-13 |
-| Era 5 | Admin Portal | ⏳ Pending | — |
+| Era 5 | Admin Portal | ✅ Completed | 2026-07-13 |
 | Era 6 | Backend Polish & AI Modules | ⏳ Pending | — |
 | Era 7 | Testing, CI/CD & Final Documentation | ⏳ Pending | — |
 
 ---
 
-*Last updated: Era 4 — Officer Portal*
+*Last updated: Era 5 — Admin Portal*
 
 ### Infrastructure Refactors: Parallel Routes & Redis Grace Fallback (2026-07-13)
 **Root Cause**: The Next.js dev server (`npm run dev`) was started once at the beginning of the project and kept running through multiple project restructuring phases. After bulk file deletions, route changes, and new component additions, the server's internal Webpack/HMR module graph became out of sync with the physical files on disk, causing all `_next/static/` asset requests to return 404.
@@ -964,6 +964,14 @@ refactor: description of refactoring
 3. Corrected all API route key mismatches across citizen portal pages.
 4. Added `reloadSession()` to `AuthProvider` context.
 5. Removed legacy `transpilePackages` (three.js) from `next.config.js`.
+
+### Administrative Portals, Socket Health Diagnostics & Auth Revocation Grace (2026-07-13)
+**Changes**:
+1. Created `/api/v1/admin/` routes suite for platform analytics, user directory queries, socket diagnostics, and dynamic configurations.
+2. Added `department` and `jurisdiction` optional metadata fields to the `User` model, and registered the new `SystemConfig` schema in SQLAlchemy.
+3. Implemented lightweight, sub-second `socket.create_connection` health probes for external services to prevent Axios frontend API timeouts when microservices are offline in local dev setups.
+4. Corrected a NameError bug inside `invalidate_session` exception handler in `auth.py` by defining `logger`.
+5. Created the Next.js layouts and admin dashboard pages (`dashboard`, `users` list + edit settings modals, `rules`, `health`, `audit`, `config`).
 
 **Developer Rule**: Whenever moving between development environments or after bulk file changes, always run `Remove-Item -Recurse -Force .next, tsconfig.tsbuildinfo` and restart the dev server.
 

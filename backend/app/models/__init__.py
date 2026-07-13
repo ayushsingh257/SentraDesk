@@ -5,6 +5,7 @@ from app.models.audit import AuditLog, SecurityAuditChain
 from app.models.notification import EmailConversation, NotificationLog, InAppNotification
 from app.models.evidence import Evidence
 from app.models.threat_intel import ExtractedEntityIndex, ThreatIndicator
+from app.models.config import SystemConfig
 
 __all__ = [
     "Base",
@@ -25,5 +26,6 @@ __all__ = [
     "InAppNotification",
     "Evidence",
     "ExtractedEntityIndex",
-    "ThreatIndicator"
+    "ThreatIndicator",
+    "SystemConfig"
 ]

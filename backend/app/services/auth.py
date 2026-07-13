@@ -2,6 +2,9 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 import redis
 import uuid
+import logging
+
+logger = logging.getLogger(__name__)
 
 from app.models.user import RefreshToken
 from app.repositories.user import user_repository

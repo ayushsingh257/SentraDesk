@@ -14,6 +14,8 @@ class User(Base, TimestampMixin):
     role: Mapped[str] = mapped_column(String(50), default="citizen", nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    department: Mapped[str] = mapped_column(String(255), nullable=True)
+    jurisdiction: Mapped[str] = mapped_column(String(255), nullable=True)
 
     # Relationships
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
