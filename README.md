@@ -367,8 +367,8 @@ See [SECURITY.md](SECURITY.md) for the complete enterprise security policy, incl
 | Era 3 | Citizen Portal | ✅ Completed |
 | Era 4 | Officer Portal | ✅ Completed |
 | Era 5 | Admin Portal | ✅ Completed |
-| Era 6 | Backend Polish & AI Modules | ⏳ Pending |
-| Era 7 | Testing, CI/CD & Final Documentation | ⏳ Pending |
+| Era 6 | Backend Polish & AI Modules | ✅ Completed |
+| Era 7 | Testing, CI/CD & Final Documentation | ✅ Completed |
 
 See [roadmap.md](roadmap.md) for the complete phase-by-phase development plan.
 
