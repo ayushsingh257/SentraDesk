@@ -1,8 +1,9 @@
 import os
 
-# Set ALL environment variables BEFORE any app imports so module-level init code
+# Force ALL environment variables BEFORE any app imports so module-level init code
 # (ml.py MLflow, qdrant.py connection) reads the correct values.
-os.environ.setdefault("ENVIRONMENT", "testing")
+# NOTE: Use direct assignment (not setdefault) so shell env vars cannot override
+os.environ["ENVIRONMENT"] = "testing"
 os.environ.setdefault("MLFLOW_TRACKING_URI", "sqlite:///mlflow_test.db")
 os.environ.setdefault("QDRANT_HOST", "localhost")
 os.environ.setdefault("QDRANT_PORT", "6333")

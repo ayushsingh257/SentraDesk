@@ -3,7 +3,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -76,6 +76,43 @@ DEFAULT_TEMPLATES = {
             <p><strong>Ticket ID:</strong> {ticket_number}</p>
             <p><strong>Resolution Status:</strong> Resolved & Closed</p>
             <p>Thank you for your patience during this process.</p>
+            <p>Best regards,<br/>CCGP Governance Alert System</p>
+        </body>
+    </html>
+    """,
+    "ticket_rejected": """
+    <html>
+        <body>
+            <h2>❌ Ticket Closure Request Rejected</h2>
+            <p>Dear Officer,</p>
+            <p>Your request to close the ticket has been reviewed and rejected by the supervisor.</p>
+            <p><strong>Ticket ID:</strong> {ticket_number}</p>
+            <p><strong>Supervisor Comments:</strong> {comments}</p>
+            <p>Please review and resume active investigation steps.</p>
+            <p>Best regards,<br/>CCGP Governance Alert System</p>
+        </body>
+    </html>
+    """,
+    "ticket_reopened": """
+    <html>
+        <body>
+            <h2>🔄 Ticket Reopened</h2>
+            <p>Dear citizen,</p>
+            <p>Your ticket has been reopened by the Cyber cell unit for further investigation.</p>
+            <p><strong>Ticket ID:</strong> {ticket_number}</p>
+            <p>You can track the ongoing progress updates on the dashboard.</p>
+            <p>Best regards,<br/>CCGP Governance Alert System</p>
+        </body>
+    </html>
+    """,
+    "query_received": """
+    <html>
+        <body>
+            <h2>💬 New Conversation Reply Received</h2>
+            <p>Hello,</p>
+            <p>A new conversation thread message was registered for ticket {ticket_number}.</p>
+            <p><strong>Message Snippet:</strong> {snippet}</p>
+            <p>Please log in to the CCGP platform portal to respond.</p>
             <p>Best regards,<br/>CCGP Governance Alert System</p>
         </body>
     </html>
@@ -157,5 +194,30 @@ class NotificationService:
             raise e
 
         return log
+
+    def create_in_app_notification(
+        self,
+        db: Session,
+        *,
+        user_id: uuid.UUID,
+        title: str,
+        message: str,
+        ticket_id: Optional[uuid.UUID] = None
+    ) -> Any:
+        """Create and log a real-time push-compatible InAppNotification record (Phase 39)."""
+        from app.models.notification import InAppNotification
+        
+        notification = InAppNotification(
+            citizen_id=user_id,
+            ticket_id=ticket_id,
+            title=title,
+            message=message,
+            is_read=False
+        )
+        db.add(notification)
+        db.commit()
+        db.refresh(notification)
+        logger.info(f"Registered In-App Notification alert for User ID {user_id}: '{title}'")
+        return notification
 
 notification_service = NotificationService()

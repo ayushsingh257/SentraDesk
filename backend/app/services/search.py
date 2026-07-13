@@ -13,44 +13,85 @@ class UnifiedSearchService:
         if not query_text or not query_text.strip():
             return []
             
-        # 1. Execute vector search query
-        vector_results = ai_pipeline_service.find_similar_complaints(query_text, limit=limit)
-        vector_map = {item["ticket_id"]: item["similarity_score"] for item in vector_results}
-        
-        # 2. Execute SQL keyword search query
-        sql_results = ticket_repository.get_tickets_filtered(db, search_query=query_text, limit=limit)
-        
-        # 2.5 Query relational entity indicator index matching query exactly
-        from app.models.threat_intel import ExtractedEntityIndex
-        entity_matches = db.query(ExtractedEntityIndex).filter(ExtractedEntityIndex.entity_value == query_text).all()
-        
-        # 3. Combine results
+        query_clean = query_text.strip()
         combined_results = {}
         
-        # Process entity index matches first (exact matches)
+        # 1. Check if query is a UUID (matches ticket_id or complaint_id)
+        is_uuid = False
+        try:
+            val_uuid = uuid.UUID(query_clean)
+            is_uuid = True
+        except ValueError:
+            pass
+            
+        if is_uuid:
+            from app.models.ticket import Ticket, Complaint
+            ticket = db.query(Ticket).filter((Ticket.id == val_uuid) | (Ticket.complaint_id == val_uuid)).first()
+            if ticket:
+                combined_results[str(ticket.id)] = {
+                    "ticket": ticket,
+                    "score": 100.0,
+                    "match_type": "exact_id"
+                }
+
+        # 2. Run Qdrant Vector Semantic Search
+        vector_results = []
+        try:
+            vector_results = ai_pipeline_service.find_similar_complaints(query_clean, limit=limit)
+        except Exception as q_err:
+            logger.error(f"Vector search failed in hybrid query: {q_err}")
+        vector_map = {item["ticket_id"]: item["similarity_score"] for item in vector_results}
+
+        # 3. Match ExtractedEntityIndex indicators (fuzzy/like matches)
+        from app.models.threat_intel import ExtractedEntityIndex
+        entity_matches = db.query(ExtractedEntityIndex).filter(ExtractedEntityIndex.entity_value.like(f"%{query_clean}%")).all()
         for match in entity_matches:
             ticket_id_str = str(match.ticket_id)
-            ticket = ticket_repository.get(db, match.ticket_id)
-            if ticket:
-                combined_results[ticket_id_str] = {
-                    "ticket": ticket,
-                    "score": 98.0,
-                    "match_type": "entity_index"
-                }
+            if ticket_id_str not in combined_results:
+                ticket = ticket_repository.get(db, match.ticket_id)
+                if ticket:
+                    combined_results[ticket_id_str] = {
+                        "ticket": ticket,
+                        "score": 98.0,
+                        "match_type": f"entity_index ({match.entity_type})"
+                    }
+
+        # 4. PostgreSQL text search across metadata and demographic columns
+        from app.models.ticket import Ticket as TicketModel, Complaint as ComplaintModel
         
-        # Process SQL results
+        search_pattern = f"%{query_clean}%"
+        sql_results = (
+            db.query(TicketModel)
+            .join(TicketModel.complaint)
+            .filter(
+                (ComplaintModel.title.like(search_pattern)) |
+                (ComplaintModel.description.like(search_pattern)) |
+                (TicketModel.ticket_number.like(search_pattern)) |
+                (ComplaintModel.reporter_name.like(search_pattern)) |
+                (ComplaintModel.reporter_email.like(search_pattern)) |
+                (ComplaintModel.reporter_phone.like(search_pattern)) |
+                (TicketModel.category.like(search_pattern)) |
+                (ComplaintModel.status.like(search_pattern))
+            )
+            .limit(limit)
+            .all()
+        )
+        
         for ticket in sql_results:
             ticket_id_str = str(ticket.id)
             if ticket_id_str in combined_results:
+                if combined_results[ticket_id_str]["match_type"] not in ["exact_id"]:
+                    combined_results[ticket_id_str]["match_type"] = "hybrid"
                 continue
-            score = vector_map.get(ticket_id_str, 50.0) # Nominal score for keyword matches
+            
+            score = vector_map.get(ticket_id_str, 50.0)
             combined_results[ticket_id_str] = {
                 "ticket": ticket,
                 "score": score,
                 "match_type": "hybrid" if ticket_id_str in vector_map else "keyword"
             }
-            
-        # Process vector results not found in SQL matches
+
+        # 5. Process Qdrant semantic matches that didn't hit PostgreSQL SQL query filters
         for v_item in vector_results:
             v_id_str = v_item["ticket_id"]
             if v_id_str not in combined_results:
@@ -63,12 +104,11 @@ class UnifiedSearchService:
                             "match_type": "semantic"
                         }
                 except Exception as err:
-                    logger.error(f"Error fetching ticket {v_id_str} in hybrid search: {err}")
-                    
-        # Sort by similarity score descending
+                    logger.error(f"Error fetching ticket {v_id_str} in hybrid search fallback: {err}")
+
+        # 6. Sort results descending by score
         sorted_items = sorted(combined_results.values(), key=lambda x: x["score"], reverse=True)
-        
-        # Format response payload
+
         output = []
         for item in sorted_items[:limit]:
             t = item["ticket"]

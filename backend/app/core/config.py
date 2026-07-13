@@ -82,4 +82,9 @@ class Settings(BaseSettings):
     IMAP_PASSWORD: str = "gmail_application_password"
     IMAP_SECURE: bool = True
 
+    # Threat Intelligence API Keys (optional)
+    ABUSEIPDB_API_KEY: str = ""
+    VIRUSTOTAL_API_KEY: str = ""
+    OTX_API_KEY: str = ""
+
 settings = Settings()

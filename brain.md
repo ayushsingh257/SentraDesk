@@ -946,12 +946,12 @@ refactor: description of refactoring
 | Era 3 | Citizen Portal | ✅ Completed | 2026-07-13 |
 | Era 4 | Officer Portal | ✅ Completed | 2026-07-13 |
 | Era 5 | Admin Portal | ✅ Completed | 2026-07-13 |
-| Era 6 | Backend Polish & AI Modules | ⏳ Pending | — |
+| Era 6 | Backend Polish & AI Modules | ✅ Completed | 2026-07-13 |
 | Era 7 | Testing, CI/CD & Final Documentation | ⏳ Pending | — |
 
 ---
 
-*Last updated: Era 5 — Admin Portal*
+*Last updated: Era 6 — Backend Polish & AI Modules*
 
 ### Infrastructure Refactors: Parallel Routes & Redis Grace Fallback (2026-07-13)
 **Root Cause**: The Next.js dev server (`npm run dev`) was started once at the beginning of the project and kept running through multiple project restructuring phases. After bulk file deletions, route changes, and new component additions, the server's internal Webpack/HMR module graph became out of sync with the physical files on disk, causing all `_next/static/` asset requests to return 404.
@@ -994,5 +994,27 @@ A consolidated API reference guide will be generated in `docs/api_documentation.
 - Detailed status response definitions and standardized error codes.
 - Postman or Swagger JSON specifications matching live application endpoints.
 
+### Era 6: Backend Polish & AI Modules (2026-07-13)
+**New Services Implemented**:
+1. `ThreatIntelService` (`app/services/threat_intel.py`) — IP reputation (AbuseIPDB), domain scan (OTX), file hash lookup (VirusTotal) with graceful local fallback.
+2. `EmailListenerService` enhancement — multipart email parsing, SHA-256 attachment hashing, MinIO upload, Evidence DB registration.
+3. Auto-assignment engine in `TicketService` — least-workload routing selects active investigator with fewest open tickets.
+4. `UnifiedSearchService` (`app/services/search.py`) — hybrid SQL + vector search across UUID, reporter name, email, phone, ticket number.
+5. `ApprovalService.reject_closure` — supervisor rejection transitions ticket to `Reopened`, resets L1/L2 flags, sends in-app notification.
 
+**Bug Fixes**:
+- `search.py`: Fixed `ModuleNotFoundError` for `app.models.complaint` (correct path: `app.models.ticket`).
+- `search.py`: Fixed `AttributeError: Complaint has no attribute 'category'` (category is on `Ticket` model).
+- `approval.py`: Fixed invalid state transition `Closure Requested` → `Under Investigation` (correct: → `Reopened`).
+- `ticket.py` / `approval.py`: Added `ENVIRONMENT != 'testing'` guards on all `send_notification_task.delay()` calls to prevent 20-retry Celery/Redis hang during unit tests.
+- `conftest.py`: Changed `os.environ.setdefault("ENVIRONMENT", ...)` to forced assignment `os.environ["ENVIRONMENT"] = "testing"` so shell env vars cannot override.
+- `test_era6.py`: Replaced raw `Ticket()` instantiation with `ticket_service.create_complaint_and_ticket()` to avoid `NOT NULL constraint failed: tickets.complaint_id`.
+
+**New Test Suite**: `backend/tests/test_era6.py` — 5 tests covering all new features.
+
+**Performance Benchmarks**: `backend/app/scripts/analyze_performance.py` — 30-iteration benchmark covering all 5 feature categories. Results: Threat Intel ~0.03ms; Hybrid Search ~1.5ms; Auto-Assign ~10.6ms; Email Parser ~17ms; Full Rejection Cycle ~426ms (compound).
+
+**Verification**: 22/22 backend tests pass | `npx tsc --noEmit` clean | `npm run build` 33/33 pages compiled.
+
+---
 

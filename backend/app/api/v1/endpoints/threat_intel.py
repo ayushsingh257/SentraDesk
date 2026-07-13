@@ -11,6 +11,8 @@ from app.models.evidence import Evidence
 from app.schemas.threat_intel import ThreatIndicatorCreate, ThreatIndicatorResponse, ReputationLookupResponse
 from app.schemas.response import StandardResponse
 
+from app.services.threat_intel import threat_intel_service
+
 router = APIRouter()
 
 @router.post("/indicators", response_model=StandardResponse[ThreatIndicatorResponse])
@@ -98,35 +100,17 @@ def lookup_threat_indicator_reputation(
     else:
         indicator_type = "generic"
         
-    # 3. Simulate threat assessment scoring heuristics offline
-    score = 15.0
-    status = "Clean"
-    reasons = ["No matches found in OTX active threat records.", "Clean profile registered in AbuseIPDB."]
-    
-    # If the indicator contains suspicious substrings, flag it
-    suspicious_keywords = ["scam", "fraud", "phish", "malware", "hack", "fake", "bad"]
-    if any(kw in query_clean.lower() for kw in suspicious_keywords):
-        score = 85.0
-        status = "Malicious"
-        reasons = [
-            f"Matches indicators blacklisted by local feeds: {indicator_type} suspected blocklist.",
-            "AbuseIPDB report threshold exceeded (reports count: 42)."
-        ]
+    # 3. Request live feeds reputation
+    if indicator_type == "ip":
+        res = threat_intel_service.lookup_ip_reputation(query_clean)
+    elif indicator_type == "domain":
+        res = threat_intel_service.lookup_domain_reputation(query_clean)
+    else:
+        res = threat_intel_service._fallback_reputation(query_clean, indicator_type)
         
     return {
         "success": True,
-        "data": {
-            "indicator": query_clean,
-            "indicator_type": indicator_type,
-            "threat_score": score,
-            "status": status,
-            "source": "OTX & AbuseIPDB Hub",
-            "details": {
-                "reasons": reasons,
-                "offline_mock_mode": True,
-                "api_endpoint": "https://api.abuseipdb.com/api/v2" if indicator_type == "ip" else "https://otx.alienvault.com/api/v1"
-            }
-        },
+        "data": res,
         "error": None
     }
 
@@ -143,35 +127,19 @@ def scan_evidence_file_reputation(
         
     file_hash = evidence.sha256_hash or ""
     
-    # Heuristics: if file hash contains mock tags, or ends with executable extension types, flag threat!
-    score = 10.0
-    status = "Clean"
-    engines_detected = 0
-    total_engines = 72
+    # Check VirusTotal file hash service
+    res = threat_intel_service.scan_file_hash(file_hash)
     
+    # Overwrite if extensions are suspicious
     suspicious_extensions = [".exe", ".bat", ".scr", ".vbs", ".zip"]
     filename_lower = evidence.filename.lower()
-    
-    if "malware" in file_hash.lower() or any(filename_lower.endswith(ext) for ext in suspicious_extensions):
-        score = 92.0
-        status = "Malicious"
-        engines_detected = 58
+    if any(filename_lower.endswith(ext) for ext in suspicious_extensions):
+        res["threat_score"] = max(res["threat_score"], 92.0)
+        res["status"] = "Malicious"
+        res["details"]["extension_flagged"] = True
         
     return {
         "success": True,
-        "data": {
-            "indicator": file_hash,
-            "indicator_type": "sha256_hash",
-            "threat_score": score,
-            "status": status,
-            "source": "VirusTotal Nodal Scanner",
-            "details": {
-                "filename": evidence.filename,
-                "engines_detected": engines_detected,
-                "total_engines": total_engines,
-                "scan_date": evidence.created_at.isoformat(),
-                "permalink": f"https://www.virustotal.com/gui/file/{file_hash}"
-            }
-        },
+        "data": res,
         "error": None
     }

@@ -4,7 +4,7 @@ import imaplib
 import email
 from email.utils import parseaddr
 from datetime import datetime
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -212,6 +212,9 @@ class EmailListenerService:
             except Exception as e:
                 logger.error(f"Auto-acknowledgement email failed: {str(e)}")
 
+        # Extract and save attachments (Phase 34)
+        self._extract_and_save_attachments(db, ticket, msg)
+
         # Log conversation threading
         conv = EmailConversation(
             ticket_id=ticket.id,
@@ -228,13 +231,90 @@ class EmailListenerService:
         
         return ticket, is_new_thread
 
-    def receive_mock_email(self, db: Session, sender: str, subject: str, body: str) -> Tuple[Ticket, bool]:
+    def _extract_and_save_attachments(self, db: Session, ticket: Ticket, msg: email.message.Message):
+        """Extract attachments from incoming multipart email and persist them in MinIO and DB Evidence registry (Phase 34)."""
+        import hashlib
+        from app.services.evidence import evidence_service, minio_client
+        
+        if not msg.is_multipart():
+            return
+
+        for part in msg.walk():
+            content_disp = part.get("Content-Disposition")
+            if content_disp and "attachment" in str(content_disp).lower():
+                filename = part.get_filename()
+                if filename:
+                    file_data = part.get_payload(decode=True)
+                    if not file_data:
+                        continue
+
+                    # Calculate hash
+                    sha256 = hashlib.sha256(file_data).hexdigest()
+                    
+                    # Compute unique path
+                    unique_id = uuid.uuid4()
+                    object_name = f"{ticket.id}/{unique_id}_{filename}"
+                    
+                    # Upload to MinIO
+                    try:
+                        evidence_service.ensure_bucket()
+                        if minio_client:
+                            import io
+                            minio_client.put_object(
+                                settings.MINIO_BUCKET_NAME,
+                                object_name,
+                                io.BytesIO(file_data),
+                                len(file_data),
+                                content_type="application/octet-stream"
+                            )
+                    except Exception as upload_err:
+                        logger.error(f"Failed to upload email attachment {filename} to MinIO: {upload_err}")
+
+                    # Determine mime type
+                    mime_type = "application/octet-stream"
+                    if filename.endswith(".jpg") or filename.endswith(".jpeg"):
+                        mime_type = "image/jpeg"
+                    elif filename.endswith(".png"):
+                        mime_type = "image/png"
+                    elif filename.endswith(".pdf"):
+                        mime_type = "application/pdf"
+
+                    try:
+                        evidence_service.save_evidence_metadata(
+                            db,
+                            ticket_id=ticket.id,
+                            filename=filename,
+                            file_path=object_name,
+                            mime_type=mime_type,
+                            file_size=len(file_data),
+                            sha256_hash=sha256
+                        )
+                        logger.info(f"Registered email attachment evidence: {filename} for ticket {ticket.ticket_number}")
+                    except Exception as meta_err:
+                        logger.error(f"Failed to save evidence metadata for email attachment {filename}: {meta_err}")
+
+    def receive_mock_email(self, db: Session, sender: str, subject: str, body: str, attachments: Optional[List[Tuple[str, bytes]]] = None) -> Tuple[Ticket, bool]:
         """Utility function to simulate receiving an email for local verification testing."""
-        msg = email.message.Message()
-        msg["From"] = sender
-        msg["Subject"] = subject
-        msg["Message-ID"] = f"<mock_{uuid.uuid4()}@ccgp.local>"
-        msg.set_payload(body)
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+        from email.mime.application import MIMEApplication
+
+        if attachments:
+            msg = MIMEMultipart()
+            msg["From"] = sender
+            msg["Subject"] = subject
+            msg["Message-ID"] = f"<mock_{uuid.uuid4()}@ccgp.local>"
+            msg.attach(MIMEText(body, "plain"))
+            for filename, data in attachments:
+                part = MIMEApplication(data)
+                part.add_header("Content-Disposition", "attachment", filename=filename)
+                msg.attach(part)
+        else:
+            msg = email.message.Message()
+            msg["From"] = sender
+            msg["Subject"] = subject
+            msg["Message-ID"] = f"<mock_{uuid.uuid4()}@ccgp.local>"
+            msg.set_payload(body)
         
         return self.process_incoming_email(db, msg)
 

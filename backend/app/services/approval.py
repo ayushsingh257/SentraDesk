@@ -150,4 +150,78 @@ class ApprovalService:
         logger.info(f"Ticket {ticket.ticket_number} fully approved (L1+L2) and transition to Closed state is complete.")
         return ticket
 
+    def reject_closure(self, db: Session, *, ticket_id: uuid.UUID, actor_id: uuid.UUID, comment_text: str) -> Ticket:
+        """Reject ticket closure request, resetting approval flags and reverting status to 'Under Investigation' (Phase 48)."""
+        ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
+        if not ticket:
+            raise NotFoundError(message="Ticket not found")
+            
+        if ticket.complaint.status != "Closure Requested":
+            raise ValidationError(message="Ticket closure is not currently requested.")
+            
+        # Reset approval flags
+        ticket.l1_approved = False
+        ticket.l2_approved = False
+        db.add(ticket)
+        
+        # Log rejection comment
+        comment = Comment(
+            ticket_id=ticket.id,
+            author_id=actor_id,
+            content=f"--- [Closure Rejected] ---\nComments: {comment_text}"
+        )
+        db.add(comment)
+        
+        # Log Timeline
+        timeline = ActivityTimeline(
+            ticket_id=ticket.id,
+            event_type="ClosureRejected",
+            description="Ticket closure request rejected by supervisor. Reverting status to Under Investigation.",
+            actor_id=actor_id
+        )
+        db.add(timeline)
+        db.commit()
+        
+        # Transition back to Reopened (Phase 48) — valid state machine path from Closure Requested
+        self.ticket_service.update_ticket_status(
+            db,
+            ticket_id=ticket_id,
+            new_status="Reopened",
+            actor_id=actor_id
+        )
+        
+        # Dispatch notification to assigned officer
+        if ticket.assigned_officer_id:
+            try:
+                from app.models.user import User
+                officer_user = db.query(User).filter(User.id == ticket.assigned_officer_id).first()
+                if officer_user and officer_user.email:
+                    # In-app notification
+                    notification_service.create_in_app_notification(
+                        db,
+                        user_id=ticket.assigned_officer_id,
+                        title=f"Closure Request Rejected: {ticket.ticket_number}",
+                        message=f"Closure request rejected. Supervisor comments: {comment_text}",
+                        ticket_id=ticket.id
+                    )
+                    # Email notification
+                    from app.core.config import settings as _settings
+                    if _settings.ENVIRONMENT != "testing":
+                        from app.tasks.email import send_notification_task
+                        send_notification_task.delay(
+                            recipient=officer_user.email,
+                            template_name="ticket_rejected",
+                            subject=f"❌ Closure Request Rejected: [{ticket.ticket_number}]",
+                            variables={
+                                "ticket_number": ticket.ticket_number,
+                                "comments": comment_text
+                            },
+                            ticket_id=str(ticket.id)
+                        )
+            except Exception as notif_err:
+                logger.error(f"Failed to dispatch closure rejection alerts: {notif_err}")
+                
+        logger.info(f"Ticket {ticket.ticket_number} closure request was rejected by supervisor.")
+        return ticket
+
 approval_service = ApprovalService()

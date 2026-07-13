@@ -92,8 +92,41 @@ class TicketService:
             sla_deadline=sla_deadline,
             is_escalated=False
         )
+        
+        new_ticket.complaint = complaint
+        
+        # Auto-assign investigator based on workload
+        officer_id = self.auto_assign_investigator(db, new_ticket)
+        if officer_id:
+            new_ticket.assigned_officer_id = officer_id
+            complaint.status = "Assigned"
+            db.add(complaint)
+            
         ticket = ticket_repository.create(db, obj_in=new_ticket)
         
+        # Dispatch notification to officer if auto-assigned
+        if officer_id:
+            try:
+                from app.models.user import User
+                officer_user = db.query(User).filter(User.id == officer_id).first()
+                if officer_user and officer_user.email:
+                    from app.core.config import settings as _settings
+                    if _settings.ENVIRONMENT != "testing":
+                        from app.tasks.email import send_notification_task
+                        send_notification_task.delay(
+                            recipient=officer_user.email,
+                            template_name="ticket_assigned",
+                            subject=f"CCGP Ticket Assigned [{ticket.ticket_number}]",
+                            variables={
+                                "ticket_number": ticket.ticket_number,
+                                "category": ticket.category,
+                                "severity": ticket.severity
+                            },
+                            ticket_id=str(ticket.id)
+                        )
+            except Exception as assign_err:
+                logger.error(f"Failed to dispatch auto-assigned notification task: {assign_err}")
+
         # Log Timeline Event
         new_event = ActivityTimeline(
             ticket_id=ticket.id,
@@ -201,6 +234,12 @@ class TicketService:
                     code="CLOSURE_APPROVALS_REQUIRED"
                 )
                 
+        # Reopening resets L1 & L2 approvals
+        if new_status == "Reopened":
+            ticket.l1_approved = False
+            ticket.l2_approved = False
+            db.add(ticket)
+            
         # Track version changes history
         old_values = {"status": old_status}
         new_values = {"status": new_status}
@@ -227,6 +266,41 @@ class TicketService:
         ticket_repository.add_timeline_event(db, event=new_event)
         
         db.commit()
+
+        # Dispatch notification alerts on status change (Phase 38)
+        if ticket.complaint.reporter_email:
+            try:
+                from app.core.config import settings as _settings
+                if _settings.ENVIRONMENT != "testing":
+                    from app.tasks.email import send_notification_task
+                    send_notification_task.delay(
+                        recipient=ticket.complaint.reporter_email,
+                        template_name="ticket_status_changed",
+                        subject=f"CCGP Ticket Update [{ticket.ticket_number}] - {new_status}",
+                        variables={
+                            "reporter_name": ticket.complaint.reporter_name,
+                            "ticket_number": ticket.ticket_number,
+                            "status": new_status
+                        },
+                        ticket_id=str(ticket.id)
+                    )
+            except Exception as notif_err:
+                logger.error(f"Failed to dispatch status changed notification task: {notif_err}")
+
+        # Also create In-App Notification for citizen/recipient
+        if ticket.complaint.citizen_id:
+            try:
+                from app.services.notification import notification_service
+                notification_service.create_in_app_notification(
+                    db,
+                    user_id=ticket.complaint.citizen_id,
+                    title=f"Ticket Update: {ticket.ticket_number}",
+                    message=f"Case status has updated to {new_status}.",
+                    ticket_id=ticket.id
+                )
+            except Exception as in_app_err:
+                logger.error(f"Failed to create in-app status notification: {in_app_err}")
+
         return ticket
 
     def assign_ticket(
@@ -311,6 +385,53 @@ class TicketService:
             actor_id=author_id
         )
         ticket_repository.add_timeline_event(db, event=new_event)
+
+        # Dispatch comment notification (Phase 38)
+        try:
+            from app.models.user import User
+            # Determine who to notify
+            recipient_id = None
+            recipient_email = None
+            
+            if ticket.complaint.citizen_id == author_id:
+                # Complainant commented -> notify assigned officer
+                recipient_id = ticket.assigned_officer_id
+                if recipient_id:
+                    officer_user = db.query(User).filter(User.id == recipient_id).first()
+                    if officer_user:
+                        recipient_email = officer_user.email
+            else:
+                # Officer or system commented -> notify citizen
+                recipient_id = ticket.complaint.citizen_id
+                recipient_email = ticket.complaint.reporter_email
+                
+            if recipient_email:
+                # 1. In-app notification
+                if recipient_id:
+                    from app.services.notification import notification_service
+                    notification_service.create_in_app_notification(
+                        db,
+                        user_id=recipient_id,
+                        title=f"New message on ticket {ticket.ticket_number}",
+                        message=content[:100] + ("..." if len(content) > 100 else ""),
+                        ticket_id=ticket.id
+                    )
+                # 2. Email notification
+                from app.core.config import settings as _settings
+                if _settings.ENVIRONMENT != "testing":
+                    from app.tasks.email import send_notification_task
+                    send_notification_task.delay(
+                        recipient=recipient_email,
+                        template_name="query_received",
+                        subject=f"💬 New message on ticket [{ticket.ticket_number}]",
+                        variables={
+                            "ticket_number": ticket.ticket_number,
+                            "snippet": content[:150] + ("..." if len(content) > 150 else "")
+                        },
+                        ticket_id=str(ticket.id)
+                    )
+        except Exception as comment_err:
+            logger.error(f"Failed to dispatch comment notification alerts: {comment_err}")
         
         return comment
 
@@ -412,5 +533,51 @@ class TicketService:
         
         db.commit()
         return primary
+
+    def auto_assign_investigator(self, db: Session, ticket: Ticket) -> Optional[uuid.UUID]:
+        """Automatically find the active investigator with the least workload matching category, department or jurisdiction (Phase 43)."""
+        from app.models.user import User
+        from app.models.ticket import Ticket as TicketModel, Complaint as ComplaintModel
+        from sqlalchemy import func
+
+        investigator_roles = ["cyber_cell_officer", "investigator", "senior_investigator", "supervisor"]
+        query = db.query(User).filter(User.role.in_(investigator_roles), User.is_active == True)
+
+        meta = ticket.complaint.metadata_json or {}
+        dept = meta.get("department")
+        jurisdiction = meta.get("jurisdiction")
+
+        candidates = []
+        if dept:
+            candidates = query.filter(User.department == dept).all()
+        if not candidates and jurisdiction:
+            candidates = query.filter(User.jurisdiction == jurisdiction).all()
+        if not candidates:
+            candidates = query.all()
+
+        if not candidates:
+            logger.info("No active investigator candidates found in DB. Auto-assignment skipped.")
+            return None
+
+        active_statuses = ["New", "Assigned", "Under Investigation", "Closure Requested"]
+        workload_map = {}
+        for cand in candidates:
+            count = (
+                db.query(func.count(TicketModel.id))
+                .join(TicketModel.complaint)
+                .filter(
+                    TicketModel.assigned_officer_id == cand.id,
+                    ComplaintModel.status.in_(active_statuses)
+                )
+                .scalar()
+            )
+            workload_map[cand.id] = count or 0
+
+        # Sort candidate users by workload ascending
+        sorted_candidates = sorted(candidates, key=lambda x: workload_map[x.id])
+        chosen_officer = sorted_candidates[0]
+
+        logger.info(f"Auto-assigned ticket {ticket.ticket_number} to officer {chosen_officer.email} (active workload: {workload_map[chosen_officer.id]} tickets)")
+        return chosen_officer.id
 
 ticket_service = TicketService()
