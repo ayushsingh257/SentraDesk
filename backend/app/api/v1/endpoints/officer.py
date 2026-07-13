@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from app.core.database import get_db
 from app.core.security import RoleRequirement
@@ -12,7 +13,20 @@ from app.models.ticket import Ticket, Complaint
 
 router = APIRouter()
 
-@router.get("/dashboard", response_model=StandardResponse[Dict[str, Any]])
+class OfficerDashboardStats(BaseModel):
+    assigned: int
+    open: int
+    under_investigation: int
+    pending: int
+    closed: int
+    avg_resolution: float
+    sla_breached: int
+
+class OfficerDashboardData(BaseModel):
+    stats: OfficerDashboardStats
+    high_priority_tickets: List[TicketResponse]
+
+@router.get("/dashboard", response_model=StandardResponse[OfficerDashboardData])
 def get_officer_dashboard(
     db: Session = Depends(get_db),
     current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
