@@ -255,7 +255,7 @@ export default function SupervisorApprovals() {
                   onClick={() => decisionType === 'approve' ? handleApprove(activeTicket) : handleReject(activeTicket)} 
                   size="sm" 
                   isLoading={actionLoading}
-                  className={decisionType === 'reject' ? 'bg-danger hover:bg-danger-hover border-danger' : ''}
+                  variant={decisionType === 'reject' ? 'danger' : 'primary'}
                 >
                   Confirm Decision
                 </Button>

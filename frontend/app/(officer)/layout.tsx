@@ -30,11 +30,14 @@ export default function OfficerLayout({ children }: { children: React.ReactNode 
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 lg:pl-64">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
       <OfficerSidebar />
-      <main className="py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pt-20 lg:pt-10">
-        {children}
-      </main>
+      <div className="lg:pl-64 flex flex-col flex-1 min-h-screen">
+        <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mt-16 lg:mt-0">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }
+
