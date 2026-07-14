@@ -1,7 +1,7 @@
 import requests
 import sys
 
-BASE_URL = "http://localhost:8000/api/v1"
+BASE_URL = "http://localhost:8001/api/v1"
 
 SEEDED_ACCOUNTS = [
     {"email": "admin@ccgp.gov.in", "password": "password123", "role": "system_administrator"},

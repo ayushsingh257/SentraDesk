@@ -17,5 +17,5 @@ class Evidence(Base, TimestampMixin):
     uploaded_by_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
     # Relationships
-    ticket: Mapped["Ticket"] = relationship()
+    ticket: Mapped["Ticket"] = relationship(back_populates="evidence")
     uploaded_by: Mapped["User"] = relationship()

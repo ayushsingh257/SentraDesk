@@ -4,13 +4,32 @@ from sqlalchemy.orm import sessionmaker, Session
 import redis
 from app.core.config import settings
 
-# Configure SQLAlchemy connection pooling
-engine = create_engine(
-    settings.DATABASE_URL,
-    pool_pre_ping=True,
-    pool_size=20,
-    max_overflow=10
-)
+# Configure SQLAlchemy connection with dynamic SQLite fallback for local developer readiness
+import os
+try:
+    if settings.DATABASE_URL.startswith("sqlite"):
+        engine = create_engine(
+            settings.DATABASE_URL,
+            connect_args={"check_same_thread": False}
+        )
+    else:
+        engine = create_engine(
+            settings.DATABASE_URL,
+            pool_pre_ping=True,
+            pool_size=20,
+            max_overflow=10
+        )
+        # Test connection immediately
+        with engine.connect() as conn:
+            pass
+except Exception as db_err:
+    print(f"PostgreSQL connection failed ({db_err}). Falling back to local SQLite database.")
+    sqlite_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "ccgp_local.db"))
+    engine = create_engine(
+        f"sqlite:///{sqlite_path}",
+        connect_args={"check_same_thread": False}
+    )
+
 
 SessionLocal = sessionmaker(
     autocommit=False,

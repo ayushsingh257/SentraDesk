@@ -151,6 +151,17 @@
     font-size: 0.875rem;
   }
 
+  /* Ensure select options are always readable — dark mode browsers */
+  select option {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
+
+  .dark select option {
+    background-color: #1e293b;
+    color: #f1f5f9;
+  }
+
   /* Focus visible only */
   *:focus-visible {
     outline: 2px solid var(--border-focus);

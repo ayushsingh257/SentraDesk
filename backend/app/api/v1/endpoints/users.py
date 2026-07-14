@@ -65,7 +65,7 @@ from app.models.notification import InAppNotification
 @router.get("/notifications", response_model=StandardResponse[List[InAppNotificationResponse]])
 def get_user_notifications(
     db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
+    current_user: Dict[str, Any] = Depends(JWTBearer())
 ):
     """Retrieve notifications sent to the logged-in user."""
     actor_id = uuid.UUID(current_user.get("sub"))
@@ -87,7 +87,7 @@ def get_user_notifications(
 @router.get("/notifications/unread-count", response_model=StandardResponse[UnreadCountResponse])
 def get_unread_count(
     db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
+    current_user: Dict[str, Any] = Depends(JWTBearer())
 ):
     """Retrieve the count of unread notifications for the logged-in user."""
     actor_id = uuid.UUID(current_user.get("sub"))
@@ -105,7 +105,7 @@ def get_unread_count(
 def mark_notification_as_read(
     id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
+    current_user: Dict[str, Any] = Depends(JWTBearer())
 ):
     """Mark a notification as read."""
     actor_id = uuid.UUID(current_user.get("sub"))
@@ -130,7 +130,7 @@ def mark_notification_as_read(
 @router.put("/notifications/read-all", response_model=StandardResponse[Dict[str, Any]])
 def mark_all_notifications_as_read(
     db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("citizen"))
+    current_user: Dict[str, Any] = Depends(JWTBearer())
 ):
     """Mark all notifications for the user as read."""
     actor_id = uuid.UUID(current_user.get("sub"))

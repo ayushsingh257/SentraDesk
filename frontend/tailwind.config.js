@@ -18,6 +18,7 @@ module.exports = {
           400: '#60A5FA',
           500: '#3B82F6',
           600: '#2563EB',
+          650: '#2158D4',  // midpoint 600-700
           700: '#1D4ED8',
           800: '#1E40AF',
           900: '#1E3A8A',
@@ -30,10 +31,16 @@ module.exports = {
           200: '#E2E8F0',
           300: '#CBD5E1',
           400: '#94A3B8',
+          450: '#7E94AD',  // midpoint 400-500
           500: '#64748B',
+          550: '#566578',  // midpoint 500-600
           600: '#475569',
+          650: '#3D4A5C',  // midpoint 600-700
           700: '#334155',
+          750: '#293548',  // midpoint 700-800
           800: '#1E293B',
+          850: '#172033',  // midpoint 800-900
+          855: '#141D30',  // slightly darker than 850
           900: '#0F172A',
           950: '#020617',
         },
@@ -118,6 +125,7 @@ module.exports = {
         'fade-in':    'fadeIn 0.2s ease-out',
         'slide-up':   'slideUp 0.25s ease-out',
         'slide-down': 'slideDown 0.25s ease-out',
+        'scale-in':   'scaleIn 0.2s ease-out',
         'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
         'spin-slow':  'spin 3s linear infinite',
       },
@@ -133,6 +141,10 @@ module.exports = {
         slideDown: {
           '0%':   { opacity: '0', transform: 'translateY(-8px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        scaleIn: {
+          '0%':   { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
         },
         pulseSoft: {
           '0%, 100%': { opacity: '1' },
