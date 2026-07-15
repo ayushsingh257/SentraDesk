@@ -39,6 +39,8 @@ class ComplaintResponse(BaseModel):
     class Config:
         from_attributes = True
 
+from app.schemas.approval import ApprovalRecordResponse
+
 class TicketResponse(BaseModel):
     id: uuid.UUID
     ticket_number: str
@@ -58,6 +60,7 @@ class TicketResponse(BaseModel):
     reopen_reason: Optional[str] = None
     created_at: datetime
     complaint: ComplaintResponse
+    approval_records: List[ApprovalRecordResponse] = []
 
     class Config:
         from_attributes = True

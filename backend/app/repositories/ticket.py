@@ -33,6 +33,12 @@ class TicketRepository(BaseRepository[Ticket]):
         assigned_officer_id: Optional[uuid.UUID] = None,
         search_query: Optional[str] = None,
         needs_review: Optional[bool] = None,
+        is_escalated: Optional[bool] = None,
+        category: Optional[str] = None,
+        district: Optional[str] = None,
+        sla_breached: Optional[bool] = None,
+        date_from: Optional[datetime] = None,
+        date_to: Optional[datetime] = None,
         skip: int = 0,
         limit: int = 100
     ) -> List[Ticket]:
@@ -47,6 +53,29 @@ class TicketRepository(BaseRepository[Ticket]):
             query = query.filter(Ticket.assigned_officer_id == assigned_officer_id)
         if needs_review is not None:
             query = query.filter(Complaint.metadata_json["needs_ai_review"].as_boolean() == needs_review)
+        if is_escalated is not None:
+            query = query.filter(Ticket.is_escalated == is_escalated)
+        if category:
+            query = query.filter(Ticket.category == category)
+        if district:
+            query = query.filter(Ticket.jurisdiction == district)
+        if date_from:
+            query = query.filter(Ticket.created_at >= date_from)
+        if date_to:
+            query = query.filter(Ticket.created_at <= date_to)
+        if sla_breached is not None:
+            now = datetime.now(timezone.utc)
+            if sla_breached:
+                query = query.filter(
+                    Ticket.sla_deadline < now,
+                    Complaint.status.notin_(["Closed", "Resolved"])
+                )
+            else:
+                query = query.filter(
+                    (Ticket.sla_deadline.is_(None)) | 
+                    (Ticket.sla_deadline >= now) |
+                    (Complaint.status.in_(["Closed", "Resolved"]))
+                )
         if search_query:
             search_pattern = f"%{search_query}%"
             query = query.filter(
@@ -56,6 +85,7 @@ class TicketRepository(BaseRepository[Ticket]):
             )
             
         return query.order_by(Ticket.created_at.desc()).offset(skip).limit(limit).all()
+
 
     def create_complaint(self, db: Session, *, complaint: Complaint) -> Complaint:
         db.add(complaint)

@@ -345,6 +345,28 @@
 
 ---
 
+## ERA 8 — Supervisor Workspace Module
+✅ **Completed**
+
+### Phase 8.1 — Backend Implementation & Schemas
+- ✅ Extend `TicketResponse` and `ApprovalRecordResponse` schemas
+- ✅ Implement `/api/v1/supervisor/dashboard` telemetry and workloads API
+- ✅ Lower permission gate on `/api/v1/users/list` to allow supervisor visibility
+- ✅ Implement bulk action endpoints: reassignment, approvals, priority, and escalation
+
+### Phase 8.2 — Frontend Layout & Components
+- ✅ Create custom, collapsible `SupervisorSidebar` with notification indicators
+- ✅ Create supervisor guard layout verifying JWT permissions
+
+### Phase 8.3 — Supervisor Portal Pages
+- ✅ Implement supervisor dashboard displaying active case heatmaps and stats
+- ✅ Implement approvals queue page supporting bulk decision updates
+- ✅ Implement tickets repository search with date ranges, categories, and severity filters
+- ✅ Implement performance workload distributions and SLA breached alerts
+- ✅ Implement details workspace integrating AI summaries and audit histories
+
+---
+
 ## Future Expansion (Post V1)
 
 - LLM integration for deeper complaint analysis

@@ -85,6 +85,12 @@ def list_tickets(
     assigned_officer_id: Optional[uuid.UUID] = None,
     search: Optional[str] = None,
     needs_review: Optional[bool] = None,
+    is_escalated: Optional[bool] = None,
+    category: Optional[str] = None,
+    district: Optional[str] = None,
+    sla_breached: Optional[bool] = None,
+    date_from: Optional[datetime] = None,
+    date_to: Optional[datetime] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1),
     db: Session = Depends(get_db),
@@ -107,6 +113,12 @@ def list_tickets(
         assigned_officer_id=assigned_officer_id,
         search_query=search,
         needs_review=needs_review,
+        is_escalated=is_escalated,
+        category=category,
+        district=district,
+        sla_breached=sla_breached,
+        date_from=date_from,
+        date_to=date_to,
         skip=skip,
         limit=limit
     )
@@ -115,6 +127,7 @@ def list_tickets(
         "data": res,
         "error": None
     }
+
 
 
 @router.get("/my-tickets", response_model=StandardResponse[List[TicketResponse]])

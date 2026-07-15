@@ -187,6 +187,13 @@ export const API_ROUTES = {
   // Officer
   officerDashboard: '/api/v1/officer/dashboard',
 
+  // Supervisor
+  supervisorDashboard: '/api/v1/supervisor/dashboard',
+  bulkApprove: '/api/v1/supervisor/bulk-approve',
+  bulkReassign: '/api/v1/supervisor/bulk-reassign',
+  bulkPriority: '/api/v1/supervisor/bulk-priority',
+  bulkEscalate: '/api/v1/supervisor/bulk-escalate',
+
   // Admin
   adminDashboard: '/api/v1/admin/dashboard',
   adminUsers: '/api/v1/admin/users',

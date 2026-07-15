@@ -28,6 +28,7 @@ CCGP is a production-oriented, AI-assisted cyber complaint governance platform d
 |---|---|
 | **Citizen** | File cyber complaints, track status, communicate with officers, upload evidence, receive notifications |
 | **Officer / Investigator** | AI-assisted investigation, evidence management, threat intelligence, internal collaboration, approval workflow |
+| **Supervisor** | Multi-tier case closure approval (L1/L2), team performance, bulk assignment re-allocations, SLA escalation controls |
 | **Administrator** | User management, system health monitoring, audit logs, analytics, configuration |
 
 ---
@@ -38,7 +39,7 @@ CCGP is a production-oriented, AI-assisted cyber complaint governance platform d
 ┌─────────────────────────────────────────────┐
 │            PRESENTATION LAYER                │
 │    Next.js 15 + React 19 + TypeScript        │
-│  Citizen │ Officer │ Admin Portals           │
+│  Citizen │ Officer │ Supervisor │ Admin      │
 └──────────────────┬──────────────────────────┘
                    │ REST API (JWT)
 ┌──────────────────▼──────────────────────────┐
@@ -88,6 +89,13 @@ CCGP is a production-oriented, AI-assisted cyber complaint governance platform d
 - Validated status transition workflow
 - Multi-tier closure approval (L1 + L2 supervisor)
 - PDF investigation report generation
+
+### Supervisor Portal
+- Live dashboards for pending approvals, active caseloads, and SLA breaches
+- Team performance charts tracking workload and average resolution times
+- Dedicated decision workspace for single and bulk reassignments, priority updates, and approvals
+- Integrated AI analyst dossiers and threat threat intelligence summaries
+- Real-time notifications and timeline audit histories
 
 ### Admin Portal
 - Platform-wide analytics and governance KPIs
