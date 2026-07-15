@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, Depends, Query, Body
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from pydantic import BaseModel, Field
 
 from app.core.database import get_db
@@ -118,7 +118,7 @@ def get_supervisor_dashboard(
     resolution_rate = round((len(closed_tickets) / total_tickets * 100.0), 1) if total_tickets > 0 else 0.0
 
     # 4. Fetch all tickets and complaints to group in Python (100% database-agnostic)
-    all_tickets = db.query(Ticket).join(Complaint).all()
+    all_tickets = db.query(Ticket).options(joinedload(Ticket.complaint)).all()
     
     # Category Distribution
     cat_counts: Dict[str, int] = {}
@@ -172,10 +172,10 @@ def get_supervisor_dashboard(
         )
 
     # 6. Escalated ticket listing
-    escalated_tickets_list = db.query(Ticket).filter(Ticket.is_escalated == True).order_by(Ticket.created_at.desc()).limit(10).all()
+    escalated_tickets_list = db.query(Ticket).options(joinedload(Ticket.complaint)).filter(Ticket.is_escalated == True).order_by(Ticket.created_at.desc()).limit(10).all()
 
     # 7. Recent activities
-    recent_events = db.query(ActivityTimeline).order_by(ActivityTimeline.created_at.desc()).limit(15).all()
+    recent_events = db.query(ActivityTimeline).options(joinedload(ActivityTimeline.ticket)).order_by(ActivityTimeline.created_at.desc()).limit(15).all()
     recent_activities = []
     for ev in recent_events:
         recent_activities.append({

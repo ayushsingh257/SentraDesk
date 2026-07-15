@@ -43,7 +43,8 @@ class TicketRepository(BaseRepository[Ticket]):
         limit: int = 100
     ) -> List[Ticket]:
         """Query tickets applying dynamic filtering logic."""
-        query = db.query(Ticket).join(Ticket.complaint)
+        from sqlalchemy.orm import joinedload
+        query = db.query(Ticket).options(joinedload(Ticket.complaint)).join(Ticket.complaint)
         
         if status:
             query = query.filter(Complaint.status == status)
