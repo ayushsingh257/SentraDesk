@@ -38,8 +38,9 @@ jobs:
         ports:
           - 6333:6333
       minio:
-        image: minio/minio:RELEASE.2024-03-07T09-43-48Z
+        image: minio/minio:RELEASE.2024-03-07T00-43-48Z
         ports:
+
           - 9000:9000
           - 9001:9001
         env:
