@@ -46,7 +46,9 @@ jobs:
         env:
           MINIO_ACCESS_KEY: minioadmin
           MINIO_SECRET_KEY: minioadmin
-        entrypoint: minio server /data --console-address :9001
+        entrypoint: minio
+        command: server /data --console-address :9001
+
 
 
 
