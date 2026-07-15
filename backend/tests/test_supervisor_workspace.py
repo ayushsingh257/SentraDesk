@@ -153,3 +153,88 @@ def test_supervisor_bulk_operations(client: TestClient, db: Session):
     assert ba_resp.status_code == 200
     db.expire_all()
     assert db.query(Ticket).filter(Ticket.id == tickets[0].id).first().l1_approved is True
+
+
+def test_supervisor_rbac_and_input_validation(client: TestClient, db: Session):
+    # 1. Login as Citizen (role: citizen) and Complaint Operator (role: complaint_operator)
+    client.post("/api/v1/users/register", json={
+        "email": "citizen_qa@ccgp.gov.in",
+        "password": "SecurePassword123!",
+        "name": "Citizen QA",
+        "role": "citizen"
+    })
+    citizen_login = client.post("/api/v1/auth/login", json={
+        "email": "citizen_qa@ccgp.gov.in",
+        "password": "SecurePassword123!"
+    })
+    cit_token = citizen_login.json()["data"]["access_token"]
+    cit_headers = {"Authorization": f"Bearer {cit_token}"}
+
+    client.post("/api/v1/users/register", json={
+        "email": "operator_qa@ccgp.gov.in",
+        "password": "SecurePassword123!",
+        "name": "Operator QA",
+        "role": "complaint_operator"
+    })
+    op_login = client.post("/api/v1/auth/login", json={
+        "email": "operator_qa@ccgp.gov.in",
+        "password": "SecurePassword123!"
+    })
+    op_token = op_login.json()["data"]["access_token"]
+    op_headers = {"Authorization": f"Bearer {op_token}"}
+
+    # Register supervisor for valid auth checks
+    client.post("/api/v1/users/register", json={
+        "email": "supervisor_qa@ccgp.gov.in",
+        "password": "SecurePassword123!",
+        "name": "Supervisor QA",
+        "role": "supervisor"
+    })
+    sup_login = client.post("/api/v1/auth/login", json={
+        "email": "supervisor_qa@ccgp.gov.in",
+        "password": "SecurePassword123!"
+    })
+    sup_token = sup_login.json()["data"]["access_token"]
+    sup_headers = {"Authorization": f"Bearer {sup_token}"}
+
+    # 2. Verify Citizens are Blocked on all Bulk APIs
+    bulk_url_methods = [
+        ("/api/v1/supervisor/bulk-approve", {"ticket_ids": [], "action": "approve", "comment": "Valid comment"}),
+        ("/api/v1/supervisor/bulk-reassign", {"ticket_ids": [], "officer_id": None}),
+        ("/api/v1/supervisor/bulk-priority", {"ticket_ids": [], "severity": "High"}),
+        ("/api/v1/supervisor/bulk-escalate", {"ticket_ids": [], "is_escalated": True}),
+    ]
+
+    for url, payload in bulk_url_methods:
+        resp = client.post(url, json=payload, headers=cit_headers)
+        assert resp.status_code == 403
+        
+        # Operators are also blocked
+        resp_op = client.post(url, json=payload, headers=op_headers)
+        assert resp_op.status_code == 403
+
+    # 3. Verify Malformed Input / Validation Errors (under Supervisor Auth)
+    # Payload with invalid status/action value
+    resp_invalid_action = client.post(
+        "/api/v1/supervisor/bulk-approve", 
+        json={"ticket_ids": [str(uuid.uuid4())], "action": "invalid_action", "comment": "Too short"},
+        headers=sup_headers
+    )
+    assert resp_invalid_action.status_code == 422
+
+    # Payload with comment too short
+    resp_short_comment = client.post(
+        "/api/v1/supervisor/bulk-approve", 
+        json={"ticket_ids": [str(uuid.uuid4())], "action": "approve", "comment": "a"},
+        headers=sup_headers
+    )
+    assert resp_short_comment.status_code == 422
+
+    # Payload with invalid UUID string format
+    resp_invalid_uuid = client.post(
+        "/api/v1/supervisor/bulk-approve", 
+        json={"ticket_ids": ["not-a-uuid"], "action": "approve", "comment": "Valid comment"},
+        headers=sup_headers
+    )
+    assert resp_invalid_uuid.status_code == 422
+
