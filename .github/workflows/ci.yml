@@ -45,12 +45,8 @@ jobs:
         env:
           MINIO_ACCESS_KEY: minioadmin
           MINIO_SECRET_KEY: minioadmin
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/minio/health/live || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
         entrypoint: minio server /data --console-address :9001
+
 
 
     steps:
@@ -74,18 +70,27 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r backend/requirements.txt
 
-    - name: Wait for Qdrant service to be healthy
+    - name: Wait for services (Qdrant & MinIO) to be healthy
       run: |
         echo "Waiting for Qdrant..."
         for i in {1..30}; do
           if curl -s http://localhost:6333/healthz; then
             echo "Qdrant is ready!"
+            break
+          fi
+          sleep 1
+        done
+        echo "Waiting for MinIO..."
+        for i in {1..30}; do
+          if curl -s http://localhost:9000/minio/health/live; then
+            echo "MinIO is ready!"
             exit 0
           fi
           sleep 1
         done
-        echo "Qdrant failed to start"
+        echo "Services failed to start"
         exit 1
+
 
     - name: Run Pytest suite
       env:
@@ -141,9 +146,12 @@ jobs:
   docker-compose-validate:
     name: Docker Compose Config Validation
     runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci_validation_secret_placeholder
     steps:
     - uses: actions/checkout@v4
 
     - name: Validate Docker Compose syntax
       run: |
         docker compose config --quiet
+

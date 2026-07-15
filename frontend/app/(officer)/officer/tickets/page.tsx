@@ -202,7 +202,7 @@ export default function OfficerTickets() {
           <div className="space-y-1">
             <h3 className="text-sm font-bold text-neutral-800 dark:text-neutral-200">No cases matched</h3>
             <p className="text-xs text-neutral-400 max-w-xs mx-auto">
-              We couldn't find any tickets matching your search query or selected category filter options.
+              We couldn&apos;t find any tickets matching your search query or selected category filter options.
             </p>
           </div>
         </Card>
