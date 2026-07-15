@@ -165,3 +165,196 @@ def test_bi_exports_auth_and_format(client: TestClient):
     csv_resp = client.get("/api/v1/governance/export/csv", headers=headers)
     assert csv_resp.status_code == 200
     assert "text/csv" in csv_resp.headers["Content-Type"]
+
+
+def test_admin_direct_user_creation_and_session_invalidation(client: TestClient, db: Session):
+    # 1. Register/login as system administrator
+    client.post("/api/v1/users/register", json={
+        "email": "admin_user_mgr@ccgp.gov.in",
+        "password": "SecurePassword123!",
+        "name": "Admin Mgr",
+        "role": "system_administrator"
+    })
+    login_resp = client.post("/api/v1/auth/login", json={
+        "email": "admin_user_mgr@ccgp.gov.in",
+        "password": "SecurePassword123!"
+    })
+    admin_token = login_resp.json()["data"]["access_token"]
+    headers = {"Authorization": f"Bearer {admin_token}"}
+
+    # 2. Directly provision an officer account
+    prov_resp = client.post(
+        "/api/v1/admin/users",
+        json={
+            "email": "provisioned_officer@ccgp.gov.in",
+            "password": "TemporarySecurePassword123!",
+            "name": "Provisioned Officer",
+            "role": "cyber_cell_officer",
+            "department": "Forensics Unit",
+            "jurisdiction": "State HQ"
+        },
+        headers=headers
+    )
+    assert prov_resp.status_code == 200
+    prov_data = prov_resp.json()["data"]
+    assert prov_data["email"] == "provisioned_officer@ccgp.gov.in"
+    assert prov_data["role"] == "cyber_cell_officer"
+    officer_id = prov_data["id"]
+
+    # 3. Log in as the new provisioned officer
+    off_login = client.post("/api/v1/auth/login", json={
+        "email": "provisioned_officer@ccgp.gov.in",
+        "password": "TemporarySecurePassword123!"
+    })
+    assert off_login.status_code == 200
+    off_token_data = off_login.json()["data"]
+    off_refresh = off_token_data["refresh_token"]
+
+    # 4. Admin resets the password (should invalidate refresh token)
+    reset_resp = client.put(
+        f"/api/v1/admin/users/{officer_id}",
+        json={"password": "BrandNewSecurePassword123!"},
+        headers=headers
+    )
+    assert reset_resp.status_code == 200
+
+    # 5. Attempting to use the old refresh token to get a new access token (should fail)
+    refresh_fail = client.post(
+        "/api/v1/auth/refresh",
+        json={"refresh_token": off_refresh}
+    )
+    assert refresh_fail.status_code in [401, 403, 422]
+
+
+def test_evidence_integrity_scan_on_demand(client: TestClient, db: Session):
+    # 1. Register/login as officer
+    client.post("/api/v1/users/register", json={
+        "email": "officer_integrity@ccgp.gov.in",
+        "password": "SecurePassword123!",
+        "name": "Officer Integrity",
+        "role": "cyber_cell_officer"
+    })
+    login_resp = client.post("/api/v1/auth/login", json={
+        "email": "officer_integrity@ccgp.gov.in",
+        "password": "SecurePassword123!"
+    })
+    token = login_resp.json()["data"]["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Create Complaint & Ticket
+    comp = Complaint(
+        title="Integrity Test",
+        description="Verify stored evidence SHA-256 hash match.",
+        source="portal",
+        status="New",
+        reporter_name="Citizen"
+    )
+    db.add(comp)
+    db.commit()
+
+    ticket = Ticket(
+        ticket_number="CCGP-2026-9911",
+        complaint_id=comp.id,
+        category="Ransomware",
+        severity="High"
+    )
+    db.add(ticket)
+    db.commit()
+
+    evidence = Evidence(
+        ticket_id=ticket.id,
+        filename="ransom_note.txt",
+        file_path="mock/ransom_note.txt",
+        mime_type="text/plain",
+        file_size=50,
+        sha256_hash="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        version=1
+    )
+    db.add(evidence)
+    db.commit()
+
+    # 3. Post to verify-integrity endpoint
+    verify_resp = client.post(
+        f"/api/v1/evidence/{evidence.id}/verify-integrity",
+        headers=headers
+    )
+    assert verify_resp.status_code == 200
+    data = verify_resp.json()["data"]
+    # Mock environment returns True immediately
+    assert data["verified"] is True
+    assert data["db_hash"] == evidence.sha256_hash
+
+
+def test_approval_record_persistent_audit(client: TestClient, db: Session):
+    # 1. Register/login as supervisor
+    client.post("/api/v1/users/register", json={
+        "email": "supervisor_audit@ccgp.gov.in",
+        "password": "SecurePassword123!",
+        "name": "Supervisor Audit",
+        "role": "supervisor"
+    })
+    login_resp = client.post("/api/v1/auth/login", json={
+        "email": "supervisor_audit@ccgp.gov.in",
+        "password": "SecurePassword123!"
+    })
+    token = login_resp.json()["data"]["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Register/login as investigator
+    client.post("/api/v1/users/register", json={
+        "email": "investigator_audit@ccgp.gov.in",
+        "password": "SecurePassword123!",
+        "name": "Investigator Audit",
+        "role": "investigator"
+    })
+    inv_login = client.post("/api/v1/auth/login", json={
+        "email": "investigator_audit@ccgp.gov.in",
+        "password": "SecurePassword123!"
+    })
+    inv_token = inv_login.json()["data"]["access_token"]
+    inv_headers = {"Authorization": f"Bearer {inv_token}"}
+
+    # 3. Create Ticket & Complaint
+    comp = Complaint(
+        title="Audit Ticket",
+        description="Verify approval record creation.",
+        source="portal",
+        status="Under Investigation",
+        reporter_name="Citizen"
+    )
+    db.add(comp)
+    db.commit()
+
+    ticket = Ticket(
+        ticket_number="CCGP-2026-9922",
+        complaint_id=comp.id,
+        category="Hacking",
+        severity="High"
+    )
+    db.add(ticket)
+    db.commit()
+
+    # 4. Request closure as investigator
+    req_resp = client.post(
+        f"/api/v1/approvals/{ticket.id}/request-closure",
+        json={"reason": "Completed cyber forensics audit and isolated indicators."},
+        headers=inv_headers
+    )
+    assert req_resp.status_code == 200
+
+    # 5. Grant L1 approval as supervisor
+    l1_resp = client.post(
+        f"/api/v1/approvals/{ticket.id}/l1-approve",
+        json={"comment": "L1 checked out. Good job."},
+        headers=headers
+    )
+    assert l1_resp.status_code == 200
+
+    # 6. Check database directly for ApprovalRecord
+    from app.models.ticket import ApprovalRecord
+    records = db.query(ApprovalRecord).filter(ApprovalRecord.ticket_id == ticket.id).all()
+    assert len(records) == 1
+    assert records[0].level == 1
+    assert records[0].decision == "approved"
+    assert records[0].comment == "L1 checked out. Good job."
+

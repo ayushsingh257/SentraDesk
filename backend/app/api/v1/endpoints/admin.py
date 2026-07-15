@@ -21,6 +21,14 @@ from pydantic import BaseModel, Field
 router = APIRouter()
 
 # Schema models for request payloads
+class UserCreatePayload(BaseModel):
+    email: str
+    password: str
+    name: str
+    role: str
+    department: Optional[str] = None
+    jurisdiction: Optional[str] = None
+
 class UserUpdatePayload(BaseModel):
     name: Optional[str] = None
     role: Optional[str] = None
@@ -32,6 +40,7 @@ class UserUpdatePayload(BaseModel):
 class ConfigUpdatePayload(BaseModel):
     key: str
     value: dict
+
 
 # Default Configurations
 DEFAULTS = {
@@ -156,13 +165,25 @@ def get_admin_dashboard_statistics(
     # Generate monthly complaint graph counts for last 6 months
     monthly_graph = []
     for i in range(5, -1, -1):
-        target_date = now - timedelta(days=i*30)
-        month_name = target_date.strftime("%b")
-        # Query count for target month
+        target_year = now.year
+        target_month = now.month - i
+        while target_month <= 0:
+            target_month += 12
+            target_year -= 1
+            
+        start_date = datetime(target_year, target_month, 1, tzinfo=timezone.utc)
+        if target_month == 12:
+            end_date = datetime(target_year + 1, 1, 1, tzinfo=timezone.utc)
+        else:
+            end_date = datetime(target_year, target_month + 1, 1, tzinfo=timezone.utc)
+            
+        month_name = start_date.strftime("%b")
         cnt = db.query(Complaint).filter(
-            func.strftime("%Y-%m", Complaint.created_at) == target_date.strftime("%Y-%m")
+            Complaint.created_at >= start_date,
+            Complaint.created_at < end_date
         ).count()
         monthly_graph.append({"month": month_name, "count": cnt})
+
 
     return {
         "success": True,
@@ -257,6 +278,37 @@ def get_user_profile(
         "error": None
     }
 
+@router.post("/users", response_model=StandardResponse[Dict[str, Any]])
+def admin_create_user(
+    payload: UserCreatePayload,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("system_administrator"))
+):
+    """Directly provision a new user account bypassing regular verification flows (requires admin)."""
+    from app.services.user import user_service
+    user = user_service.create_user(
+        db,
+        email=payload.email,
+        password=payload.password,
+        name=payload.name,
+        role=payload.role,
+        department=payload.department,
+        jurisdiction=payload.jurisdiction,
+        email_verified=True
+    )
+    return {
+        "success": True,
+        "data": {
+            "id": str(user.id),
+            "email": user.email,
+            "name": user.name,
+            "role": user.role,
+            "department": user.department,
+            "jurisdiction": user.jurisdiction
+        },
+        "error": None
+    }
+
 @router.put("/users/{user_id}", response_model=StandardResponse[Dict[str, Any]])
 def update_user_profile(
     user_id: uuid.UUID,
@@ -283,6 +335,11 @@ def update_user_profile(
         # Reset password to secure hash
         u.hashed_password = hash_password(payload.password)
         
+    # Invalidate sessions on password change or account disable (SEC-6)
+    if payload.password is not None or (payload.is_active is not None and not payload.is_active):
+        from app.models.user import RefreshToken
+        db.query(RefreshToken).filter(RefreshToken.user_id == u.id).update({RefreshToken.is_revoked: True})
+        
     db.commit()
     db.refresh(u)
     
@@ -299,6 +356,7 @@ def update_user_profile(
         },
         "error": None
     }
+
 
 # ==========================================
 # SYSTEM HEALTH DIAGNOSTICS

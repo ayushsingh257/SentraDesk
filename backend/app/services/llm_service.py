@@ -1,28 +1,29 @@
-import os
 import json
 import requests
 from typing import Dict, Any, Optional
+from app.core.config import settings
 from app.core.logging import logger
 
 class LLMService:
     """Service to connect to OpenAI, Gemini, Anthropic, or Ollama for cyber investigation analysis."""
 
     def __init__(self):
-        self.gemini_key = os.getenv("GEMINI_API_KEY")
-        self.gemini_model = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+        self.gemini_key = settings.GEMINI_API_KEY
+        self.gemini_model = settings.GEMINI_MODEL
         
-        self.openai_key = os.getenv("OPENAI_API_KEY")
-        self.openai_model = os.getenv("OPENAI_MODEL", "gpt-4o")
+        self.openai_key = settings.OPENAI_API_KEY
+        self.openai_model = settings.OPENAI_MODEL
         
-        self.anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-        self.anthropic_model = os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet")
+        self.anthropic_key = settings.ANTHROPIC_API_KEY
+        self.anthropic_model = settings.ANTHROPIC_MODEL
         
-        self.ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
-        self.ollama_model = os.getenv("OLLAMA_MODEL", "llama3")
+        self.ollama_url = settings.OLLAMA_URL
+        self.ollama_model = settings.OLLAMA_MODEL
 
     def is_configured(self) -> bool:
         """Check if any LLM service is configured."""
-        return bool(self.gemini_key or self.openai_key or self.anthropic_key or os.getenv("OLLAMA_ACTIVE") == "true")
+        return bool(self.gemini_key or self.openai_key or self.anthropic_key or settings.OLLAMA_ACTIVE)
+
 
     def analyze_complaint(self, description: str, category: str, severity: str, amount: float, evidence_files: list) -> Optional[Dict[str, Any]]:
         """Send case information to configured LLM for full cyber investigation analysis."""

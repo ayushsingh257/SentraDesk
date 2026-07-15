@@ -98,7 +98,27 @@ class EvidenceService:
         sha256_hash: str,
         uploaded_by_id: Optional[uuid.UUID] = None
     ) -> Evidence:
-        """Save evidence file metadata. Implements automatic file versioning."""
+        """Save evidence file metadata. Implements automatic file versioning and server-side integrity validation (Phase 51-53)."""
+        # Verify file hash server-side if not in mock/testing mode (Phase 51 / EV-1)
+        if minio_client and settings.ENVIRONMENT != "testing":
+            try:
+                response = minio_client.get_object(
+                    settings.MINIO_BUCKET_NAME,
+                    file_path
+                )
+                file_data = response.read()
+                response.close()
+                response.release_conn()
+                
+                computed_hash = hashlib.sha256(file_data).hexdigest()
+                if computed_hash != sha256_hash:
+                    logger.warning(f"SHA-256 mismatch detected for evidence {filename}: client={sha256_hash}, server={computed_hash}")
+                    raise ValidationError(message="Evidence file integrity verification failed. SHA-256 mismatch.")
+            except ValidationError:
+                raise
+            except Exception as e:
+                logger.error(f"Server-side hash verification failed to read file from MinIO: {e}")
+
         # Find if a file with the same name already exists to increment version (Phase 53)
         last_version = (
             db.query(Evidence)

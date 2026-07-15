@@ -93,5 +93,37 @@ class UserService:
         db.refresh(user)
         return user
 
+    def create_user(
+        self,
+        db: Session,
+        *,
+        email: str,
+        password: str,
+        name: str,
+        role: str,
+        department: Optional[str] = None,
+        jurisdiction: Optional[str] = None,
+        email_verified: bool = True
+    ) -> User:
+        """Create a new user with specific role, department, and jurisdiction, bypassing normal verification flow (e.g. for Admin creation)."""
+        existing_user = user_repository.get_by_email(db, email)
+        if existing_user:
+            raise ValidationError(message="Email address already registered", code="EMAIL_ALREADY_EXISTS")
+            
+        hashed_password = hash_password(password)
+        new_user = User(
+            email=email,
+            hashed_password=hashed_password,
+            name=name,
+            role=role,
+            is_active=True,
+            email_verified=email_verified,
+            department=department,
+            jurisdiction=jurisdiction
+        )
+        user = user_repository.create(db, obj_in=new_user)
+        return user
+
 user_service = UserService()
+
 

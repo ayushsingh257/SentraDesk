@@ -9,7 +9,7 @@ class Complaint(Base, TimestampMixin):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[str] = mapped_column(String(2000), nullable=False)
+    description: Mapped[str] = mapped_column(String(5000), nullable=False)
     source: Mapped[str] = mapped_column(String(50), default="portal", nullable=False) # portal, email, mobile, helpline, station
     status: Mapped[str] = mapped_column(String(50), default="New", nullable=False)
     
@@ -60,6 +60,7 @@ class Ticket(Base, TimestampMixin):
     timeline: Mapped[list["ActivityTimeline"]] = relationship(back_populates="ticket", cascade="all, delete-orphan")
     extracted_entities = relationship("ExtractedEntityIndex", back_populates="ticket", cascade="all, delete-orphan")
     evidence = relationship("Evidence", back_populates="ticket", cascade="all, delete-orphan", foreign_keys="Evidence.ticket_id")
+    approval_records = relationship("ApprovalRecord", back_populates="ticket", cascade="all, delete-orphan")
 
 class TicketVersion(Base, TimestampMixin):
     __tablename__ = "ticket_versions"
@@ -92,7 +93,7 @@ class PrivateNote(Base, TimestampMixin):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     ticket_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tickets.id", ondelete="CASCADE"), nullable=False)
     author_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    content: Mapped[str] = mapped_column(String(1000), nullable=False)
+    content: Mapped[str] = mapped_column(String(4000), nullable=False)
 
     # Relationships
     ticket: Mapped["Ticket"] = relationship(back_populates="private_notes")
@@ -108,3 +109,18 @@ class ActivityTimeline(Base, TimestampMixin):
 
     # Relationships
     ticket: Mapped["Ticket"] = relationship(back_populates="timeline")
+
+
+class ApprovalRecord(Base, TimestampMixin):
+    __tablename__ = "approval_records"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    ticket_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tickets.id", ondelete="CASCADE"), nullable=False)
+    approver_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    level: Mapped[int] = mapped_column(Integer, nullable=False) # 1 or 2
+    decision: Mapped[str] = mapped_column(String(50), nullable=False) # approved, rejected
+    comment: Mapped[str] = mapped_column(String(1000), nullable=True)
+
+    # Relationships
+    ticket: Mapped["Ticket"] = relationship(back_populates="approval_records")
+    approver: Mapped["User"] = relationship()

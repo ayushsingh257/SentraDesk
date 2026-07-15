@@ -27,6 +27,13 @@ class ApprovalService:
         # Reset any previous approval flags
         ticket.l1_approved = False
         ticket.l2_approved = False
+        
+        # Store closure reason in complaint metadata_json (FE-4)
+        meta = dict(ticket.complaint.metadata_json or {})
+        meta["closure_reason"] = reason
+        ticket.complaint.metadata_json = meta
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(ticket.complaint, "metadata_json")
         db.add(ticket)
         
         # Log closure request comment
@@ -45,6 +52,39 @@ class ApprovalService:
             new_status="Closure Requested",
             actor_id=actor_id
         )
+
+        # Notify supervisors (Phase 46 / NOT-1)
+        try:
+            from app.models.user import User
+            supervisors = db.query(User).filter(User.role == "supervisor", User.is_active == True).all()
+            for sup in supervisors:
+                # 1. In-app notification
+                notification_service.create_in_app_notification(
+                    db,
+                    user_id=sup.id,
+                    title=f"Closure Requested: {ticket.ticket_number}",
+                    message=f"Investigator requested case closure for ticket {ticket.ticket_number}. Reason: {reason[:100]}...",
+                    ticket_id=ticket.id
+                )
+                # 2. Email notification
+                if sup.email:
+                    from app.core.config import settings as _settings
+                    if _settings.ENVIRONMENT != "testing":
+                        from app.tasks.email import send_notification_task
+                        from app.core.celery_app import dispatch_task
+                        dispatch_task(
+                            send_notification_task,
+                            recipient=sup.email,
+                            template_name="query_received",
+                            subject=f"🔍 Closure Request for Ticket [{ticket.ticket_number}]",
+                            variables={
+                                "ticket_number": ticket.ticket_number,
+                                "snippet": f"Investigator requested case closure. Reason: {reason}"
+                            },
+                            ticket_id=str(ticket.id)
+                        )
+        except Exception as notif_err:
+            logger.error(f"Failed to dispatch supervisor closure notifications: {notif_err}")
         
         logger.info(f"Ticket {ticket.ticket_number} successfully placed in Closure Requested state.")
         return ticket
@@ -80,6 +120,18 @@ class ApprovalService:
             actor_id=actor_id
         )
         db.add(timeline)
+
+        # Audit Record Log (M-4)
+        from app.models.ticket import ApprovalRecord
+        rec = ApprovalRecord(
+            ticket_id=ticket.id,
+            approver_id=actor_id,
+            level=1,
+            decision="approved",
+            comment=comment_text
+        )
+        db.add(rec)
+
         db.commit()
         db.refresh(ticket)
         
@@ -120,6 +172,18 @@ class ApprovalService:
             actor_id=actor_id
         )
         db.add(timeline)
+
+        # Audit Record Log (M-4)
+        from app.models.ticket import ApprovalRecord
+        rec = ApprovalRecord(
+            ticket_id=ticket.id,
+            approver_id=actor_id,
+            level=2,
+            decision="approved",
+            comment=comment_text
+        )
+        db.add(rec)
+
         db.commit()
         
         # Both L1 and L2 are approved. Transition status to Closed (Phase 48)
@@ -180,6 +244,19 @@ class ApprovalService:
             actor_id=actor_id
         )
         db.add(timeline)
+
+        # Audit Record Log (M-4)
+        from app.models.ticket import ApprovalRecord
+        level = 2 if ticket.l1_approved else 1
+        rec = ApprovalRecord(
+            ticket_id=ticket.id,
+            approver_id=actor_id,
+            level=level,
+            decision="rejected",
+            comment=comment_text
+        )
+        db.add(rec)
+
         db.commit()
         
         # Transition back to Reopened (Phase 48) — valid state machine path from Closure Requested

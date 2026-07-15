@@ -83,7 +83,7 @@ services:
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
       - QDRANT_URL=http://qdrant:6333
-      - JWT_SECRET=${JWT_SECRET:-super_secret_jwt_signing_key_for_development_purposes_only_change_in_production}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET_is_required_in_env_file}
       - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
       - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-["http://localhost:3000","http://127.0.0.1:3000"]}
     ports:
@@ -132,7 +132,7 @@ services:
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
       - QDRANT_URL=http://qdrant:6333
-      - JWT_SECRET=${JWT_SECRET:-super_secret_jwt_signing_key_for_development_purposes_only_change_in_production}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET_is_required_in_env_file}
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER:-alerts.ccgp@example.com}
@@ -143,6 +143,47 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ccgp_celery_beat
+    restart: always
+    command: celery -A app.core.celery_app beat --loglevel=info
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-ccgp_admin}:${POSTGRES_PASSWORD:-ccgp_secure_password_2026}@db:5432/${POSTGRES_DB:-ccgp_governance}
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minio_admin_user}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minio_admin_secret_key_2026}
+      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME:-ccgp-evidence}
+      - MINIO_SECURE=false
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - QDRANT_URL=http://qdrant:6333
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET_is_required_in_env_file}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: ccgp_nginx
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+
 
   prometheus:
     image: prom/prometheus:v2.51.0

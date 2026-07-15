@@ -11,27 +11,74 @@ from app.core.logging import logger
 
 # Seed corpus for offline classifier training (Phase 58)
 SEED_CORPUS = [
-    # Cyber Financial Fraud
-    ("lost money through fake upi transaction transfer wallet scam", "Cyber Financial Fraud"),
-    ("online banking phishing scam link unauthorized transaction debit credit card", "Cyber Financial Fraud"),
-    ("funds stolen transfer upi request fraud bank transfer rupees account", "Cyber Financial Fraud"),
-    ("rupees loss fraud UPI wallet payments phishing debit", "Cyber Financial Fraud"),
-    # Hacking
-    ("social media account hacked compromised password access server email bypass", "Hacking"),
-    ("website defaced unauthorized access server files system exploit cyber attack", "Hacking"),
-    ("malware infected system backdoor spyware keys logging password stolen", "Hacking"),
-    ("hacking code server access breach bypass intrusion", "Hacking"),
+    # UPI Fraud
+    ("money transfer through upi request scam transfer fraud fake link pin wallet", "UPI Fraud"),
+    ("lost cash transferring money to phone number upi request money", "UPI Fraud"),
+    # Banking Fraud
+    ("unauthorized debit bank transfer net banking transfer login hacked credentials account", "Banking Fraud"),
+    ("bank account transaction savings unauthorized transfer withdrawal", "Banking Fraud"),
+    # Credit Card Fraud
+    ("credit card cloned swiped unauthorized charges card limit transaction international", "Credit Card Fraud"),
+    ("credit card details stolen used online shopping transaction charge fraud", "Credit Card Fraud"),
+    # Loan Scam
+    ("instant loan app blackmail instant loan money high interest rate threats contact", "Loan Scam"),
+    ("loan approval scam fee advance processing fee loan", "Loan Scam"),
+    # Cryptocurrency Scam
+    ("crypto wallet scam bitcoin transfer ethereum fake exchange investment profit loss", "Cryptocurrency Scam"),
+    ("cryptocurrency investment recovery scam tokens transfer keys stolen", "Cryptocurrency Scam"),
+    # Social Media Fraud
+    ("fake social media profile impostor hacking friends money requests profile", "Social Media Fraud"),
+    ("instagram facebook account hacked suspicious posts messages sent contacts", "Social Media Fraud"),
+    # Identity Theft
+    ("identity theft using pan card aadhaar forged documents loan credit score", "Identity Theft"),
+    ("stole my documents created fake account photos identity misuse online", "Identity Theft"),
+    # OTP Scam
+    ("otp verification scam sharing verification code transaction debit account", "OTP Scam"),
+    ("attacker called asked for otp code phone verify transfer", "OTP Scam"),
+    # Investment Scam
+    ("investment profit returns guarantee double money telegram group stock scam", "Investment Scam"),
+    ("high yield investment scam telegram vip group return transfer", "Investment Scam"),
+    # Phishing
+    ("phishing link email message fake bank website login credentials input", "Phishing"),
+    ("received fake lottery email link click details fill", "Phishing"),
+    # QR Code Fraud
+    ("scanned qr code to receive payment money deducted from bank account", "QR Code Fraud"),
+    ("fake qr code sticker scanner scan payment merchant fraud", "QR Code Fraud"),
+    # Fake Job Scam
+    ("job offer telegram registration fees daily tasks commission profit scam work from home", "Fake Job Scam"),
+    ("part time job scam online simple tasks earn commission deposit money", "Fake Job Scam"),
+    # Fake Shopping Website
+    ("fake shopping website e-commerce payment made product not delivered custom care", "Fake Shopping Website"),
+    ("ordered item online website fake customer support tracking number wrong", "Fake Shopping Website"),
+    # Sextortion
+    ("sextortion video call screen recording blackmail threat chat photos release contacts money", "Sextortion"),
+    ("nude video recorded blackmailing demanding money warning share family", "Sextortion"),
+    # Malware
+    ("malware infected trojan spy system keylogger virus software malicious file", "Malware"),
+    ("installed malicious apk application remote control system access", "Malware"),
     # Ransomware
     ("ransomware encrypted files payment demanded decrypt keys system locked extension", "Ransomware"),
-    ("demanded bitcoin decrypt system database server lock extensions files crypted", "Ransomware"),
     ("database encrypted key locked files ransomware attack backup destroyed", "Ransomware"),
-    ("files extension changed demand payment bitcoin crypt lock", "Ransomware"),
+    # Cyber Harassment
+    ("online harassment bullying threat comments toxic posts targeting online", "Cyber Harassment"),
+    ("abusing threatening posts comments cyberbullying harassment profile", "Cyber Harassment"),
+    # Cyber Financial Fraud
+    ("lost money through fake transaction transfer wallet scam", "Cyber Financial Fraud"),
+    ("funds stolen transfer request fraud bank transfer rupees account", "Cyber Financial Fraud"),
+    # Hacking
+    ("hacking compromised password access server email bypass intrusion database", "Hacking"),
+    ("unauthorized system access bypass security credentials database hacked exploit", "Hacking"),
+    # Online Harassment
+    ("online threat abuse messages social media cyber stalking profile tracking", "Online Harassment"),
+    ("stalker sending vulgar photos blackmailing threat messages profile tracking", "Online Harassment"),
     # Cyber Stalking
-    ("online harassment stalking threats social media tracking messages bullying", "Cyber Stalking"),
-    ("stalker sending vulgar photos blackmailing threat messages profile tracking", "Cyber Stalking"),
+    ("online stalking threats social media tracking messages bullying monitoring following", "Cyber Stalking"),
     ("harassed by unknown profile sending threat texts monitoring following", "Cyber Stalking"),
-    ("defamation blackmail stalking cyberbullying texts profile harassment", "Cyber Stalking")
+    # Other Cybercrime
+    ("other cybercrime incident reporting general scam online safety portal", "Other Cybercrime"),
+    ("unclassified threat reporting activity report support help ticket", "Other Cybercrime")
 ]
+
 
 class ComplaintClassifierPipeline(BaseMLPipeline):
     """AI Text Classification model predicting complaint category (Phases 58, 65)."""
@@ -179,13 +226,32 @@ class AISeverityRiskScorer:
         category_weights = {
             "Ransomware": 40,
             "Hacking": 30,
+            "Malware": 30,
+            "Sextortion": 30,
             "Cyber Financial Fraud": 25,
+            "UPI Fraud": 25,
+            "Banking Fraud": 25,
+            "Credit Card Fraud": 25,
+            "Cryptocurrency Scam": 25,
+            "Investment Scam": 25,
+            "Phishing": 25,
+            "QR Code Fraud": 25,
+            "Identity Theft": 25,
+            "OTP Scam": 25,
+            "Loan Scam": 25,
             "Cyber Stalking": 20,
+            "Online Harassment": 20,
+            "Cyber Harassment": 20,
+            "Social Media Fraud": 20,
+            "Fake Job Scam": 20,
+            "Fake Shopping Website": 20,
+            "Other Cybercrime": 10,
             "Unclassified": 10
         }
         cat_weight = category_weights.get(category, 10)
         score += cat_weight
         breakdown["category_weight"] = cat_weight
+
 
         # Financial Loss Weight (Max: 40)
         amount = float(metadata.get("amount", 0.0))
@@ -257,14 +323,15 @@ class AIPipelineService:
         
         # Classification
         clf_result = self.classifier.predict(text)
-        category = clf_result["predicted_category"]
+        category = metadata.get("category") or clf_result["predicted_category"]
         confidence = clf_result["confidence"]
         
         # Named Entity Recognition
         entities = self.extractor.extract(text)
         
-        # Scoring
+        # Scoring (respecting metadata override)
         score_result = self.scorer.score(category, text, metadata)
+
         
         return {
             "language": lang,

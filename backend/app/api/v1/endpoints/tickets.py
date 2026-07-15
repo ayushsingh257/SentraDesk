@@ -91,6 +91,15 @@ def list_tickets(
     current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
 ):
     """Retrieve and filter system tickets (requires officer or higher permissions)."""
+    role = current_user.get("role", "cyber_cell_officer")
+    actor_id = uuid.UUID(current_user.get("sub"))
+    
+    # Enforce data isolation for plain officers/investigators below Supervisor tier (API-5)
+    from app.core.security import ROLE_HIERARCHY
+    user_level = ROLE_HIERARCHY.get(role, 1)
+    if user_level < 6:
+        assigned_officer_id = actor_id
+
     res = ticket_repository.get_tickets_filtered(
         db,
         status=status,
@@ -106,6 +115,7 @@ def list_tickets(
         "data": res,
         "error": None
     }
+
 
 @router.get("/my-tickets", response_model=StandardResponse[List[TicketResponse]])
 def get_my_tickets(
@@ -144,6 +154,22 @@ def get_my_tickets(
         query = query.order_by(order_column.asc())
         
     res = query.all()
+    return {
+        "success": True,
+        "data": res,
+        "error": None
+    }
+
+@router.get("/global/search", response_model=StandardResponse[List[Dict[str, Any]]])
+def global_hybrid_search(
+    q: str = Query(..., min_length=1),
+    limit: int = Query(10, ge=1, le=50),
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
+):
+    """Execute unified SQL keyword + vector semantic global search (requires officer or higher permissions)."""
+    from app.services.search import unified_search_service
+    res = unified_search_service.hybrid_search(db, query_text=q, limit=limit)
     return {
         "success": True,
         "data": res,
@@ -519,22 +545,6 @@ def get_ticket_ai_summary_card(
         "error": None
     }
 
-@router.get("/global/search", response_model=StandardResponse[List[Dict[str, Any]]])
-def global_hybrid_search(
-    q: str = Query(..., min_length=1),
-    limit: int = Query(10, ge=1, le=50),
-    db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
-):
-    """Execute unified SQL keyword + vector semantic global search (requires officer or higher permissions)."""
-    from app.services.search import unified_search_service
-    res = unified_search_service.hybrid_search(db, query_text=q, limit=limit)
-    return {
-        "success": True,
-        "data": res,
-        "error": None
-    }
-
 from fastapi.responses import Response
 
 @router.get("/{id}/report/complaint")
@@ -795,6 +805,7 @@ def link_indicator_to_case(
 @router.get("/{id}/ai-analyst", response_model=StandardResponse[Dict[str, Any]])
 def get_ticket_ai_analyst(
     id: uuid.UUID,
+    refresh: bool = Query(False),
     db: Session = Depends(get_db),
     current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
 ):
@@ -810,24 +821,38 @@ def get_ticket_ai_analyst(
     # Fetch evidence file names
     evidence_files = [ev.filename for ev in ticket.evidence]
 
-    # Run case dossier analysis
-    amount = 0.0
+    # Check cached dossier
     meta = ticket.complaint.metadata_json or {}
-    try:
-        amount = float(meta.get("amount", 0.0))
-    except (ValueError, TypeError):
-        pass
+    cached_dossier = meta.get("ai_analyst_dossier")
 
     from app.services.ai_pipeline import ai_pipeline_service
-    analysis = ai_pipeline_service.analyze_case_dossier(
-        description=ticket.complaint.description,
-        category=ticket.category,
-        severity=ticket.severity,
-        amount=amount,
-        evidence_files=evidence_files
-    )
 
-    # Fetch similar cases from Qdrant
+    if cached_dossier and not refresh:
+        analysis = dict(cached_dossier)
+    else:
+        amount = 0.0
+        try:
+            amount = float(meta.get("amount", 0.0))
+        except (ValueError, TypeError):
+            pass
+
+        analysis = ai_pipeline_service.analyze_case_dossier(
+            description=ticket.complaint.description,
+            category=ticket.category,
+            severity=ticket.severity,
+            amount=amount,
+            evidence_files=evidence_files
+        )
+        
+        # Save cache
+        meta = dict(ticket.complaint.metadata_json or {})
+        meta["ai_analyst_dossier"] = analysis
+        ticket.complaint.metadata_json = meta
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(ticket.complaint, "metadata_json")
+        db.commit()
+
+    # Fetch similar cases dynamically from Qdrant
     similar = ai_pipeline_service.find_similar_complaints(
         text=ticket.complaint.description,
         limit=3,
@@ -840,6 +865,7 @@ def get_ticket_ai_analyst(
         "data": analysis,
         "error": None
     }
+
 
 @router.post("/{id}/scan-all-indicators", response_model=StandardResponse[List[Dict[str, Any]]])
 def scan_all_indicators(
@@ -904,38 +930,49 @@ def scan_all_indicators(
             seen.add(key)
             dedup.append(ind)
 
-    # Perform mock scan for all
+    # Perform actual scan for all using ThreatIntelService (AI-3)
+    from app.services.threat_intel import threat_intel_service
     results = []
     for ind in dedup:
         val = ind["value"]
-        # Determine status and score mock parameters
-        status = "Clean"
-        score = 15
-        description = "Indicator checked against CCGP threat intelligence registries. No active threat feeds flagged."
+        ind_type = ind["type"]
         
-        # Threat triggers
-        val_lower = val.lower()
-        if "malicious" in val_lower or "fraud" in val_lower or "scam" in val_lower or "suspect" in val_lower:
-            status = "Malicious"
-            score = 90
-            description = "High-risk alert: Identified in active financial fraud campaigns and Telegram phishing lures."
-        elif "abuse" in val_lower or "hacked" in val_lower or "leak" in val_lower:
-            status = "Suspicious"
-            score = 65
-            description = "Medium-risk warning: Flagged in recent user-reported spam and abuse databases."
+        # Dispatch to threat_intel_service based on mapped type
+        if ind_type == "IP Address":
+            scan_res = threat_intel_service.lookup_ip_reputation(val)
+        elif ind_type == "Domain":
+            scan_res = threat_intel_service.lookup_domain_reputation(val)
+        elif ind_type in ("File Hash", "sha256_hash"):
+            scan_res = threat_intel_service.scan_file_hash(val)
+        else:
+            # Map frontend types to generic fallback reputation checks
+            type_map = {
+                "Phone Number": "phone",
+                "Email Address": "email",
+                "UPI ID": "upi",
+                "Bank Account": "bank_account",
+                "IFSC Code": "ifsc_code",
+                "PAN Card": "pan_card",
+                "Crypto Wallet": "crypto_wallet",
+                "URL": "url",
+                "Telegram Handle": "telegram",
+                "Social Media Handle": "social_media"
+            }
+            mapped_type = type_map.get(ind_type, "indicator")
+            scan_res = threat_intel_service._fallback_reputation(val, mapped_type)
             
         results.append({
             "indicator": val,
-            "indicator_type": ind["type"],
-            "status": status,
-            "threat_score": score,
-            "source": "VirusTotal & AbuseIPDB Gateway",
-            "description": description
+            "indicator_type": ind_type,
+            "status": scan_res.get("status", "Clean"),
+            "threat_score": scan_res.get("threat_score", 15.0),
+            "source": scan_res.get("source", "CCGP Threat Intelligence Hub"),
+            "description": scan_res.get("details", {}).get("reasons", ["No threat feeds matched."])[0] if (isinstance(scan_res.get("details", {}).get("reasons"), list) and scan_res.get("details", {}).get("reasons")) else scan_res.get("description", "Checked against threat registries.")
         })
 
-    # Log timeline event
+    # Log timeline event with corrected actor_id extraction (A-4)
     from app.models.ticket import ActivityTimeline
-    actor_id = current_user.get("id") if isinstance(current_user, dict) else current_user.id
+    actor_id = uuid.UUID(current_user.get("sub"))
     new_event = ActivityTimeline(
         ticket_id=id,
         event_type="IndicatorsBulkScanned",
@@ -950,5 +987,6 @@ def scan_all_indicators(
         "data": results,
         "error": None
     }
+
 
 

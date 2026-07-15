@@ -378,8 +378,45 @@ class TicketService:
             ticket.complaint.status = "Assigned"
             db.add(ticket.complaint)
             
+        # Dispatch notifications to the newly assigned officer (NOT-2)
+        if officer_id:
+            try:
+                from app.models.user import User
+                officer_user = db.query(User).filter(User.id == officer_id).first()
+                if officer_user:
+                    from app.services.notification import notification_service
+                    # 1. In-app notification
+                    notification_service.create_in_app_notification(
+                        db,
+                        user_id=officer_id,
+                        title=f"Ticket Assigned: {ticket.ticket_number}",
+                        message=f"You have been assigned to case {ticket.ticket_number} (Severity: {ticket.severity}).",
+                        ticket_id=ticket.id
+                    )
+                    # 2. Email notification (async)
+                    if officer_user.email:
+                        from app.core.config import settings as _settings
+                        if _settings.ENVIRONMENT != "testing":
+                            from app.tasks.email import send_notification_task
+                            from app.core.celery_app import dispatch_task
+                            dispatch_task(
+                                send_notification_task,
+                                recipient=officer_user.email,
+                                template_name="ticket_assigned",
+                                subject=f"CCGP Ticket Assigned [{ticket.ticket_number}]",
+                                variables={
+                                    "ticket_number": ticket.ticket_number,
+                                    "category": ticket.category,
+                                    "severity": ticket.severity
+                                },
+                                ticket_id=str(ticket.id)
+                            )
+            except Exception as assign_err:
+                logger.error(f"Failed to dispatch assignment alerts to officer {officer_id}: {assign_err}")
+
         db.commit()
         return ticket
+
 
     def submit_comment(self, db: Session, *, ticket_id: uuid.UUID, content: str, author_id: uuid.UUID) -> Comment:
         """Add an internal, viewable comment to the ticket thread."""

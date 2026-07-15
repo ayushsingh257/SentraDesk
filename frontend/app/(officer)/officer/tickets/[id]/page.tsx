@@ -84,6 +84,21 @@ interface Ticket {
   }
 }
 
+interface AIAnalystResult {
+  summary: string
+  overall_risk: string
+  confidence: number
+  classification_reasoning: string
+  executive_summary: string
+  investigation_narrative: string
+  probabilities: Array<{ category: string; confidence: number }>
+  timeline: Array<{ date: string; event: string }>
+  recommendations: Array<{ action: string; priority: string; status: string }>
+  legal_sections: Array<{ section: string; act: string; description: string }>
+  evidence_gaps: string[]
+  similar_cases?: any[]
+}
+
 export default function OfficerTicketDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
@@ -100,9 +115,10 @@ export default function OfficerTicketDetail({ params }: { params: Promise<{ id: 
   const [activeTab, setActiveTab] = useState<'timeline' | 'ai' | 'threat' | 'evidence' | 'notes' | 'discussion'>('timeline')
 
   // AI Analyst state
-  const [aiAnalyst, setAiAnalyst] = useState<any>(null)
+  const [aiAnalyst, setAiAnalyst] = useState<AIAnalystResult | null>(null)
   const [aiAnalystLoading, setAiAnalystLoading] = useState(false)
   const [aiAnalystError, setAiAnalystError] = useState<string | null>(null)
+
 
   // Threat bulk scan state
   const [bulkScannedIndicators, setBulkScannedIndicators] = useState<any[] | null>(null)
@@ -175,11 +191,11 @@ export default function OfficerTicketDetail({ params }: { params: Promise<{ id: 
     }
   }, [id])
 
-  const loadAiAnalystData = useCallback(async () => {
+  const loadAiAnalystData = useCallback(async (refresh = false) => {
     setAiAnalystLoading(true)
     setAiAnalystError(null)
     try {
-      const res = await api.get(`/api/v1/tickets/${id}/ai-analyst`)
+      const res = await api.get(`/api/v1/tickets/${id}/ai-analyst?refresh=${refresh}`)
       if (res.data?.success) {
         setAiAnalyst(res.data.data)
       } else {
@@ -192,6 +208,7 @@ export default function OfficerTicketDetail({ params }: { params: Promise<{ id: 
       setAiAnalystLoading(false)
     }
   }, [id])
+
 
   const handleBulkScanIndicators = async () => {
     setBulkScanning(true)
@@ -332,29 +349,27 @@ export default function OfficerTicketDetail({ params }: { params: Promise<{ id: 
     }
   }
 
-  // Verify evidence file hash via backend threat intel scan
+  // Verify evidence file hash integrity server-side (EV-1, FE-6)
   const handleVerifyHash = async (evidence: EvidenceFile) => {
     setVerifyingHashId(evidence.id)
     try {
-      const res = await api.get(`/api/v1/threat-intel/scan-file/${evidence.id}`)
-      if (res.data?.success) {
-        const riskScore = res.data.data?.risk_score ?? 0
-        const status = res.data.data?.status ?? 'clean'
+      const res = await api.post(API_ROUTES.verifyIntegrity(evidence.id))
+      if (res.data?.success && res.data.data) {
+        const isVerified = res.data.data.verified
         setVerificationResult(prev => ({ 
           ...prev, 
-          [evidence.id]: status === 'malicious' || riskScore > 50 ? 'mismatched' : 'matched' 
+          [evidence.id]: isVerified ? 'matched' : 'mismatched' 
         }))
       } else {
-        // Fallback: local integrity check is sufficient if backend not available
         setVerificationResult(prev => ({ ...prev, [evidence.id]: 'matched' }))
       }
     } catch (err) {
-      // If threat intel scan unavailable, still report local hash as verified
-      setVerificationResult(prev => ({ ...prev, [evidence.id]: 'matched' }))
+      setVerificationResult(prev => ({ ...prev, [evidence.id]: 'mismatched' }))
     } finally {
       setVerifyingHashId(null)
     }
   }
+
 
   // Handle Threat Intel Lookup
   const handleIntelLookup = async (queryVal: string) => {
@@ -724,14 +739,27 @@ export default function OfficerTicketDetail({ params }: { params: Promise<{ id: 
                       {/* Classification Summary Card */}
                       <div className="bg-primary-50/40 dark:bg-primary-950/20 p-5 rounded-2xl border border-primary-100 dark:border-primary-900/40">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                          <div>
-                            <span className="text-[10px] font-black text-primary-700 dark:text-primary-400 uppercase tracking-wider block mb-1">
-                              AI Classification Summary
-                            </span>
-                            <h3 className="text-base font-extrabold text-neutral-900 dark:text-white">
-                              {aiAnalyst.summary}
-                            </h3>
+                          <div className="flex justify-between items-start w-full sm:w-auto gap-4">
+                            <div>
+                              <span className="text-[10px] font-black text-primary-700 dark:text-primary-400 uppercase tracking-wider block mb-1">
+                                AI Classification Summary
+                              </span>
+                              <h3 className="text-base font-extrabold text-neutral-900 dark:text-white">
+                                {aiAnalyst.summary}
+                              </h3>
+                            </div>
+                            <Button
+                              onClick={() => loadAiAnalystData(true)}
+                              variant="outline"
+                              size="sm"
+                              className="text-[10px] py-1.5 px-2.5 h-auto flex items-center gap-1 border-primary-200/60 dark:border-primary-900/40 text-primary-700 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/20 shrink-0"
+                              isLoading={aiAnalystLoading}
+                            >
+                              <Sparkles size={12} />
+                              <span>Recalculate</span>
+                            </Button>
                           </div>
+
                           <div className="flex items-center gap-3 shrink-0">
                             <div className="text-right">
                               <span className="text-[10px] text-neutral-400 font-bold block uppercase">Overall Risk</span>

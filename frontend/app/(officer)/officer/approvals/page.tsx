@@ -33,8 +33,10 @@ interface Ticket {
     description: string
     status: string
     reporter_name: string
+    metadata_json: Record<string, any> | null
   }
 }
+
 
 export default function SupervisorApprovals() {
   const [tickets, setTickets] = useState<Ticket[]>([])
@@ -89,13 +91,11 @@ export default function SupervisorApprovals() {
     }
   }
 
-  // Handle Rejecting (reopens ticket)
+  // Handle Rejecting (reopens ticket) (API-1, FE-3)
   const handleReject = async (ticket: Ticket) => {
     setActionLoading(true)
     try {
-      // Reopening via status transition reject (matches submit_approval_action logic in backend)
-      // Rejecting resets approvals and sets status to 'Reopened'
-      const res = await api.put(API_ROUTES.updateStatus(ticket.id), { status: 'Reopened' })
+      const res = await api.post(API_ROUTES.rejectClosure(ticket.id), { comment: commentText })
       if (res.data?.success) {
         setCommentText('')
         setActiveTicket(null)
@@ -109,9 +109,10 @@ export default function SupervisorApprovals() {
   }
 
   const getClosureReason = (ticket: Ticket) => {
-    // Re-use or find closure reason from notes or custom logic
-    return 'Investigation concluded. Evidence successfully acquired and verified.'
+    // Retrieve actual investigator submitted justification (FE-4)
+    return ticket.complaint.metadata_json?.closure_reason || 'Investigation concluded. Evidence successfully acquired and verified.'
   }
+
 
   return (
     <div className="space-y-6 animate-fade-in">

@@ -95,4 +95,32 @@ class Settings(BaseSettings):
     VIRUSTOTAL_API_KEY: str = ""
     OTX_API_KEY: str = ""
 
+    # LLM Configurations (optional/fallback)
+    GEMINI_API_KEY: Union[str, None] = None
+    GEMINI_MODEL: str = "gemini-1.5-flash"
+    
+    OPENAI_API_KEY: Union[str, None] = None
+    OPENAI_MODEL: str = "gpt-4o"
+    
+    ANTHROPIC_API_KEY: Union[str, None] = None
+    ANTHROPIC_MODEL: str = "claude-3-5-sonnet"
+    
+    OLLAMA_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "llama3"
+    OLLAMA_ACTIVE: bool = False
+
+    from pydantic import model_validator
+
+    @model_validator(mode="after")
+    def validate_production_credentials(self) -> 'Settings':
+        if self.ENVIRONMENT == "production":
+            if self.JWT_SECRET == "super_secret_jwt_signing_key_for_development_purposes_only_change_in_production":
+                raise ValueError("JWT_SECRET must be changed in production environment!")
+            if self.POSTGRES_PASSWORD == "ccgp_secure_password_2026":
+                raise ValueError("POSTGRES_PASSWORD must be changed in production environment!")
+            if self.MINIO_SECRET_KEY == "minio_admin_secret_key_2026":
+                raise ValueError("MINIO_SECRET_KEY must be changed in production environment!")
+        return self
+
 settings = Settings()
+

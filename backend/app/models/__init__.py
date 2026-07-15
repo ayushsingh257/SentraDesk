@@ -1,6 +1,6 @@
 from app.models.base import Base
 from app.models.user import User, RefreshToken, EmailVerificationToken, PasswordResetToken
-from app.models.ticket import Complaint, Ticket, TicketVersion, Comment, PrivateNote, ActivityTimeline
+from app.models.ticket import Complaint, Ticket, TicketVersion, Comment, PrivateNote, ActivityTimeline, ApprovalRecord
 from app.models.audit import AuditLog, SecurityAuditChain
 from app.models.notification import EmailConversation, NotificationLog, InAppNotification
 from app.models.evidence import Evidence
@@ -19,6 +19,7 @@ __all__ = [
     "Comment",
     "PrivateNote",
     "ActivityTimeline",
+    "ApprovalRecord",
     "AuditLog",
     "SecurityAuditChain",
     "EmailConversation",
@@ -29,3 +30,4 @@ __all__ = [
     "ThreatIndicator",
     "SystemConfig"
 ]
+

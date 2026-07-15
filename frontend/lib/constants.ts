@@ -163,17 +163,20 @@ export const API_ROUTES = {
   evidenceList: (ticketId: string) => `/api/v1/evidence/${ticketId}`,
   evidenceDownload: (evidenceId: string) => `/api/v1/evidence/download/${evidenceId}`,
   evidenceZip: (ticketId: string) => `/api/v1/evidence/${ticketId}/zip`,
+  verifyIntegrity: (evidenceId: string) => `/api/v1/evidence/${evidenceId}/verify-integrity`,
 
   // Approvals
   requestClosure: (ticketId: string) => `/api/v1/approvals/${ticketId}/request-closure`,
   l1Approve: (ticketId: string) => `/api/v1/approvals/${ticketId}/l1-approve`,
   l2Approve: (ticketId: string) => `/api/v1/approvals/${ticketId}/l2-approve`,
+  rejectClosure: (ticketId: string) => `/api/v1/approvals/${ticketId}/reject`,
 
   // Audit
   auditLogs: '/api/v1/audit/logs',
   auditVerify: '/api/v1/audit/verify',
   auditAnchor: '/api/v1/audit/anchor',
   auditExportPDF: '/api/v1/audit/export/pdf',
+
 
   // Governance
   governanceKPIs: '/api/v1/governance/kpis',
