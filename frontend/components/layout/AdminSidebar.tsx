@@ -14,7 +14,13 @@ import {
   Database,
   History,
   ToggleLeft,
-  Settings2
+  Settings2,
+  Cpu,
+  FileText,
+  UserCircle,
+  Sliders,
+  Network,
+  ShieldAlert
 } from 'lucide-react'
 
 import { useAuth } from '@/components/providers/AuthProvider'
@@ -33,11 +39,17 @@ export function AdminSidebar() {
 
   const navigation: NavItem[] = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-    { name: 'User Management', href: '/admin/users', icon: Users },
-    { name: 'Rules Engine', href: '/admin/rules', icon: ToggleLeft },
-    { name: 'System Diagnostics', href: '/admin/health', icon: Database },
-    { name: 'Audit Logs', href: '/admin/audit', icon: History },
-    { name: 'Configurations', href: '/admin/config', icon: Settings2 },
+    { name: 'User Directory', href: '/admin/users', icon: Users },
+    { name: 'Role Hierarchy', href: '/admin/roles', icon: Shield },
+    { name: 'Cyber Units', href: '/admin/departments', icon: Network },
+    { name: 'System Config', href: '/admin/configuration', icon: Sliders },
+    { name: 'SMTP Alerts', href: '/admin/notifications', icon: ShieldAlert },
+    { name: 'AI Models', href: '/admin/ai', icon: Cpu },
+    { name: 'Operations Center', href: '/admin/system', icon: Database },
+    { name: 'Audit Center', href: '/admin/audit', icon: History },
+    { name: 'Reports Engine', href: '/admin/reports', icon: FileText },
+    { name: 'Admin Profile', href: '/admin/profile', icon: UserCircle },
+    { name: 'Settings Reset', href: '/admin/settings', icon: Settings },
   ]
 
   const handleLogout = async () => {

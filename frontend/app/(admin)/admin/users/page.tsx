@@ -11,7 +11,13 @@ import {
   ShieldAlert, 
   X, 
   Edit3,
-  RefreshCw
+  RefreshCw,
+  Trash2,
+  Power,
+  Lock,
+  Unlock,
+  FileDown,
+  Plus
 } from 'lucide-react'
 
 import api from '@/lib/api'
@@ -25,6 +31,8 @@ interface UserAccount {
   name: string
   role: string
   is_active: boolean
+  is_locked?: boolean
+  is_deleted?: boolean
   email_verified: boolean
   department: string | null
   jurisdiction: string | null
@@ -39,12 +47,20 @@ export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
   
-  // Edit / Password Reset Modal States
+  // Edit / Password Reset / Create Modal States
   const [activeUser, setActiveUser] = useState<UserAccount | null>(null)
-  const [modalType, setModalType] = useState<'edit' | 'password' | null>(null)
+  const [modalType, setModalType] = useState<'edit' | 'password' | 'create' | null>(null)
   const [newPassword, setNewPassword] = useState('')
   const [saveLoading, setSaveLoading] = useState(false)
   const [modalError, setModalError] = useState<string | null>(null)
+
+  // Provisioning Fields
+  const [createEmail, setCreateEmail] = useState('')
+  const [createPassword, setCreatePassword] = useState('')
+  const [createName, setCreateName] = useState('')
+  const [createRole, setCreateRole] = useState('investigator')
+  const [createDept, setCreateDept] = useState('')
+  const [createJuris, setCreateJuris] = useState('')
 
   // Edit fields
   const [editName, setEditName] = useState('')
@@ -76,6 +92,34 @@ export default function UserManagement() {
     fetchUsers()
   }, [fetchUsers])
 
+  // Handle User Provisioning Submission
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaveLoading(true)
+    setModalError(null)
+    try {
+      const res = await api.post('/api/v1/admin/users', {
+        email: createEmail,
+        password: createPassword,
+        name: createName,
+        role: createRole,
+        department: createDept || null,
+        jurisdiction: createJuris || null
+      })
+      if (res.data?.success) {
+        setModalType(null)
+        setCreateEmail('')
+        setCreatePassword('')
+        setCreateName('')
+        fetchUsers()
+      }
+    } catch (err: any) {
+      setModalError(err.response?.data?.detail || 'Failed to provision account.')
+    } finally {
+      setSaveLoading(false)
+    }
+  }
+
   // Toggle user activation status
   const handleToggleActivation = async (user: UserAccount) => {
     try {
@@ -88,6 +132,50 @@ export default function UserManagement() {
     } catch (err) {
       console.error('Toggle activation failed:', err)
     }
+  }
+
+  // Toggle Lock status
+  const handleToggleLock = async (user: UserAccount) => {
+    try {
+      const currentLock = !!user.is_locked
+      const res = await api.post(`/api/v1/admin/users/${user.id}/lock-status`, {
+        is_locked: !currentLock
+      })
+      if (res.data?.success) {
+        setUsers(prev => prev.map(u => u.id === user.id ? { ...u, is_locked: !currentLock } : u))
+      }
+    } catch (err) {
+      console.error('Toggle lock failed:', err)
+    }
+  }
+
+  // Force Logout session
+  const handleForceLogout = async (user: UserAccount) => {
+    try {
+      const res = await api.post(`/api/v1/admin/users/${user.id}/force-logout`)
+      if (res.data?.success) {
+        alert(`Successfully terminated all active sessions for ${user.name}.`)
+      }
+    } catch (err) {
+      console.error('Force logout failed:', err)
+    }
+  }
+
+  // Soft Delete user
+  const handleSoftDelete = async (user: UserAccount) => {
+    if (!confirm(`Are you sure you want to soft delete account: ${user.name}? This will block active logons.`)) return
+    try {
+      const res = await api.delete(`/api/v1/admin/users/${user.id}`)
+      if (res.data?.success) {
+        setUsers(prev => prev.filter(u => u.id !== user.id))
+      }
+    } catch (err) {
+      console.error('Soft delete failed:', err)
+    }
+  }
+
+  const handleExportCSV = () => {
+    window.open('/api/v1/admin/users/export/csv', '_blank')
   }
 
   // Open Edit Profile Modal
@@ -219,6 +307,16 @@ export default function UserManagement() {
               <RefreshCw size={14} />
               <span>Query</span>
             </Button>
+
+            <Button onClick={() => setModalType('create')} size="sm" className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-750">
+              <Plus size={14} />
+              <span>Provision User</span>
+            </Button>
+
+            <Button onClick={handleExportCSV} size="sm" variant="outline" className="flex items-center gap-1">
+              <FileDown size={14} />
+              <span>Export</span>
+            </Button>
           </div>
         </div>
       </Card>
@@ -273,18 +371,24 @@ export default function UserManagement() {
                         </div>
                       )}
                     </td>
-                    <td className="px-5 py-4.5">
+                    <td className="px-5 py-4.5 space-y-1">
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
                         u.is_active ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400' : 'bg-red-50 text-red-750 dark:bg-red-950/20'
                       }`}>
                         {u.is_active ? 'Active' : 'Suspended'}
                       </span>
+                      {u.is_locked && (
+                        <div className="text-[9px] text-red-500 font-extrabold uppercase">
+                          Locked
+                        </div>
+                      )}
                     </td>
                     <td className="px-5 py-4.5 text-right space-x-1.5 whitespace-nowrap">
                       <Button 
                         size="sm" 
                         variant="outline"
                         onClick={() => openEditModal(u)}
+                        title="Edit profile"
                         className="p-1.5"
                       >
                         <Edit3 size={13} />
@@ -293,6 +397,7 @@ export default function UserManagement() {
                         size="sm" 
                         variant="outline"
                         onClick={() => openPasswordModal(u)}
+                        title="Reset password"
                         className="p-1.5"
                       >
                         <KeyRound size={13} />
@@ -301,9 +406,37 @@ export default function UserManagement() {
                         size="sm"
                         variant={u.is_active ? 'outline' : 'success'}
                         onClick={() => handleToggleActivation(u)}
+                        title={u.is_active ? "Suspend" : "Activate"}
                         className={u.is_active ? 'text-red-500 border-red-200 hover:bg-red-50 dark:hover:bg-red-950/10' : 'bg-emerald-600 hover:bg-emerald-750'}
                       >
                         {u.is_active ? <UserX size={13} /> : <UserCheck size={13} />}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleToggleLock(u)}
+                        title={u.is_locked ? "Unlock" : "Lock"}
+                        className="p-1.5 text-amber-600 border-amber-250 hover:bg-amber-50"
+                      >
+                        {u.is_locked ? <Unlock size={13} /> : <Lock size={13} />}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleForceLogout(u)}
+                        title="Force logout sessions"
+                        className="p-1.5 text-blue-500 border-blue-200 hover:bg-blue-50"
+                      >
+                        <Power size={13} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleSoftDelete(u)}
+                        title="Soft delete user"
+                        className="p-1.5 text-red-600 border-red-200 hover:bg-red-50"
+                      >
+                        <Trash2 size={13} />
                       </Button>
                     </td>
                   </tr>
@@ -438,6 +571,106 @@ export default function UserManagement() {
                   isLoading={saveLoading}
                 >
                   Update Password
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
+      {/* Create User Modal */}
+      {modalType === 'create' && (
+        <div className="fixed inset-0 bg-neutral-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md p-6 relative bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-850 shadow-card animate-scale-in">
+            <button 
+              onClick={() => setModalType(null)}
+              className="absolute right-4 top-4 p-1 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-white"
+            >
+              <X size={18} />
+            </button>
+
+            <h2 className="text-base font-extrabold text-neutral-900 dark:text-white border-b border-neutral-100 dark:border-neutral-800 pb-2 mb-4">
+              Provision New User Account
+            </h2>
+
+            {modalError && <Alert type="danger">{modalError}</Alert>}
+
+            <form onSubmit={handleCreateUser} className="space-y-4 text-xs font-bold">
+              <Input
+                label="Full Name"
+                placeholder="e.g. John Doe"
+                value={createName}
+                onChange={(e) => setCreateName(e.target.value)}
+                required
+              />
+
+              <Input
+                label="Email Address"
+                type="email"
+                placeholder="user@ccgp.gov.in"
+                value={createEmail}
+                onChange={(e) => setCreateEmail(e.target.value)}
+                required
+              />
+
+              <Input
+                label="Password"
+                type="password"
+                placeholder="Minimum 12 characters..."
+                value={createPassword}
+                onChange={(e) => setCreatePassword(e.target.value)}
+                required
+              />
+
+              <div className="space-y-1.5">
+                <span className="text-[10px] text-neutral-400 uppercase">System Role</span>
+                <select
+                  value={createRole}
+                  onChange={(e) => setCreateRole(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-lg border border-neutral-250 dark:border-neutral-700 bg-white dark:bg-neutral-850 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                >
+                  <option value="citizen">Citizen</option>
+                  <option value="complaint_operator">Complaint Operator</option>
+                  <option value="cyber_cell_officer">Cyber Cell Officer</option>
+                  <option value="investigator">Investigator</option>
+                  <option value="senior_investigator">Senior Investigator</option>
+                  <option value="supervisor">Supervisor</option>
+                  <option value="system_administrator">System Admin</option>
+                </select>
+              </div>
+
+              {createRole !== 'citizen' && (
+                <>
+                  <Input
+                    label="Department / Unit"
+                    placeholder="e.g. Financial Fraud Unit"
+                    value={createDept}
+                    onChange={(e) => setCreateDept(e.target.value)}
+                  />
+
+                  <Input
+                    label="Jurisdiction Area"
+                    placeholder="e.g. District Alpha"
+                    value={createJuris}
+                    onChange={(e) => setCreateJuris(e.target.value)}
+                  />
+                </>
+              )}
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setModalType(null)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  size="sm" 
+                  isLoading={saveLoading}
+                >
+                  Provision Account
                 </Button>
               </div>
             </form>
