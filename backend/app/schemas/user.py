@@ -59,6 +59,8 @@ class ResetPasswordRequest(BaseModel):
 class EmailVerificationRequest(BaseModel):
     token: str
 
+from typing import Optional
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
@@ -68,7 +70,7 @@ class TokenResponse(BaseModel):
     name: str
 
 class TokenRefreshRequest(BaseModel):
-    refresh_token: str
+    refresh_token: Optional[str] = None
 
 class TokenRefreshResponse(BaseModel):
     access_token: str
@@ -88,7 +90,7 @@ class UserResponse(BaseModel):
         from_attributes = True
         
 class LogoutRequest(BaseModel):
-    refresh_token: str
+    refresh_token: Optional[str] = None
 
 from typing import Optional
 

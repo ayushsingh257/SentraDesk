@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from jose import jwt, JWTError
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 import redis
@@ -12,7 +12,7 @@ from app.core.exceptions import AuthError
 from app.core.logging import logger
 
 import bcrypt
-security_scheme = HTTPBearer()
+security_scheme = HTTPBearer(auto_error=False)
 
 # Role definitions mapping
 ROLE_HIERARCHY = {
@@ -87,11 +87,19 @@ class JWTBearer:
     """Security dependency checking JWT authentication header and Redis denylists."""
     async def __call__(
         self,
-        credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
+        request: Request,
+        credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
         r: redis.Redis = Depends(get_redis)
     ) -> Dict[str, Any]:
-        token = credentials.credentials
-        
+        token = None
+        if credentials:
+            token = credentials.credentials
+        else:
+            token = request.cookies.get("access_token")
+            
+        if not token:
+            raise AuthError(message="Not authenticated: token missing", code="TOKEN_MISSING", status_code=401)
+            
         # Check Redis token denylist
         try:
             if r.exists(f"denylist:{token}"):

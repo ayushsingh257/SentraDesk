@@ -9,6 +9,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 })
 
 // Request interceptor — inject JWT access token
@@ -78,19 +79,17 @@ api.interceptors.response.use(
           ? localStorage.getItem('ccgp_refresh_token')
           : null
 
-        if (!refreshToken) {
-          throw new Error('No refresh token')
-        }
-
-        const res = await axios.post(`${API_BASE_URL}/api/v1/auth/refresh`, {
-          refresh_token: refreshToken,
-        })
+        const res = await axios.post(
+          `${API_BASE_URL}/api/v1/auth/refresh`,
+          { refresh_token: refreshToken || undefined },
+          { withCredentials: true }
+        )
 
         const { access_token, refresh_token: newRefreshToken } = res.data.data
 
         if (typeof window !== 'undefined') {
-          localStorage.setItem('ccgp_access_token', access_token)
-          localStorage.setItem('ccgp_refresh_token', newRefreshToken)
+          if (access_token) localStorage.setItem('ccgp_access_token', access_token)
+          if (newRefreshToken) localStorage.setItem('ccgp_refresh_token', newRefreshToken)
         }
 
         processQueue(null, access_token)

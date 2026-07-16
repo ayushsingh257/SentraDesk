@@ -37,12 +37,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function initAuth() {
       try {
-        const token = getAccessToken()
-        const storedUser = getStoredUser()
-
-        if (token && storedUser && !isTokenExpired(token)) {
-          setAccessToken(token)
-          // Fetch fresh user details to sync
+        // Try verifying session first (will succeed if access token is active in cookie or localStorage)
+        try {
           const response = await api.get(API_ROUTES.me)
           const freshUser = response.data.data
           setUser(freshUser)
@@ -51,32 +47,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             name: freshUser.name,
             role: freshUser.role,
           })
-        } else {
-          // Attempt refresh on start if refresh token is present
+          
+          const token = getAccessToken()
+          if (token) setAccessToken(token)
+        } catch (meError) {
+          // If verification fails, try refreshing session (works with cookie or localStorage token)
           const refreshToken = getRefreshToken()
-          if (refreshToken) {
-            const refreshRes = await api.post(API_ROUTES.refresh, {
-              refresh_token: refreshToken,
-            })
-            const { access_token, refresh_token: newRefreshToken } = refreshRes.data.data
-            setTokens(access_token, newRefreshToken)
-            setAccessToken(access_token)
+          const refreshRes = await api.post(API_ROUTES.refresh, {
+            refresh_token: refreshToken || undefined,
+          })
+          const { access_token, refresh_token: newRefreshToken } = refreshRes.data.data
+          setTokens(access_token, newRefreshToken)
+          setAccessToken(access_token)
 
-            const userRes = await api.get(API_ROUTES.me)
-            const freshUser = userRes.data.data
-            setUser(freshUser)
-            setStoredUser({
-              id: freshUser.id,
-              name: freshUser.name,
-              role: freshUser.role,
-            })
-          } else {
-            clearTokens()
-          }
+          const userRes = await api.get(API_ROUTES.me)
+          const freshUser = userRes.data.data
+          setUser(freshUser)
+          setStoredUser({
+            id: freshUser.id,
+            name: freshUser.name,
+            role: freshUser.role,
+          })
         }
       } catch (err) {
         console.error('Failed to initialize session:', err)
         clearTokens()
+        setUser(null)
+        setAccessToken(null)
       } finally {
         setIsLoading(false)
       }
@@ -120,9 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true)
     try {
       const refreshToken = getRefreshToken()
-      if (refreshToken) {
-        await api.post(API_ROUTES.logout, { refresh_token: refreshToken })
-      }
+      await api.post(API_ROUTES.logout, { refresh_token: refreshToken || undefined })
     } catch (err) {
       console.error('Logout request failed:', err)
     } finally {

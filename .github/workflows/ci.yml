@@ -73,6 +73,16 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r backend/requirements.txt
 
+    - name: Run pip-audit
+      run: |
+        pip install pip-audit
+        pip-audit -r backend/requirements.txt --local --format=columns
+
+    - name: Run Semgrep scan
+      run: |
+        pip install semgrep
+        semgrep scan --config auto --error --exclude=tests
+
     - name: Wait for services (Qdrant & MinIO) to be healthy
       run: |
         echo "Waiting for Qdrant..."
@@ -133,6 +143,11 @@ jobs:
         cd frontend
         npm ci --prefer-offline
 
+    - name: Run npm audit
+      run: |
+        cd frontend
+        npm audit --audit-level=high
+
     - name: Lint check
       run: |
         cd frontend
@@ -157,4 +172,13 @@ jobs:
     - name: Validate Docker Compose syntax
       run: |
         docker compose config --quiet
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        ignore-unfixed: true
+        format: 'table'
+        exit-code: '1'
+        severity: 'CRITICAL,HIGH'
 

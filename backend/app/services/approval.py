@@ -101,6 +101,9 @@ class ApprovalService:
         if ticket.l1_approved:
             raise ValidationError(message="L1 closure approval has already been granted.")
             
+        if ticket.assigned_officer_id == actor_id:
+            raise ValidationError(message="Supervisors cannot approve case closures for tickets assigned to themselves.")
+            
         ticket.l1_approved = True
         db.add(ticket)
         
@@ -169,6 +172,9 @@ class ApprovalService:
             
         if ticket.l2_approved:
             raise ValidationError(message="L2 closure approval has already been granted.")
+            
+        if ticket.assigned_officer_id == actor_id:
+            raise ValidationError(message="Supervisors cannot approve case closures for tickets assigned to themselves.")
             
         ticket.l2_approved = True
         db.add(ticket)

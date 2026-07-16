@@ -16,7 +16,8 @@ from app.models.config import SystemConfig
 from app.schemas.response import StandardResponse
 
 import redis
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from app.schemas.user import validate_password_strength
 
 router = APIRouter()
 
@@ -29,6 +30,11 @@ class UserCreatePayload(BaseModel):
     department: Optional[str] = None
     jurisdiction: Optional[str] = None
 
+    @field_validator("password")
+    @classmethod
+    def check_password(cls, v: str) -> str:
+        return validate_password_strength(v)
+
 class UserUpdatePayload(BaseModel):
     name: Optional[str] = None
     role: Optional[str] = None
@@ -36,6 +42,13 @@ class UserUpdatePayload(BaseModel):
     password: Optional[str] = None
     department: Optional[str] = None
     jurisdiction: Optional[str] = None
+
+    @field_validator("password")
+    @classmethod
+    def check_password(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return validate_password_strength(v)
+        return v
 
 class ConfigUpdatePayload(BaseModel):
     key: str
@@ -569,26 +582,6 @@ class UserLockPayload(BaseModel):
 class RoleAssignPayload(BaseModel):
     user_id: uuid.UUID
     role: str
-
-@router.delete("/users/{user_id}", response_model=StandardResponse[Dict[str, Any]])
-def soft_delete_user(
-    user_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("system_administrator"))
-):
-    """Soft delete a user account from the directory."""
-    u = db.query(User).filter(User.id == user_id).first()
-    if not u:
-        raise HTTPException(status_code=404, detail="User account not found")
-    
-    u.is_deleted = True
-    u.is_active = False
-    db.commit()
-    return {
-        "success": True,
-        "data": {"id": str(user_id), "status": "soft_deleted"},
-        "error": None
-    }
 
 @router.post("/users/{user_id}/force-logout", response_model=StandardResponse[Dict[str, Any]])
 def force_logout_user(
