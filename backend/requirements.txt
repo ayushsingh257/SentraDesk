@@ -10,7 +10,7 @@ passlib[bcrypt]==1.7.4
 cryptography
 redis==5.0.6
 python-multipart==0.0.9
-pytest==8.2.2
+pytest==9.1.1
 requests==2.32.3
 celery==5.4.0
 minio==7.2.7
