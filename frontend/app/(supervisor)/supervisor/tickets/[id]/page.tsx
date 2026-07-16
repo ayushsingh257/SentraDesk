@@ -121,7 +121,7 @@ export default function SupervisorTicketDetail(props: { params: Promise<{ id: st
       }
 
       // 3. Fetch active officers list
-      const usersRes = await api.get(API_ROUTES.adminUsers)
+      const usersRes = await api.get('/api/v1/users/list')
       if (usersRes.data?.success) {
         const filteredUsers = usersRes.data.data.filter((u: UserProfile) => 
           ['cyber_cell_officer', 'investigator', 'senior_investigator', 'supervisor'].includes(u.role)

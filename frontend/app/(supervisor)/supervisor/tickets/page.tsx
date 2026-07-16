@@ -99,7 +99,7 @@ export default function SupervisorTickets() {
       }
 
       // 2. Fetch users list for the officer selector dropdown
-      const usersRes = await api.get(API_ROUTES.adminUsers)
+      const usersRes = await api.get('/api/v1/users/list')
       if (usersRes.data?.success) {
         // Filter users that have investigation or officer capability
         const filteredUsers = usersRes.data.data.filter((u: User) => 
