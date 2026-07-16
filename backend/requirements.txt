@@ -15,7 +15,7 @@ requests==2.32.3
 celery==5.4.0
 minio==7.2.7
 qdrant-client>=1.18.0
-mlflow>=3.0.0
+mlflow>=3.14.0
 langdetect==1.0.9
 scikit-learn>=1.6.0
 reportlab==5.0.0
