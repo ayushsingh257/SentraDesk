@@ -212,7 +212,7 @@ class TicketService:
             ("Assigned", "Resolved"): 3,
             ("Under Investigation", "Waiting for Citizen"): 3,
             ("Under Investigation", "Evidence Received"): 3,
-            ("Under Investigation", "Closure Requested"): 4,  # investigator
+            ("Under Investigation", "Closure Requested"): 3,  # cyber_cell_officer
             ("Under Investigation", "Resolved"): 3,
             ("Waiting for Citizen", "Under Investigation"): 3,
             ("Evidence Received", "Under Investigation"): 3,

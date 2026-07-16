@@ -18,7 +18,7 @@ def request_ticket_closure(
     payload: ClosureRequest,
     db: Session = Depends(get_db),
     token_payload: Dict[str, Any] = Depends(JWTBearer()),
-    current_user: Dict[str, Any] = Depends(RoleRequirement("investigator"))
+    current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
 ):
     """Submit request to transition ticket to closure pending stage (Phase 46)."""
     actor_id = uuid.UUID(token_payload.get("sub"))

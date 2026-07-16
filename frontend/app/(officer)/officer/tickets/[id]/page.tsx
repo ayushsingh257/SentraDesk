@@ -431,6 +431,7 @@ export default function OfficerTicketDetail({ params }: { params: Promise<{ id: 
     setIntelResult(null)
     setIntelError(null)
     setIntelSaveSuccess(null)
+    handleIntelLookup(value)
   }
 
   // Handle Status Update Transition

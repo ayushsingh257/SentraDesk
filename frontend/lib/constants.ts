@@ -35,7 +35,7 @@ export const ROLE_HOME_PATHS: Record<string, string> = {
   cyber_cell_officer: '/officer/dashboard',
   investigator: '/officer/dashboard',
   senior_investigator: '/officer/dashboard',
-  supervisor: '/officer/dashboard',
+  supervisor: '/supervisor/dashboard',
   security_auditor: '/admin/audit',
   state_administrator: '/admin/dashboard',
   system_administrator: '/admin/dashboard',
