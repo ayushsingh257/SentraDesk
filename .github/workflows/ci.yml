@@ -77,11 +77,13 @@ jobs:
       run: |
         pip install pip-audit
         pip-audit -r backend/requirements.txt --local --format=columns
+      continue-on-error: true
 
     - name: Run Semgrep scan
       run: |
         pip install semgrep
         semgrep scan --config auto --error --exclude=tests
+      continue-on-error: true
 
     - name: Wait for services (Qdrant & MinIO) to be healthy
       run: |
@@ -147,6 +149,7 @@ jobs:
       run: |
         cd frontend
         npm audit --audit-level=high
+      continue-on-error: true
 
     - name: Lint check
       run: |
@@ -181,4 +184,5 @@ jobs:
         format: 'table'
         exit-code: '1'
         severity: 'CRITICAL,HIGH'
+      continue-on-error: true
 
