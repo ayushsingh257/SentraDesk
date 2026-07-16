@@ -124,6 +124,12 @@ export default function SystemHealth() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {Object.entries(data.services).map(([key, status]) => {
             const isUp = status === 'connected' || status === 'connected (idle)'
+            const isOptional = status.includes('optional')
+            const badgeClass = isUp
+              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400'
+              : isOptional
+              ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400'
+              : 'bg-red-50 text-red-750 dark:bg-red-950/20'
             return (
               <Card 
                 key={key} 
@@ -134,11 +140,7 @@ export default function SystemHealth() {
                   <span className="text-[10px] text-neutral-400 font-bold block">service key: <span className="font-mono">{key}</span></span>
                 </div>
 
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap ${
-                  isUp 
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400' 
-                    : 'bg-red-50 text-red-750 dark:bg-red-950/20'
-                }`}>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap ${badgeClass}`}>
                   {status}
                 </span>
               </Card>

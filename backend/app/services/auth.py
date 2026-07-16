@@ -39,6 +39,19 @@ class AuthService:
         db.add(db_refresh)
         db.commit()
         
+        try:
+            from app.services.audit import audit_service
+            audit_service.log_event(
+                db=db,
+                actor_id=str(user.id),
+                actor_role=user.role,
+                action="UserLogin",
+                target_type="user",
+                target_id=str(user.id)
+            )
+        except Exception as log_err:
+            logger.error(f"Failed to log UserLogin audit event: {log_err}")
+        
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,

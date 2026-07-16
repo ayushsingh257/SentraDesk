@@ -39,13 +39,27 @@ export default function ReportsEngine() {
     loadComplianceStats()
   }, [])
 
-  const triggerExport = (reportType: string, format: string) => {
-    // Open CSV compliance downloader endpoint
-    if (format === 'csv') {
-      window.open('/api/v1/admin/reports/export/csv', '_blank')
-    } else {
-      // Mock PDF export downloader endpoint
-      window.open('/api/v1/audit/export/pdf', '_blank')
+  const triggerExport = async (reportType: string, format: string) => {
+    try {
+      if (format === 'csv') {
+        const res = await api.get('/api/v1/admin/reports/export/csv', { responseType: 'blob' })
+        const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `compliance_report_${reportType}.csv`
+        a.click()
+        window.URL.revokeObjectURL(url)
+      } else {
+        const res = await api.get('/api/v1/audit/export/pdf', { responseType: 'blob' })
+        const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `audit_report_${reportType}.pdf`
+        a.click()
+        window.URL.revokeObjectURL(url)
+      }
+    } catch (err) {
+      console.error('Failed to export report:', err)
     }
   }
 

@@ -70,6 +70,19 @@ class UserService:
             except Exception as e:
                 logger.error(f"Failed to send email verification to {user.email}: {str(e)}")
                 
+        try:
+            from app.services.audit import audit_service
+            audit_service.log_event(
+                db=db,
+                actor_id=str(user.id),
+                actor_role=user.role,
+                action="UserRegister",
+                target_type="user",
+                target_id=str(user.id)
+            )
+        except Exception as log_err:
+            logger.error(f"Failed to log UserRegister audit event: {log_err}")
+                
         return user
 
     def get_users(self, db: Session, skip: int = 0, limit: int = 100) -> List[User]:
@@ -122,6 +135,18 @@ class UserService:
             jurisdiction=jurisdiction
         )
         user = user_repository.create(db, obj_in=new_user)
+        try:
+            from app.services.audit import audit_service
+            audit_service.log_event(
+                db=db,
+                actor_id=None,
+                actor_role="system_administrator",
+                action="UserCreate",
+                target_type="user",
+                target_id=str(user.id)
+            )
+        except Exception as log_err:
+            logger.error(f"Failed to log UserCreate audit event: {log_err}")
         return user
 
 user_service = UserService()

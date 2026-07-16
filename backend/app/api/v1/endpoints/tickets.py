@@ -232,6 +232,16 @@ def get_ticket_details(
                 code="FORBIDDEN_TICKET_ACCESS",
                 status_code=403
             )
+    else:
+        from app.core.security import ROLE_HIERARCHY
+        user_level = ROLE_HIERARCHY.get(role, 1)
+        if user_level < 6:
+            if res.assigned_officer_id is not None and res.assigned_officer_id != actor_id:
+                raise AuthError(
+                    message="Access denied. You are not assigned to this case file.",
+                    code="FORBIDDEN_TICKET_ACCESS",
+                    status_code=403
+                )
             
     return {
         "success": True,
@@ -326,7 +336,19 @@ def add_private_note(
     current_user: Dict[str, Any] = Depends(RoleRequirement("cyber_cell_officer"))
 ):
     """Submit a private internal investigation note (requires officer or higher permissions)."""
+    ticket = ticket_repository.get(db, id)
+    if not ticket:
+        raise NotFoundError("Ticket not found")
+        
     actor_id = uuid.UUID(current_user.get("sub"))
+    role = current_user.get("role")
+    
+    from app.core.security import ROLE_HIERARCHY
+    user_level = ROLE_HIERARCHY.get(role, 1)
+    if user_level < 6:
+        if ticket.assigned_officer_id is not None and ticket.assigned_officer_id != actor_id:
+            raise AuthError("Access denied. You are not assigned to this case file.", status_code=403)
+
     res = ticket_service.submit_private_note(
         db,
         ticket_id=id,
@@ -350,6 +372,15 @@ def get_private_notes(
     ticket = ticket_repository.get(db, id)
     if not ticket:
         raise NotFoundError("Ticket not found")
+        
+    actor_id = uuid.UUID(current_user.get("sub"))
+    role = current_user.get("role")
+    
+    from app.core.security import ROLE_HIERARCHY
+    user_level = ROLE_HIERARCHY.get(role, 1)
+    if user_level < 6:
+        if ticket.assigned_officer_id is not None and ticket.assigned_officer_id != actor_id:
+            raise AuthError("Access denied. You are not assigned to this case file.", status_code=403)
         
     return {
         "success": True,
@@ -377,6 +408,16 @@ def get_timeline(
                 code="FORBIDDEN_TICKET_ACCESS",
                 status_code=403
             )
+    else:
+        from app.core.security import ROLE_HIERARCHY
+        user_level = ROLE_HIERARCHY.get(role, 1)
+        if user_level < 6:
+            if ticket.assigned_officer_id is not None and ticket.assigned_officer_id != actor_id:
+                raise AuthError(
+                    message="Access denied. You are not assigned to this case file.",
+                    code="FORBIDDEN_TICKET_ACCESS",
+                    status_code=403
+                )
             
     res = ticket_repository.get_timeline(db, ticket_id=id)
     return {
@@ -572,6 +613,15 @@ def download_complaint_report_pdf(
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Ticket record not found.")
         
+    actor_id = uuid.UUID(current_user.get("sub"))
+    role = current_user.get("role")
+    
+    from app.core.security import ROLE_HIERARCHY
+    user_level = ROLE_HIERARCHY.get(role, 1)
+    if user_level < 6:
+        if ticket.assigned_officer_id is not None and ticket.assigned_officer_id != actor_id:
+            raise AuthError("Access denied. You are not assigned to this case file.", status_code=403)
+            
     from app.services.reporting import reporting_service
     pdf_bytes = reporting_service.generate_complaint_pdf(ticket)
     return Response(
@@ -592,6 +642,15 @@ def download_case_investigation_report_pdf(
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Ticket record not found.")
         
+    actor_id = uuid.UUID(current_user.get("sub"))
+    role = current_user.get("role")
+    
+    from app.core.security import ROLE_HIERARCHY
+    user_level = ROLE_HIERARCHY.get(role, 1)
+    if user_level < 6:
+        if ticket.assigned_officer_id is not None and ticket.assigned_officer_id != actor_id:
+            raise AuthError("Access denied. You are not assigned to this case file.", status_code=403)
+            
     from app.services.reporting import reporting_service
     pdf_bytes = reporting_service.generate_case_report_pdf(ticket, db)
     return Response(
@@ -620,6 +679,16 @@ def get_comments(
                 code="FORBIDDEN_TICKET_ACCESS",
                 status_code=403
             )
+    else:
+        from app.core.security import ROLE_HIERARCHY
+        user_level = ROLE_HIERARCHY.get(role, 1)
+        if user_level < 6:
+            if ticket.assigned_officer_id is not None and ticket.assigned_officer_id != actor_id:
+                raise AuthError(
+                    message="Access denied. You are not assigned to this case file.",
+                    code="FORBIDDEN_TICKET_ACCESS",
+                    status_code=403
+                )
             
     return {
         "success": True,

@@ -208,16 +208,16 @@ export default function NewComplaint() {
         </Card>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href={`/citizen/tickets/${createdTicket.id}`}>
-            <Button size="lg" className="w-full sm:w-auto">
+          <a href={`/citizen/tickets/${createdTicket.id}`} className="w-full sm:w-auto">
+            <Button size="lg" className="w-full">
               Track Ticket Progress
             </Button>
-          </Link>
-          <Link href="/citizen/dashboard">
-            <Button size="lg" variant="outline" className="w-full sm:w-auto">
+          </a>
+          <a href="/citizen/dashboard" className="w-full sm:w-auto">
+            <Button size="lg" variant="outline" className="w-full">
               Return to Dashboard
             </Button>
-          </Link>
+          </a>
         </div>
       </div>
     )

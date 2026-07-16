@@ -143,13 +143,17 @@ export default function OperationsCenter() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {data && Object.entries(data.services).map(([key, val]) => {
               const isUp = val === 'connected' || val === 'connected (idle)'
+              const isOptional = val.includes('optional')
+              const badgeClass = isUp
+                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20'
+                : isOptional
+                ? 'bg-amber-50 text-amber-750 dark:bg-amber-950/20'
+                : 'bg-red-50 text-red-750 dark:bg-red-950/20'
               return (
                 <div key={key} className="flex justify-between items-center p-3 rounded-lg border border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50/50 dark:hover:bg-neutral-800/10">
                   <span className="font-extrabold text-neutral-800 dark:text-neutral-200">{getServiceLabel(key)}</span>
-                  <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase flex items-center gap-1 ${
-                    isUp ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20' : 'bg-red-50 text-red-750 dark:bg-red-950/20'
-                  }`}>
-                    {isUp ? <CheckCircle2 size={10} /> : <AlertOctagon size={10} />}
+                  <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase flex items-center gap-1 ${badgeClass}`}>
+                    {isUp ? <CheckCircle2 size={10} /> : (isOptional ? <CheckCircle2 size={10} className="text-amber-500" /> : <AlertOctagon size={10} />)}
                     <span>{val}</span>
                   </span>
                 </div>

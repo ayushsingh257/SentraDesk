@@ -12,7 +12,7 @@ class AuditService:
     def log_event(
         self,
         db: Session,
-        actor_id: Optional[str],
+        actor_id: Any,
         actor_role: Optional[str],
         action: str,
         target_type: Optional[str] = None,
@@ -23,8 +23,16 @@ class AuditService:
         request_id: Optional[str] = None
     ) -> AuditLog:
         """Create a cryptographically hash-chained audit log record (Phase 74)."""
+        import uuid
+        resolved_actor_id = None
+        if actor_id:
+            if isinstance(actor_id, str):
+                resolved_actor_id = uuid.UUID(actor_id)
+            else:
+                resolved_actor_id = actor_id
+
         log_entry = AuditLog(
-            actor_id=actor_id,
+            actor_id=resolved_actor_id,
             actor_role=actor_role,
             action=action,
             target_type=target_type,

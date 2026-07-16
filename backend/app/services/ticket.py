@@ -187,6 +187,20 @@ class TicketService:
             inference_time_ms=inference_time_ms
         )
         
+        try:
+            from app.services.audit import audit_service
+            audit_service.log_event(
+                db=db,
+                actor_id=str(citizen_id) if citizen_id else None,
+                actor_role="citizen" if citizen_id else "system",
+                action="ComplaintCreate",
+                target_type="ticket",
+                target_id=str(ticket.id)
+            )
+        except Exception as log_err:
+            logger.error(f"Failed to log ComplaintCreate audit event: {log_err}")
+
+        db.refresh(ticket)
         return ticket
 
     def update_ticket_status(self, db: Session, *, ticket_id: uuid.UUID, new_status: str, actor_id: uuid.UUID, actor_role: Optional[str] = None) -> Ticket:
@@ -281,6 +295,21 @@ class TicketService:
         ticket_repository.add_timeline_event(db, event=new_event)
         
         db.commit()
+        
+        try:
+            from app.services.audit import audit_service
+            audit_service.log_event(
+                db=db,
+                actor_id=str(actor_id) if actor_id else None,
+                actor_role=actor_role,
+                action="TicketStatusChanged",
+                target_type="ticket",
+                target_id=str(ticket.id),
+                before_state={"status": old_status},
+                after_state={"status": new_status}
+            )
+        except Exception as log_err:
+            logger.error(f"Failed to log TicketStatusChanged audit event: {log_err}")
 
         # Dispatch notification alerts on status change (Phase 38)
         if ticket.complaint.reporter_email:

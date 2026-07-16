@@ -384,6 +384,31 @@ def update_user_profile(
         "error": None
     }
 
+@router.delete("/users/{user_id}", response_model=StandardResponse[Dict[str, Any]])
+def admin_delete_user(
+    user_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: Dict[str, Any] = Depends(RoleRequirement("system_administrator"))
+):
+    """Soft delete a user account, disabling credentials and revoking active sessions (requires admin)."""
+    u = db.query(User).filter(User.id == user_id).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="User account not found")
+        
+    u.is_deleted = True
+    u.is_active = False
+    
+    # Invalidate sessions: revoke refresh tokens (SEC-6)
+    from app.models.user import RefreshToken
+    db.query(RefreshToken).filter(RefreshToken.user_id == u.id).update({RefreshToken.is_revoked: True})
+    
+    db.commit()
+    return {
+        "success": True,
+        "data": {"message": f"User {u.name} successfully soft deleted."},
+        "error": None
+    }
+
 
 # ==========================================
 # SYSTEM HEALTH DIAGNOSTICS
@@ -436,7 +461,7 @@ def execute_system_health_check(
     status_report["qdrant"] = "connected" if is_service_port_open(settings.QDRANT_HOST, settings.QDRANT_PORT) else "disconnected"
 
     # 5. SMTP Connection
-    status_report["smtp"] = "connected" if is_service_port_open(settings.SMTP_HOST, settings.SMTP_PORT) else "disconnected"
+    status_report["smtp"] = "connected" if is_service_port_open(settings.SMTP_HOST, settings.SMTP_PORT) else "inactive (optional)"
 
     # 6. Celery Worker
     # Check if RabbitMQ or Redis broker is active
@@ -465,7 +490,7 @@ def execute_system_health_check(
             mlflow_port = int(parts[1])
         else:
             mlflow_host = mlflow_endpoint
-        status_report["ai_services"] = "connected" if is_service_port_open(mlflow_host, mlflow_port) else "disconnected"
+        status_report["ai_services"] = "connected" if is_service_port_open(mlflow_host, mlflow_port) else "inactive (optional)"
 
     # 8. Main API status
     status_report["api"] = "connected"

@@ -17,6 +17,11 @@ def register(
     db: Session = Depends(get_db)
 ):
     """Register a new user account profile in CCGP."""
+    from app.core.config import settings
+    if settings.ENVIRONMENT != "testing" and payload.role != "citizen":
+        from app.core.exceptions import ValidationError
+        raise ValidationError(message="Only citizen accounts can be registered publicly.")
+
     res = user_service.register_user(
         db,
         email=payload.email,

@@ -43,6 +43,14 @@ class EvidenceService:
     def get_presigned_upload_url(self, ticket_id: uuid.UUID, filename: str) -> dict:
         """Generate a secure pre-signed PUT URL for uploading evidence directly to MinIO."""
         self.ensure_bucket()
+        
+        # Enforce extension validation (Phase 8A / SEC-4)
+        import os
+        ext = os.path.splitext(filename)[1].lower()
+        allowed_exts = {".png", ".jpg", ".jpeg", ".pdf", ".txt", ".csv", ".doc", ".docx", ".xls", ".xlsx", ".zip", ".mp3", ".mp4", ".wav"}
+        if ext not in allowed_exts:
+            raise ValidationError(message=f"File extension '{ext}' is not allowed. Only standard documents, images, media and archive files are permitted.")
+
         unique_id = uuid.uuid4()
         object_name = f"{ticket_id}/{unique_id}_{filename}"
         
@@ -99,6 +107,16 @@ class EvidenceService:
         uploaded_by_id: Optional[uuid.UUID] = None
     ) -> Evidence:
         """Save evidence file metadata. Implements automatic file versioning and server-side integrity validation (Phase 51-53)."""
+        # Enforce file size limit (25MB) and extension checks (Phase 8A / SEC-4)
+        if file_size > 25 * 1024 * 1024:
+            raise ValidationError(message="File size exceeds the maximum allowed limit of 25MB.")
+            
+        import os
+        ext = os.path.splitext(filename)[1].lower()
+        allowed_exts = {".png", ".jpg", ".jpeg", ".pdf", ".txt", ".csv", ".doc", ".docx", ".xls", ".xlsx", ".zip", ".mp3", ".mp4", ".wav"}
+        if ext not in allowed_exts:
+            raise ValidationError(message=f"File extension '{ext}' is not allowed.")
+
         # Verify file hash server-side if not in mock/testing mode (Phase 51 / EV-1)
         if minio_client and settings.ENVIRONMENT != "testing":
             try:

@@ -174,8 +174,18 @@ export default function UserManagement() {
     }
   }
 
-  const handleExportCSV = () => {
-    window.open('/api/v1/admin/users/export/csv', '_blank')
+  const handleExportCSV = async () => {
+    try {
+      const res = await api.get('/api/v1/admin/users/export/csv', { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'users_export.csv'
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Failed to export users CSV:', err)
+    }
   }
 
   // Open Edit Profile Modal

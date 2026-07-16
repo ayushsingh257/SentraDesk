@@ -133,6 +133,23 @@ class ApprovalService:
         db.add(rec)
 
         db.commit()
+        
+        try:
+            from app.models.user import User
+            user = db.query(User).filter(User.id == actor_id).first()
+            actor_role = user.role if user else "supervisor"
+            from app.services.audit import audit_service
+            audit_service.log_event(
+                db=db,
+                actor_id=str(actor_id),
+                actor_role=actor_role,
+                action="L1Approved",
+                target_type="ticket",
+                target_id=str(ticket.id)
+            )
+        except Exception as log_err:
+            logger.error(f"Failed to log L1Approved audit event: {log_err}")
+
         db.refresh(ticket)
         
         logger.info(f"L1 closure approval granted for ticket {ticket.ticket_number}.")
@@ -185,6 +202,22 @@ class ApprovalService:
         db.add(rec)
 
         db.commit()
+        
+        try:
+            from app.models.user import User
+            user = db.query(User).filter(User.id == actor_id).first()
+            actor_role = user.role if user else "supervisor"
+            from app.services.audit import audit_service
+            audit_service.log_event(
+                db=db,
+                actor_id=str(actor_id),
+                actor_role=actor_role,
+                action="L2Approved",
+                target_type="ticket",
+                target_id=str(ticket.id)
+            )
+        except Exception as log_err:
+            logger.error(f"Failed to log L2Approved audit event: {log_err}")
         
         # Both L1 and L2 are approved. Transition status to Closed (Phase 48)
         self.ticket_service.update_ticket_status(

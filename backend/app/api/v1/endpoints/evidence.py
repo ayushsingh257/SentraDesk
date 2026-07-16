@@ -47,7 +47,23 @@ def save_uploaded_evidence(
     token_payload: Dict[str, Any] = Depends(JWTBearer())
 ):
     """Save evidence upload file metadata, tracking version (Phase 51, 52, 53)."""
+    ticket = ticket_repository.get(db, ticket_id)
+    if not ticket:
+        raise NotFoundError("Ticket not found")
+        
     actor_id = uuid.UUID(token_payload.get("sub"))
+    role = token_payload.get("role", "citizen")
+    
+    if role == "citizen":
+        if ticket.complaint.citizen_id != actor_id:
+            raise AuthError("Access denied. You can only attach evidence to your own complaints.", status_code=403)
+    else:
+        from app.core.security import ROLE_HIERARCHY
+        user_level = ROLE_HIERARCHY.get(role, 1)
+        if user_level < 6:
+            if ticket.assigned_officer_id is not None and ticket.assigned_officer_id != actor_id:
+                raise AuthError("Access denied. You are not assigned to this case file.", status_code=403)
+
     res = evidence_service.save_evidence_metadata(
         db,
         ticket_id=ticket_id,
