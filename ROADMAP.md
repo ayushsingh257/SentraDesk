@@ -1,4 +1,4 @@
-# CCGP V1 — Project Roadmap
+# SentraDesk V1 — Project Roadmap
 
 > **Single source of truth for all development phases.**
 > Updated automatically at the end of every Era.
@@ -46,15 +46,15 @@
 - ✅ Pagination, StatusBadge, ThemeToggle, Tooltip
 
 ### Phase 1.3 — Public Layout
-- ✅ PublicNavbar (CCGP logo, About, Contact, Disclosure, Theme Toggle, Sign In)
+- ✅ PublicNavbar (SentraDesk logo, About, Contact, Disclosure, Theme Toggle, Sign In)
 - ✅ PublicFooter (links to all footer pages)
 
 ### Phase 1.4 — Homepage
-- ✅ Hero section (CCGP name, version, tagline)
-- ✅ What is CCGP? section
-- ✅ How CCGP Works section (complete lifecycle diagram/steps)
+- ✅ Hero section (SentraDesk name, version, tagline)
+- ✅ What is SentraDesk? section
+- ✅ How SentraDesk Works section (complete lifecycle diagram/steps)
 - ✅ Enterprise Features section (AI, Threat Intel, Duplicate Detection, Evidence, RBAC, Audit, Security)
-- ✅ Why Choose CCGP section
+- ✅ Why Choose SentraDesk section
 - ✅ Track Your Ticket CTA (links to login)
 - ✅ Footer
 
@@ -139,7 +139,7 @@
 - ✅ Suspect identifiers (name, phone, UPI ID, bank account, crypto wallet, URL)
 - ✅ Multi-file upload with SHA-256 integrity verification
 - ✅ Form validation with Zod + react-hook-form
-- ✅ Success screen with generated ticket number (CCGP-YYYY-NNNNNN)
+- ✅ Success screen with generated ticket number (SentraDesk-YYYY-NNNNNN)
 
 ### Phase 3.3 — Ticket Management
 - ✅ My Tickets list (status filter, category filter, search, sort)

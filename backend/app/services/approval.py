@@ -240,7 +240,7 @@ class ApprovalService:
                     db,
                     recipient=ticket.complaint.reporter_email,
                     template_name="ticket_closed",
-                    subject=f"CCGP Ticket Resolved & Closed [{ticket.ticket_number}]",
+                    subject=f"SentraDesk Ticket Resolved & Closed [{ticket.ticket_number}]",
                     variables={
                         "reporter_name": ticket.complaint.reporter_name,
                         "ticket_number": ticket.ticket_number

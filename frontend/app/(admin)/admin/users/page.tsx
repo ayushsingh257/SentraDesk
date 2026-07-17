@@ -616,7 +616,7 @@ export default function UserManagement() {
               <Input
                 label="Email Address"
                 type="email"
-                placeholder="user@ccgp.gov.in"
+                placeholder="user@sentradesk.gov.in"
                 value={createEmail}
                 onChange={(e) => setCreateEmail(e.target.value)}
                 required

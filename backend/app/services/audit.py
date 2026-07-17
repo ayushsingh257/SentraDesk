@@ -227,7 +227,7 @@ class AuditService:
         )
 
         # Report Header
-        story.append(Paragraph("CYBER COMPLAINT GOVERNANCE PLATFORM", title_style))
+        story.append(Paragraph("SENTRADESK COMPLAINT GOVERNANCE PLATFORM", title_style))
         story.append(Paragraph("OFFICIAL CRYPTOGRAPHIC AUDIT LEDGER REPORT", ParagraphStyle('Sub', parent=title_style, fontSize=12, textColor=colors.HexColor('#0284c7'))))
         story.append(Spacer(1, 10))
 

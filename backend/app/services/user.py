@@ -61,7 +61,7 @@ class UserService:
                     db,
                     recipient=user.email,
                     template_name="verify_email",
-                    subject="Verify your CCGP Account",
+                    subject="Verify your SentraDesk Account",
                     variables={
                         "name": user.name,
                         "verification_link": verification_link

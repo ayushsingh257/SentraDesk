@@ -27,7 +27,7 @@ const DEPARTMENT_MAP: Record<string, string> = {
   cyber_cell_officer: 'Cyber Crime Investigation Division',
   investigator: 'Special Investigation Unit',
   supervisor: 'Supervisory Control Division',
-  system_administrator: 'CCGP Platform Administration',
+  system_administrator: 'SentraDesk Platform Administration',
 }
 
 const DESIGNATION_MAP: Record<string, string> = {
@@ -124,7 +124,7 @@ export default function OfficerProfile() {
           Officer Identity & Profile
         </h1>
         <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
-          Official investigator profile — Cyber Complaint Governance Platform
+          Official investigator profile — SentraDesk
         </p>
       </div>
 

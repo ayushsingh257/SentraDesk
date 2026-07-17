@@ -111,7 +111,7 @@ export default function AdminDashboard() {
             Governance Command Console
           </h1>
           <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
-            Real-time analytics, user audits, and security metrics for CCGP operations.
+            Real-time analytics, user audits, and security metrics for SentraDesk operations.
           </p>
         </div>
       </div>

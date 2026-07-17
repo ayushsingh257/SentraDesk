@@ -1,5 +1,5 @@
 """
-CCGP Platform Load Testing Suite — Phase 98
+SentraDesk Platform Load Testing Suite — Phase 98
 Simulates realistic production load across all major API surfaces.
 Target: < 200ms p95 latency under 50 concurrent users.
 
@@ -14,7 +14,7 @@ from locust import HttpUser, task, between, events
 _TOKEN_CACHE: dict = {}
 
 
-def get_token(client, role_email: str = "officer@ccgp.gov.in", password: str = "password123") -> str:
+def get_token(client, role_email: str = "officer@sentradesk.gov.in", password: str = "password123") -> str:
     cache_key = role_email
     if cache_key not in _TOKEN_CACHE:
         with client.post(
@@ -31,13 +31,13 @@ def get_token(client, role_email: str = "officer@ccgp.gov.in", password: str = "
     return _TOKEN_CACHE[cache_key]
 
 
-class CCGPOfficerUser(HttpUser):
+class SentraDeskOfficerUser(HttpUser):
     """Simulates a cyber cell officer performing typical daily operations."""
     wait_time = between(1, 3)
     token: str = ""
 
     def on_start(self):
-        self.token = get_token(self.client, "officer@ccgp.gov.in", "password123")
+        self.token = get_token(self.client, "officer@sentradesk.gov.in", "password123")
 
     def auth_headers(self) -> dict:
         return {"Authorization": f"Bearer {self.token}"}
@@ -91,7 +91,7 @@ class CCGPOfficerUser(HttpUser):
         self.client.get("/api/v1/metrics", name="[OPS] Prometheus metrics")
 
 
-class CCGPCitizenUser(HttpUser):
+class SentraDeskCitizenUser(HttpUser):
     """Simulates a citizen submitting complaints via the public portal."""
     wait_time = between(3, 8)
 
@@ -125,7 +125,7 @@ class CCGPCitizenUser(HttpUser):
 
 @events.test_start.add_listener
 def on_test_start(environment, **kwargs):
-    print("🚀 CCGP Load Test Starting — Target: <200ms p95 under 50 concurrent users")
+    print("🚀 SentraDesk Load Test Starting — Target: <200ms p95 under 50 concurrent users")
 
 
 @events.test_stop.add_listener

@@ -1,16 +1,16 @@
-# CCGP — Data Protection and Privacy Report
+# SentraDesk — Data Protection and Privacy Report
 
 **Document Classification:** CONFIDENTIAL — For Management Review  
 **Report Version:** 1.1 (Post-Hardening Verification)  
 **Assessment Date:** July 16, 2026  
 **Prepared By:** Enterprise Data Protection and Privacy Review Team  
-**Prepared For:** Cyber Complaint Governance Platform (CCGP)
+**Prepared For:** SentraDesk (SentraDesk)
 
 ---
 
 ## Executive Summary
 
-This report evaluates how the Cyber Complaint Governance Platform (CCGP) protects citizen data, personal information, and sensitive evidence throughout the complaint lifecycle. Following the completion of the Security Hardening Phase, all data protection controls have been upgraded to production-ready enterprise standards.
+This report evaluates how the SentraDesk (SentraDesk) protects citizen data, personal information, and sensitive evidence throughout the complaint lifecycle. Following the completion of the Security Hardening Phase, all data protection controls have been upgraded to production-ready enterprise standards.
 
 **Key Hardening Upgrades:**
 - Transited all authentication tokens to `httpOnly` secure cookies, eliminating XSS-based token theft risks.
@@ -78,7 +78,7 @@ sequenceDiagram
     Citizen->>Gateway: POST /evidence/upload-url (Sends cookies)
     Gateway->>API: Validate cookies (JWTBearer fallback)
     API-->>Citizen: Return 15-min Presigned MinIO Upload URL
-    Citizen->>Gateway: PUT /minio/ccgp-evidence/ (Upload file)
+    Citizen->>Gateway: PUT /minio/sentradesk-evidence/ (Upload file)
     Gateway->>MinIO: Write binary file
 ```
 

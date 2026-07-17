@@ -101,7 +101,7 @@ export const COMMON_PASSWORDS = new Set([
   'test123', 'test1234', 'test@123',
   'changeme', 'changeme1', 'change123',
   'iloveyou', 'sunshine', 'master',
-  'pass1234', 'ccgp123', 'cyber123',
+  'pass1234', 'sentradesk123', 'cyber123',
   'monkey', 'dragon', 'princess',
   'football', 'baseball', 'login',
   'passw0rd', 'p@ssword', 'p@ss123',

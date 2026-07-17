@@ -36,7 +36,7 @@ def setup_logging() -> None:
     handler.setFormatter(JSONFormatter())
     logger.addHandler(handler)
 
-logger = logging.getLogger("ccgp")
+logger = logging.getLogger("sentradesk")
 setup_logging()
 
 import os
@@ -80,7 +80,7 @@ def forward_siem_event(
     """
     payload = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "facility": "CCGP-SOC",
+        "facility": "SentraDesk-SOC",
         "severity": severity,
         "event_type": event_type,
         "actor_id": actor_id,

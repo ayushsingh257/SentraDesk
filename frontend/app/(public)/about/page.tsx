@@ -2,17 +2,17 @@ import type { Metadata } from 'next'
 import { Shield, Users, Brain, Lock } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'About CCGP',
-  description: 'About the Cyber Complaint Governance Platform — enterprise AI-powered cyber complaint management.',
+  title: 'About SentraDesk',
+  description: 'About the SentraDesk — enterprise AI Complaint Management & Intelligent Case Assignment Platform.',
 }
 
 export default function AboutPage() {
   return (
     <div className="page-container py-16 max-w-4xl">
       <div className="mb-10">
-        <h1 className="text-4xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">About CCGP</h1>
+        <h1 className="text-4xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">About SentraDesk</h1>
         <p className="text-lg text-neutral-500 dark:text-neutral-400">
-          The Cyber Complaint Governance Platform is an enterprise AI-powered system designed for cyber crime departments.
+          The SentraDesk is an enterprise AI-powered system designed for cyber crime departments.
         </p>
       </div>
 
@@ -20,8 +20,8 @@ export default function AboutPage() {
         <section>
           <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">Our Mission</h2>
           <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-            CCGP exists to modernize cyber complaint handling in law enforcement agencies. Traditional complaint management systems
-            were not built for the volume, complexity, and speed required by cyber crime investigations. CCGP closes that gap
+            SentraDesk exists to modernize cyber complaint handling in law enforcement agencies. Traditional complaint management systems
+            were not built for the volume, complexity, and speed required by cyber crime investigations. SentraDesk closes that gap
             by combining AI-powered processing, enterprise security, and full governance controls in a single integrated platform.
           </p>
         </section>
@@ -53,7 +53,7 @@ export default function AboutPage() {
         <section>
           <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">About the Platform</h2>
           <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
-            CCGP is a secure cyber complaint governance platform designed to help citizens report cyber incidents, communicate with investigating officers, and track investigations transparently while enabling law enforcement agencies to manage complaints efficiently.
+            SentraDesk is a secure complaint governance platform designed to help citizens report cyber incidents, communicate with investigating officers, and track investigations transparently while enabling law enforcement agencies to manage complaints efficiently.
           </p>
         </section>
       </div>

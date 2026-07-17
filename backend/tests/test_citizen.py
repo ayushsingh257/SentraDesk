@@ -6,13 +6,13 @@ from app.models.ticket import Ticket, Complaint
 def test_citizen_ticket_lifecycle(client, db):
     # 1. Register and login citizen A
     client.post("/api/v1/users/register", json={
-        "email": "citizen_a@ccgp.gov.in",
+        "email": "citizen_a@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Citizen A",
         "role": "citizen"
     })
     login_a = client.post("/api/v1/auth/login", json={
-        "email": "citizen_a@ccgp.gov.in",
+        "email": "citizen_a@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     token_a = login_a.json()["data"]["access_token"]
@@ -20,13 +20,13 @@ def test_citizen_ticket_lifecycle(client, db):
 
     # 2. Register and login citizen B
     client.post("/api/v1/users/register", json={
-        "email": "citizen_b@ccgp.gov.in",
+        "email": "citizen_b@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Citizen B",
         "role": "citizen"
     })
     login_b = client.post("/api/v1/auth/login", json={
-        "email": "citizen_b@ccgp.gov.in",
+        "email": "citizen_b@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     token_b = login_b.json()["data"]["access_token"]
@@ -37,7 +37,7 @@ def test_citizen_ticket_lifecycle(client, db):
         "title": "UPI Phishing Attack",
         "description": "I clicked on a link and lost 50,000 INR from my banking account.",
         "reporter_name": "Citizen A",
-        "reporter_email": "citizen_a@ccgp.gov.in",
+        "reporter_email": "citizen_a@sentradesk.gov.in",
         "reporter_phone": "+919999988888",
         "category": "Cyber Financial Fraud",
         "fraud_amount": 50000.0,
@@ -48,13 +48,13 @@ def test_citizen_ticket_lifecycle(client, db):
     assert resp_create.status_code == 200
     ticket_data = resp_create.json()["data"]
     ticket_id = ticket_data["id"]
-    assert ticket_data["ticket_number"].startswith("CCGP-")
+    assert ticket_data["ticket_number"].startswith("SentraDesk-")
     assert ticket_data["complaint"]["citizen_id"] is not None
 
     # Verify database directly
     db_ticket = db.query(Ticket).filter(Ticket.id == uuid.UUID(ticket_id)).first()
     assert db_ticket is not None
-    assert db_ticket.complaint.reporter_email == "citizen_a@ccgp.gov.in"
+    assert db_ticket.complaint.reporter_email == "citizen_a@sentradesk.gov.in"
     assert db_ticket.complaint.metadata_json["upi_id"] == "victim@ybl"
     assert db_ticket.complaint.metadata_json["amount"] == 50000.0
 
@@ -227,7 +227,7 @@ def test_citizen_ticket_lifecycle(client, db):
 
     # Verify we can login with the new password
     login_new = client.post("/api/v1/auth/login", json={
-        "email": "citizen_a@ccgp.gov.in",
+        "email": "citizen_a@sentradesk.gov.in",
         "password": "NewSecurePassword123!"
     })
     assert login_new.status_code == 200

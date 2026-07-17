@@ -2,9 +2,9 @@ import { UserRole } from '@/types'
 import { ROLE_LEVELS, ROLE_HOME_PATHS } from './constants'
 
 // Storage keys
-const ACCESS_TOKEN_KEY = 'ccgp_access_token'
-const REFRESH_TOKEN_KEY = 'ccgp_refresh_token'
-const USER_KEY = 'ccgp_user'
+const ACCESS_TOKEN_KEY = 'sentradesk_access_token'
+const REFRESH_TOKEN_KEY = 'sentradesk_refresh_token'
+const USER_KEY = 'sentradesk_user'
 
 // --- Token management ---
 

@@ -4,7 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.core.logging import logger
 
-class CCGPException(Exception):
+class SentraDeskException(Exception):
     """Base application exception type."""
     def __init__(self, code: str, message: str, status_code: int = 400, details: dict = None):
         super().__init__(message)
@@ -13,17 +13,17 @@ class CCGPException(Exception):
         self.status_code = status_code
         self.details = details or {}
 
-class AuthError(CCGPException):
+class AuthError(SentraDeskException):
     """Authentication or authorization failures exception."""
     def __init__(self, message: str, code: str = "AUTH_ERROR", status_code: int = 401, details: dict = None):
         super().__init__(code, message, status_code, details)
 
-class NotFoundError(CCGPException):
+class NotFoundError(SentraDeskException):
     """Resource not found exception."""
     def __init__(self, message: str, code: str = "NOT_FOUND", status_code: int = 404, details: dict = None):
         super().__init__(code, message, status_code, details)
 
-class ValidationError(CCGPException):
+class ValidationError(SentraDeskException):
     """Schema validations failure exception."""
     def __init__(self, message: str, code: str = "VALIDATION_ERROR", status_code: int = 422, details: dict = None):
         super().__init__(code, message, status_code, details)
@@ -31,8 +31,8 @@ class ValidationError(CCGPException):
 def register_exception_handlers(app: FastAPI) -> None:
     """Assign unified response mapping hooks to the FastAPI instance."""
     
-    @app.exception_handler(CCGPException)
-    async def ccgp_exception_handler(request: Request, exc: CCGPException):
+    @app.exception_handler(SentraDeskException)
+    async def sentradesk_exception_handler(request: Request, exc: SentraDeskException):
         logger.warning(f"Application error handled: {exc.code} - {exc.message}", extra={"request_id": getattr(request.state, "request_id", None)})
         return JSONResponse(
             status_code=exc.status_code,

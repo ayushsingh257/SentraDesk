@@ -125,7 +125,7 @@ class TicketService:
                             send_notification_task,
                             recipient=officer_user.email,
                             template_name="ticket_assigned",
-                            subject=f"CCGP Ticket Assigned [{ticket.ticket_number}]",
+                            subject=f"SentraDesk Ticket Assigned [{ticket.ticket_number}]",
                             variables={
                                 "ticket_number": ticket.ticket_number,
                                 "category": ticket.category,
@@ -322,7 +322,7 @@ class TicketService:
                         send_notification_task,
                         recipient=ticket.complaint.reporter_email,
                         template_name="ticket_status_changed",
-                        subject=f"CCGP Ticket Update [{ticket.ticket_number}] - {new_status}",
+                        subject=f"SentraDesk Ticket Update [{ticket.ticket_number}] - {new_status}",
                         variables={
                             "reporter_name": ticket.complaint.reporter_name,
                             "ticket_number": ticket.ticket_number,
@@ -432,7 +432,7 @@ class TicketService:
                                 send_notification_task,
                                 recipient=officer_user.email,
                                 template_name="ticket_assigned",
-                                subject=f"CCGP Ticket Assigned [{ticket.ticket_number}]",
+                                subject=f"SentraDesk Ticket Assigned [{ticket.ticket_number}]",
                                 variables={
                                     "ticket_number": ticket.ticket_number,
                                     "category": ticket.category,

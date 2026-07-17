@@ -11,7 +11,7 @@ def test_complete_e2e_state_cyber_cell_workflow(client: TestClient, db: Session)
     # -------------------------------------------------------------
     # Investigator
     client.post("/api/v1/users/register", json={
-        "email": "officer_e2e@ccgp.gov.in",
+        "email": "officer_e2e@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Officer E2E",
         "role": "investigator",
@@ -21,7 +21,7 @@ def test_complete_e2e_state_cyber_cell_workflow(client: TestClient, db: Session)
     
     # Supervisor
     client.post("/api/v1/users/register", json={
-        "email": "supervisor_e2e@ccgp.gov.in",
+        "email": "supervisor_e2e@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Supervisor E2E",
         "role": "supervisor"
@@ -29,7 +29,7 @@ def test_complete_e2e_state_cyber_cell_workflow(client: TestClient, db: Session)
     
     # Admin
     client.post("/api/v1/users/register", json={
-        "email": "admin_e2e@ccgp.gov.in",
+        "email": "admin_e2e@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Admin E2E",
         "role": "system_administrator"
@@ -37,19 +37,19 @@ def test_complete_e2e_state_cyber_cell_workflow(client: TestClient, db: Session)
 
     # Retrieve login headers for Investigator, Supervisor, and Admin
     inv_login = client.post("/api/v1/auth/login", json={
-        "email": "officer_e2e@ccgp.gov.in",
+        "email": "officer_e2e@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     inv_headers = {"Authorization": f"Bearer {inv_login.json()['data']['access_token']}"}
     
     sup_login = client.post("/api/v1/auth/login", json={
-        "email": "supervisor_e2e@ccgp.gov.in",
+        "email": "supervisor_e2e@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     sup_headers = {"Authorization": f"Bearer {sup_login.json()['data']['access_token']}"}
 
     admin_login = client.post("/api/v1/auth/login", json={
-        "email": "admin_e2e@ccgp.gov.in",
+        "email": "admin_e2e@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     admin_headers = {"Authorization": f"Bearer {admin_login.json()['data']['access_token']}"}
@@ -58,14 +58,14 @@ def test_complete_e2e_state_cyber_cell_workflow(client: TestClient, db: Session)
     # 1. CITIZEN REGISTRATION & LOGIN
     # -------------------------------------------------------------
     client.post("/api/v1/users/register", json={
-        "email": "citizen_e2e@ccgp.gov.in",
+        "email": "citizen_e2e@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Citizen E2E",
         "role": "citizen"
     })
     
     citizen_login = client.post("/api/v1/auth/login", json={
-        "email": "citizen_e2e@ccgp.gov.in",
+        "email": "citizen_e2e@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     citizen_headers = {"Authorization": f"Bearer {citizen_login.json()['data']['access_token']}"}
@@ -77,7 +77,7 @@ def test_complete_e2e_state_cyber_cell_workflow(client: TestClient, db: Session)
         "title": "UPI Fraud Phishing",
         "description": "Clicked on a suspicious link 192.168.1.105 and domain malware-phish.com and lost 25,000 INR from my banking app.",
         "reporter_name": "Citizen E2E",
-        "reporter_email": "citizen_e2e@ccgp.gov.in",
+        "reporter_email": "citizen_e2e@sentradesk.gov.in",
         "reporter_phone": "+919999911111",
         "category": "Cyber Financial Fraud",
         "fraud_amount": 25000.0,
@@ -88,7 +88,7 @@ def test_complete_e2e_state_cyber_cell_workflow(client: TestClient, db: Session)
     assert resp_create.status_code == 200
     ticket_data = resp_create.json()["data"]
     ticket_id = ticket_data["id"]
-    assert ticket_data["ticket_number"].startswith("CCGP-")
+    assert ticket_data["ticket_number"].startswith("SentraDesk-")
 
     # -------------------------------------------------------------
     # 3. CITIZEN UPLOADS EVIDENCE

@@ -30,7 +30,7 @@ class ReportingService:
             'HeaderStyle', parent=styles['Normal'], fontSize=9, textColor=colors.white, fontName='Helvetica-Bold'
         )
 
-        story.append(Paragraph(f"CCGP INCIDENT RECORD SHEET: {ticket.ticket_number}", title_style))
+        story.append(Paragraph(f"SentraDesk INCIDENT RECORD SHEET: {ticket.ticket_number}", title_style))
         story.append(Spacer(1, 10))
 
         # Basic properties
@@ -394,14 +394,14 @@ class ReportingService:
             <body>
                 <h2>📊 Monthly Governance Analytics Report</h2>
                 <p>Dear Supervisory Officer,</p>
-                <p>Please find the monthly operation performance metrics report for the CCGP platform below:</p>
+                <p>Please find the monthly operation performance metrics report for the SentraDesk platform below:</p>
                 <ul>
                     <li><strong>Total Logged Incidents:</strong> {variables['total_tickets']}</li>
                     <li><strong>Resolved & Closed Cases:</strong> {variables['closed_tickets']}</li>
                     <li><strong>Violated SLA Escalations:</strong> {variables['breached_tickets']}</li>
                 </ul>
                 <p>Please log into the auditor command center portal to download official signed ledger audit logs.</p>
-                <p>Best regards,<br/>CCGP Governance Alert System</p>
+                <p>Best regards,<br/>SentraDesk Governance Alert System</p>
             </body>
         </html>
         """
@@ -414,7 +414,7 @@ class ReportingService:
             notification_service.send_email(
                 db,
                 recipient=supervisor_email,
-                subject="CCGP Monthly Governance Performance Report",
+                subject="SentraDesk Monthly Governance Performance Report",
                 template_name="ticket_escalated", # Reuse template name or map manually
                 variables=variables
             )

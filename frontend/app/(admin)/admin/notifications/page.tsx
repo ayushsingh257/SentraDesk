@@ -22,9 +22,9 @@ export default function NotificationAdministration() {
   const [smtp, setSmtp] = useState<any>({
     smtp_host: 'smtp.gmail.com',
     smtp_port: 587,
-    smtp_user: 'alerts.ccgp@example.com',
-    smtp_from_email: 'alerts.ccgp@example.com',
-    smtp_from_name: 'CCGP Alert System'
+    smtp_user: 'alerts.sentradesk@example.com',
+    smtp_from_email: 'alerts.sentradesk@example.com',
+    smtp_from_name: 'SentraDesk Alert System'
   })
 
   const [logs, setLogs] = useState<NotificationLog[]>([])

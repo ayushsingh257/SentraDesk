@@ -96,8 +96,8 @@ class EmailListenerService:
 
     def detect_thread_ticket(self, db: Session, subject: str, references: Optional[str]) -> Optional[Ticket]:
         """Detect if incoming email belongs to an existing ticket conversation thread (Phase 36)."""
-        # 1. Look for ticket ID pattern in Subject (e.g. [CCGP-2026-1002])
-        match = re.search(r"\[(CCGP-\d{4}-\d+)\]", subject)
+        # 1. Look for ticket ID pattern in Subject (e.g. [SentraDesk-2026-1002])
+        match = re.search(r"\[(SentraDesk-\d{4}-\d+)\]", subject)
         if match:
             ticket_number = match.group(1)
             ticket = db.query(Ticket).filter(Ticket.ticket_number == ticket_number).first()
@@ -116,7 +116,7 @@ class EmailListenerService:
 
     def process_incoming_email(self, db: Session, msg: email.message.Message) -> Tuple[Ticket, bool]:
         """Process incoming parsed email message, saving threading log, comments, or auto-creating tickets (Phase 37)."""
-        message_id = msg.get("Message-ID", f"<mock_{uuid.uuid4()}@ccgp.local>")
+        message_id = msg.get("Message-ID", f"<mock_{uuid.uuid4()}@sentradesk.local>")
         subject = msg.get("Subject", "No Subject")
         from_hdr = msg.get("From", "Unknown <anonymous@example.com>")
         in_reply_to = msg.get("In-Reply-To", None)
@@ -200,7 +200,7 @@ class EmailListenerService:
                     db,
                     recipient=sender_email,
                     template_name="ticket_created",
-                    subject=f"CCGP Complaint Registered successfully [{ticket.ticket_number}]",
+                    subject=f"SentraDesk Complaint Registered successfully [{ticket.ticket_number}]",
                     variables={
                         "reporter_name": sender_name,
                         "ticket_number": ticket.ticket_number,
@@ -303,7 +303,7 @@ class EmailListenerService:
             msg = MIMEMultipart()
             msg["From"] = sender
             msg["Subject"] = subject
-            msg["Message-ID"] = f"<mock_{uuid.uuid4()}@ccgp.local>"
+            msg["Message-ID"] = f"<mock_{uuid.uuid4()}@sentradesk.local>"
             msg.attach(MIMEText(body, "plain"))
             for filename, data in attachments:
                 part = MIMEApplication(data)
@@ -313,7 +313,7 @@ class EmailListenerService:
             msg = email.message.Message()
             msg["From"] = sender
             msg["Subject"] = subject
-            msg["Message-ID"] = f"<mock_{uuid.uuid4()}@ccgp.local>"
+            msg["Message-ID"] = f"<mock_{uuid.uuid4()}@sentradesk.local>"
             msg.set_payload(body)
         
         return self.process_incoming_email(db, msg)

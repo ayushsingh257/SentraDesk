@@ -60,9 +60,9 @@ DEFAULTS = {
     "email_settings": {
         "smtp_host": "smtp.gmail.com",
         "smtp_port": 587,
-        "smtp_user": "alerts.ccgp@example.com",
-        "smtp_from_email": "alerts.ccgp@example.com",
-        "smtp_from_name": "CCGP Alert System"
+        "smtp_user": "alerts.sentradesk@example.com",
+        "smtp_from_email": "alerts.sentradesk@example.com",
+        "smtp_from_name": "SentraDesk Alert System"
     },
     "notification_settings": {
         "email_notifications_enabled": True,
@@ -650,7 +650,7 @@ def export_users_csv(
     return Response(
         content=output.getvalue(),
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=ccgp_users_export.csv"}
+        headers={"Content-Disposition": "attachment; filename=sentradesk_users_export.csv"}
     )
 
 
@@ -910,7 +910,7 @@ def export_compliance_digest_csv(
     db: Session = Depends(get_db),
     current_user: Dict[str, Any] = Depends(RoleRequirement("system_administrator"))
 ):
-    """Export CCGP system compliance digests as a CSV report."""
+    """Export SentraDesk system compliance digests as a CSV report."""
     import csv
     import io
     from fastapi.responses import Response
@@ -926,6 +926,6 @@ def export_compliance_digest_csv(
     return Response(
         content=output.getvalue(),
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=ccgp_compliance_report.csv"}
+        headers={"Content-Disposition": "attachment; filename=sentradesk_compliance_report.csv"}
     )
 

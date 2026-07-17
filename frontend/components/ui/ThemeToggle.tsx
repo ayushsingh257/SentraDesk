@@ -11,7 +11,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   // Parse initial theme on client mount
   useEffect(() => {
     setMounted(true)
-    const saved = localStorage.getItem('ccgp-theme') as 'light' | 'dark' | null
+    const saved = localStorage.getItem('sentradesk-theme') as 'light' | 'dark' | null
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     const current = saved || (prefersDark ? 'dark' : 'light')
     
@@ -22,7 +22,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   const toggle = () => {
     const next = theme === 'light' ? 'dark' : 'light'
     setTheme(next)
-    localStorage.setItem('ccgp-theme', next)
+    localStorage.setItem('sentradesk-theme', next)
     
     if (next === 'dark') {
       document.documentElement.classList.add('dark')

@@ -72,18 +72,18 @@ def prometheus_metrics(
 
     # Build Prometheus exposition format manually (avoids duplicate metric registration)
     lines = [
-        "# HELP ccgp_uptime_seconds Seconds since backend process started",
-        "# TYPE ccgp_uptime_seconds gauge",
-        f"ccgp_uptime_seconds {uptime_seconds:.2f}",
-        "# HELP ccgp_tickets_total Total tickets in the database",
-        "# TYPE ccgp_tickets_total gauge",
-        f"ccgp_tickets_total {ticket_count}",
-        "# HELP ccgp_users_total Total registered users",
-        "# TYPE ccgp_users_total gauge",
-        f"ccgp_users_total {user_count}",
-        "# HELP ccgp_python_version Python version info",
-        "# TYPE ccgp_python_version gauge",
-        f'ccgp_python_version{{version="{sys.version.split()[0]}"}} 1',
+        "# HELP sentradesk_uptime_seconds Seconds since backend process started",
+        "# TYPE sentradesk_uptime_seconds gauge",
+        f"sentradesk_uptime_seconds {uptime_seconds:.2f}",
+        "# HELP sentradesk_tickets_total Total tickets in the database",
+        "# TYPE sentradesk_tickets_total gauge",
+        f"sentradesk_tickets_total {ticket_count}",
+        "# HELP sentradesk_users_total Total registered users",
+        "# TYPE sentradesk_users_total gauge",
+        f"sentradesk_users_total {user_count}",
+        "# HELP sentradesk_python_version Python version info",
+        "# TYPE sentradesk_python_version gauge",
+        f'sentradesk_python_version{{version="{sys.version.split()[0]}"}} 1',
     ]
 
     return FastAPIResponse(

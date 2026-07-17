@@ -59,13 +59,13 @@ def test_workload_based_officer_auto_assignment(client, db):
     """Verify auto-assignment routing maps ticket to active investigator with least workload (Phase 43)."""
     # Register two investigators
     client.post("/api/v1/users/register", json={
-        "email": "investigator_alpha@ccgp.gov.in",
+        "email": "investigator_alpha@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Investigator Alpha",
         "role": "investigator"
     })
     client.post("/api/v1/users/register", json={
-        "email": "investigator_beta@ccgp.gov.in",
+        "email": "investigator_beta@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Investigator Beta",
         "role": "investigator"
@@ -73,8 +73,8 @@ def test_workload_based_officer_auto_assignment(client, db):
 
     # Fetch officers to count workload
     from app.models.user import User
-    alpha = db.query(User).filter(User.email == "investigator_alpha@ccgp.gov.in").first()
-    beta = db.query(User).filter(User.email == "investigator_beta@ccgp.gov.in").first()
+    alpha = db.query(User).filter(User.email == "investigator_alpha@sentradesk.gov.in").first()
+    beta = db.query(User).filter(User.email == "investigator_beta@sentradesk.gov.in").first()
     
     # Create a ticket via service and reassign to Alpha to pre-load workload
     t1 = ticket_service.create_complaint_and_ticket(
@@ -133,13 +133,13 @@ def test_supervisor_rejection_workflow(client, db):
     """Verify supervisor rejection transitions ticket to 'Reopened' and resets approval flags (Phase 48)."""
     # Register supervisor and investigator
     client.post("/api/v1/users/register", json={
-        "email": "investigator_super@ccgp.gov.in",
+        "email": "investigator_super@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Investigator Super",
         "role": "investigator"
     })
     client.post("/api/v1/users/register", json={
-        "email": "supervisor_rejection@ccgp.gov.in",
+        "email": "supervisor_rejection@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Supervisor Rejection",
         "role": "supervisor"
@@ -147,8 +147,8 @@ def test_supervisor_rejection_workflow(client, db):
     
     # Get users
     from app.models.user import User
-    investigator = db.query(User).filter(User.email == "investigator_super@ccgp.gov.in").first()
-    supervisor = db.query(User).filter(User.email == "supervisor_rejection@ccgp.gov.in").first()
+    investigator = db.query(User).filter(User.email == "investigator_super@sentradesk.gov.in").first()
+    supervisor = db.query(User).filter(User.email == "supervisor_rejection@sentradesk.gov.in").first()
     
     # Create ticket — it starts as 'New', advance to 'Assigned', then 'Under Investigation'
     ticket = ticket_service.create_complaint_and_ticket(

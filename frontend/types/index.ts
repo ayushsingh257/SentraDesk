@@ -1,5 +1,5 @@
 // ============================================================
-// TypeScript Type Definitions — CCGP Platform
+// TypeScript Type Definitions — SentraDesk Platform
 // ============================================================
 
 // --- User & Auth ---

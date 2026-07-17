@@ -9,7 +9,7 @@ def seed_data():
     db = SessionLocal()
     try:
         # Verify if users are already seeded
-        existing = db.query(User).filter(User.email == "admin@ccgp.gov.in").first()
+        existing = db.query(User).filter(User.email == "admin@sentradesk.gov.in").first()
         if existing:
             print("Database has already been seeded.")
             return
@@ -17,13 +17,13 @@ def seed_data():
         print("Seeding database tables with default user roles...")
         
         users_data = [
-            {"email": "admin@ccgp.gov.in", "name": "System Administrator", "role": "system_administrator"},
-            {"email": "operator@ccgp.gov.in", "name": "Complaint Operator", "role": "complaint_operator"},
-            {"email": "officer@ccgp.gov.in", "name": "Cyber Cell Officer", "role": "cyber_cell_officer"},
-            {"email": "investigator@ccgp.gov.in", "name": "Investigator Officer", "role": "investigator"},
-            {"email": "supervisor@ccgp.gov.in", "name": "Supervisory Supervisor", "role": "supervisor"},
-            {"email": "auditor@ccgp.gov.in", "name": "Security Auditor", "role": "security_auditor"},
-            {"email": "citizen@ccgp.gov.in", "name": "Citizen User", "role": "citizen"}
+            {"email": "admin@sentradesk.gov.in", "name": "System Administrator", "role": "system_administrator"},
+            {"email": "operator@sentradesk.gov.in", "name": "Complaint Operator", "role": "complaint_operator"},
+            {"email": "officer@sentradesk.gov.in", "name": "Cyber Cell Officer", "role": "cyber_cell_officer"},
+            {"email": "investigator@sentradesk.gov.in", "name": "Investigator Officer", "role": "investigator"},
+            {"email": "supervisor@sentradesk.gov.in", "name": "Supervisory Supervisor", "role": "supervisor"},
+            {"email": "auditor@sentradesk.gov.in", "name": "Security Auditor", "role": "security_auditor"},
+            {"email": "citizen@sentradesk.gov.in", "name": "Citizen User", "role": "citizen"}
         ]
         
         default_pwd_hash = hash_password("password123")

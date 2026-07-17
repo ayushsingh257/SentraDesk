@@ -22,7 +22,7 @@ DEFAULT_TEMPLATES = {
             <p><strong>Category:</strong> {category}</p>
             <p><strong>Severity:</strong> {severity}</p>
             <p>Our team is reviewing your report. You will receive email notifications as case status updates occur.</p>
-            <p>Best regards,<br/>CCGP Governance Alert System</p>
+            <p>Best regards,<br/>SentraDesk Governance Alert System</p>
         </body>
     </html>
     """,
@@ -36,7 +36,7 @@ DEFAULT_TEMPLATES = {
             <p><strong>Category:</strong> {category}</p>
             <p><strong>Severity:</strong> {severity}</p>
             <p>Please log into the dashboard to review file details and submit timeline updates.</p>
-            <p>Best regards,<br/>CCGP Governance Alert System</p>
+            <p>Best regards,<br/>SentraDesk Governance Alert System</p>
         </body>
     </html>
     """,
@@ -49,7 +49,7 @@ DEFAULT_TEMPLATES = {
             <p><strong>Ticket ID:</strong> {ticket_number}</p>
             <p><strong>New Status:</strong> {status}</p>
             <p>Please check the citizen portal link to track active timelines.</p>
-            <p>Best regards,<br/>CCGP Governance Alert System</p>
+            <p>Best regards,<br/>SentraDesk Governance Alert System</p>
         </body>
     </html>
     """,
@@ -63,7 +63,7 @@ DEFAULT_TEMPLATES = {
             <p><strong>SLA Deadline:</strong> {sla_deadline}</p>
             <p><strong>Assigned Group:</strong> {assigned_group}</p>
             <p>Please review active assignments queues and approve next-step closures.</p>
-            <p>Best regards,<br/>CCGP Governance Alert System</p>
+            <p>Best regards,<br/>SentraDesk Governance Alert System</p>
         </body>
     </html>
     """,
@@ -76,7 +76,7 @@ DEFAULT_TEMPLATES = {
             <p><strong>Ticket ID:</strong> {ticket_number}</p>
             <p><strong>Resolution Status:</strong> Resolved & Closed</p>
             <p>Thank you for your patience during this process.</p>
-            <p>Best regards,<br/>CCGP Governance Alert System</p>
+            <p>Best regards,<br/>SentraDesk Governance Alert System</p>
         </body>
     </html>
     """,
@@ -89,7 +89,7 @@ DEFAULT_TEMPLATES = {
             <p><strong>Ticket ID:</strong> {ticket_number}</p>
             <p><strong>Supervisor Comments:</strong> {comments}</p>
             <p>Please review and resume active investigation steps.</p>
-            <p>Best regards,<br/>CCGP Governance Alert System</p>
+            <p>Best regards,<br/>SentraDesk Governance Alert System</p>
         </body>
     </html>
     """,
@@ -101,7 +101,7 @@ DEFAULT_TEMPLATES = {
             <p>Your ticket has been reopened by the Cyber cell unit for further investigation.</p>
             <p><strong>Ticket ID:</strong> {ticket_number}</p>
             <p>You can track the ongoing progress updates on the dashboard.</p>
-            <p>Best regards,<br/>CCGP Governance Alert System</p>
+            <p>Best regards,<br/>SentraDesk Governance Alert System</p>
         </body>
     </html>
     """,
@@ -112,8 +112,8 @@ DEFAULT_TEMPLATES = {
             <p>Hello,</p>
             <p>A new conversation thread message was registered for ticket {ticket_number}.</p>
             <p><strong>Message Snippet:</strong> {snippet}</p>
-            <p>Please log in to the CCGP platform portal to respond.</p>
-            <p>Best regards,<br/>CCGP Governance Alert System</p>
+            <p>Please log in to the SentraDesk platform portal to respond.</p>
+            <p>Best regards,<br/>SentraDesk Governance Alert System</p>
         </body>
     </html>
     """

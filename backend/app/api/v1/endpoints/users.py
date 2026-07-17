@@ -16,7 +16,7 @@ def register(
     payload: UserRegister,
     db: Session = Depends(get_db)
 ):
-    """Register a new user account profile in CCGP."""
+    """Register a new user account profile in SentraDesk."""
     from app.core.config import settings
     if settings.ENVIRONMENT != "testing" and payload.role != "citizen":
         from app.core.exceptions import ValidationError

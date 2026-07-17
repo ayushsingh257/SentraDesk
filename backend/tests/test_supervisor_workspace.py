@@ -7,13 +7,13 @@ from app.models.ticket import Ticket, Complaint
 def test_supervisor_access_and_dashboard(client: TestClient, db: Session):
     # 1. Register a supervisor and log in
     client.post("/api/v1/users/register", json={
-        "email": "supervisor_test_workspace@ccgp.gov.in",
+        "email": "supervisor_test_workspace@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Supervisor Test Workspace",
         "role": "supervisor"
     })
     sup_login = client.post("/api/v1/auth/login", json={
-        "email": "supervisor_test_workspace@ccgp.gov.in",
+        "email": "supervisor_test_workspace@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     sup_token = sup_login.json()["data"]["access_token"]
@@ -21,13 +21,13 @@ def test_supervisor_access_and_dashboard(client: TestClient, db: Session):
 
     # 2. Register a complaint operator and log in (should be blocked)
     client.post("/api/v1/users/register", json={
-        "email": "operator_test_workspace@ccgp.gov.in",
+        "email": "operator_test_workspace@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Operator Test Workspace",
         "role": "complaint_operator"
     })
     op_login = client.post("/api/v1/auth/login", json={
-        "email": "operator_test_workspace@ccgp.gov.in",
+        "email": "operator_test_workspace@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     op_token = op_login.json()["data"]["access_token"]
@@ -49,14 +49,14 @@ def test_supervisor_access_and_dashboard(client: TestClient, db: Session):
 def test_supervisor_bulk_operations(client: TestClient, db: Session):
     # Register supervisor
     client.post("/api/v1/users/register", json={
-        "email": "supervisor_test_workspace@ccgp.gov.in",
+        "email": "supervisor_test_workspace@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Supervisor Test Workspace",
         "role": "supervisor"
     })
     # 1. Login as supervisor
     login_resp = client.post("/api/v1/auth/login", json={
-        "email": "supervisor_test_workspace@ccgp.gov.in",
+        "email": "supervisor_test_workspace@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     sup_token = login_resp.json()["data"]["access_token"]
@@ -64,13 +64,13 @@ def test_supervisor_bulk_operations(client: TestClient, db: Session):
 
     # 2. Login as investigator
     client.post("/api/v1/users/register", json={
-        "email": "investigator_test_workspace@ccgp.gov.in",
+        "email": "investigator_test_workspace@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Investigator Test Workspace",
         "role": "investigator"
     })
     inv_login = client.post("/api/v1/auth/login", json={
-        "email": "investigator_test_workspace@ccgp.gov.in",
+        "email": "investigator_test_workspace@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     inv_token = inv_login.json()["data"]["access_token"]
@@ -90,7 +90,7 @@ def test_supervisor_bulk_operations(client: TestClient, db: Session):
         db.commit()
 
         t = Ticket(
-            ticket_number=f"CCGP-2026-880{i}",
+            ticket_number=f"SentraDesk-2026-880{i}",
             complaint_id=comp.id,
             category="UPI Fraud",
             severity="Low"
@@ -158,26 +158,26 @@ def test_supervisor_bulk_operations(client: TestClient, db: Session):
 def test_supervisor_rbac_and_input_validation(client: TestClient, db: Session):
     # 1. Login as Citizen (role: citizen) and Complaint Operator (role: complaint_operator)
     client.post("/api/v1/users/register", json={
-        "email": "citizen_qa@ccgp.gov.in",
+        "email": "citizen_qa@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Citizen QA",
         "role": "citizen"
     })
     citizen_login = client.post("/api/v1/auth/login", json={
-        "email": "citizen_qa@ccgp.gov.in",
+        "email": "citizen_qa@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     cit_token = citizen_login.json()["data"]["access_token"]
     cit_headers = {"Authorization": f"Bearer {cit_token}"}
 
     client.post("/api/v1/users/register", json={
-        "email": "operator_qa@ccgp.gov.in",
+        "email": "operator_qa@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Operator QA",
         "role": "complaint_operator"
     })
     op_login = client.post("/api/v1/auth/login", json={
-        "email": "operator_qa@ccgp.gov.in",
+        "email": "operator_qa@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     op_token = op_login.json()["data"]["access_token"]
@@ -185,13 +185,13 @@ def test_supervisor_rbac_and_input_validation(client: TestClient, db: Session):
 
     # Register supervisor for valid auth checks
     client.post("/api/v1/users/register", json={
-        "email": "supervisor_qa@ccgp.gov.in",
+        "email": "supervisor_qa@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Supervisor QA",
         "role": "supervisor"
     })
     sup_login = client.post("/api/v1/auth/login", json={
-        "email": "supervisor_qa@ccgp.gov.in",
+        "email": "supervisor_qa@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     sup_token = sup_login.json()["data"]["access_token"]

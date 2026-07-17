@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import { Mail, Phone, MapPin } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Contact — CCGP',
-  description: 'Contact the CCGP team for technical support, security reports, or general inquiries.',
+  title: 'Contact — SentraDesk',
+  description: 'Contact the SentraDesk team for technical support, security reports, or general inquiries.',
 }
 
 export default function ContactPage() {
@@ -12,7 +12,7 @@ export default function ContactPage() {
       <div className="mb-10">
         <h1 className="text-4xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">Contact Us</h1>
         <p className="text-lg text-neutral-500 dark:text-neutral-400">
-          Reach out to the CCGP team for technical support or inquiries.
+          Reach out to the SentraDesk team for technical support or inquiries.
         </p>
       </div>
 
@@ -25,7 +25,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-1">General Inquiries</h3>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">support@ccgp.gov.in</p>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">support@sentradesk.gov.in</p>
               </div>
             </div>
           </div>
@@ -37,7 +37,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-neutral-900 dark:text-neutral-100 mb-1">Security Reports</h3>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">security@ccgp.gov.in</p>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">security@sentradesk.gov.in</p>
                 <p className="text-xs text-neutral-400 mt-1">See our responsible disclosure policy</p>
               </div>
             </div>

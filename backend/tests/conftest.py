@@ -11,7 +11,7 @@ os.environ.setdefault("QDRANT_URL", "http://localhost:6333")
 os.environ.setdefault("MINIO_ENDPOINT", "localhost:9000")
 os.environ.setdefault("MINIO_ACCESS_KEY", "minioadmin")
 os.environ.setdefault("MINIO_SECRET_KEY", "minioadmin")
-os.environ.setdefault("MINIO_BUCKET_NAME", "ccgp-evidence")
+os.environ.setdefault("MINIO_BUCKET_NAME", "sentradesk-evidence")
 os.environ.setdefault("JWT_SECRET", "test_secret_key_for_testing_only")
 
 import pytest

@@ -16,7 +16,7 @@ class TicketRepository(BaseRepository[Ticket]):
         """Create a sequentially incremented ticket serial tag."""
         current_year = datetime.now(timezone.utc).year
         # Count tickets created this year
-        prefix = f"CCGP-{current_year}-"
+        prefix = f"SentraDesk-{current_year}-"
         count = db.query(func.count(Ticket.id)).filter(Ticket.ticket_number.like(f"{prefix}%")).scalar()
         next_seq = (count or 0) + 1
         return f"{prefix}{next_seq:04d}"

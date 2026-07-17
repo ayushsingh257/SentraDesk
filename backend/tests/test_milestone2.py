@@ -14,13 +14,13 @@ def test_email_intake_automation(client: TestClient, db: Session):
     """Test receiving email automatically triggers complaint creation and auto routing (Phase 37)."""
     # Register and login system admin
     client.post("/api/v1/users/register", json={
-        "email": "admin_qa_email@ccgp.gov.in",
+        "email": "admin_qa_email@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Admin QA Email",
         "role": "system_administrator"
     })
     login_resp = client.post("/api/v1/auth/login", json={
-        "email": "admin_qa_email@ccgp.gov.in",
+        "email": "admin_qa_email@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     token = login_resp.json()["data"]["access_token"]
@@ -40,7 +40,7 @@ def test_email_intake_automation(client: TestClient, db: Session):
     data = resp.json()["data"]
     
     # Verify ticket number and automated group routing
-    assert data["ticket_number"].startswith("CCGP-2026-")
+    assert data["ticket_number"].startswith("SentraDesk-2026-")
     assert data["category"] == "Cyber Financial Fraud"
     assert data["severity"] == "Critical" # >500k loss
     
@@ -112,7 +112,7 @@ def test_sla_breach_monitoring_and_escalation(client: TestClient, db: Session):
     db.commit()
     
     ticket = Ticket(
-        ticket_number="CCGP-2026-9999",
+        ticket_number="SentraDesk-2026-9999",
         complaint_id=comp.id,
         category="Hacking",
         severity="High",
@@ -144,7 +144,7 @@ def test_sla_breach_monitoring_and_escalation(client: TestClient, db: Session):
         NotificationLog.template_name == "ticket_escalated"
     ).first()
     assert notif is not None
-    assert notif.recipient == "supervisor.ccgp@example.com"
+    assert notif.recipient == "supervisor.sentradesk@example.com"
 
 def test_supervisor_closure_approvals_workflow(client: TestClient, db: Session):
     """Test L1 and L2 approval guards for ticket closure (Phases 46-48)."""
@@ -161,7 +161,7 @@ def test_supervisor_closure_approvals_workflow(client: TestClient, db: Session):
     db.commit()
     
     ticket = Ticket(
-        ticket_number="CCGP-2026-8888",
+        ticket_number="SentraDesk-2026-8888",
         complaint_id=comp.id,
         category="Cyber Stalking",
         severity="Medium"
@@ -171,7 +171,7 @@ def test_supervisor_closure_approvals_workflow(client: TestClient, db: Session):
 
     # 1. Register supervisor user
     client.post("/api/v1/users/register", json={
-        "email": "supervisor@ccgp.gov.in",
+        "email": "supervisor@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Supervisor",
         "role": "supervisor"
@@ -180,7 +180,7 @@ def test_supervisor_closure_approvals_workflow(client: TestClient, db: Session):
     # 2. Login to retrieve token
     login_resp = client.post(
         "/api/v1/auth/login",
-        json={"email": "supervisor@ccgp.gov.in", "password": "SecurePassword123!"}
+        json={"email": "supervisor@sentradesk.gov.in", "password": "SecurePassword123!"}
     )
     token = login_resp.json()["data"]["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
@@ -252,7 +252,7 @@ def test_evidence_uploads_versioning_and_zipping(client: TestClient, db: Session
     db.commit()
     
     ticket = Ticket(
-        ticket_number="CCGP-2026-7777",
+        ticket_number="SentraDesk-2026-7777",
         complaint_id=comp.id,
         category="Hacking",
         severity="Medium"
@@ -262,7 +262,7 @@ def test_evidence_uploads_versioning_and_zipping(client: TestClient, db: Session
 
     # 1. Register investigator user
     client.post("/api/v1/users/register", json={
-        "email": "investigator@ccgp.gov.in",
+        "email": "investigator@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Investigator",
         "role": "investigator"
@@ -271,7 +271,7 @@ def test_evidence_uploads_versioning_and_zipping(client: TestClient, db: Session
     # 2. Login
     login_resp = client.post(
         "/api/v1/auth/login",
-        json={"email": "investigator@ccgp.gov.in", "password": "SecurePassword123!"}
+        json={"email": "investigator@sentradesk.gov.in", "password": "SecurePassword123!"}
     )
     token = login_resp.json()["data"]["access_token"]
     headers = {"Authorization": f"Bearer {token}"}

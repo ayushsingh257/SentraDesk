@@ -16,7 +16,7 @@
       "id": 1,
       "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "textMode": "auto" },
       "pluginVersion": "10.4.0",
-      "targets": [{ "datasource": "Prometheus", "expr": "ccgp_tickets_total", "refId": "A" }],
+      "targets": [{ "datasource": "Prometheus", "expr": "sentradesk_tickets_total", "refId": "A" }],
       "title": "Total Tickets",
       "type": "stat"
     },
@@ -30,7 +30,7 @@
       "id": 2,
       "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "textMode": "auto" },
       "pluginVersion": "10.4.0",
-      "targets": [{ "datasource": "Prometheus", "expr": "ccgp_users_total", "refId": "A" }],
+      "targets": [{ "datasource": "Prometheus", "expr": "sentradesk_users_total", "refId": "A" }],
       "title": "Total Users",
       "type": "stat"
     },
@@ -44,18 +44,18 @@
       "id": 3,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "textMode": "auto" },
       "pluginVersion": "10.4.0",
-      "targets": [{ "datasource": "Prometheus", "expr": "ccgp_uptime_seconds", "refId": "A" }],
+      "targets": [{ "datasource": "Prometheus", "expr": "sentradesk_uptime_seconds", "refId": "A" }],
       "title": "Backend Uptime",
       "type": "stat"
     }
   ],
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": ["ccgp", "soc"],
+  "tags": ["sentradesk", "soc"],
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "CCGP SOC Operational Dashboard",
-  "uid": "ccgp-soc-main",
+  "title": "SentraDesk SOC Operational Dashboard",
+  "uid": "sentradesk-soc-main",
   "version": 1
 }

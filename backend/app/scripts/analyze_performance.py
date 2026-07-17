@@ -1,5 +1,5 @@
 """
-CCGP Era 6 — Performance Metrics Analysis Script
+SentraDesk Era 6 — Performance Metrics Analysis Script
 =================================================
 Benchmarks the five newly implemented Era 6 features:
   1. Threat Intelligence Service (IP, domain, file-hash lookups)
@@ -27,7 +27,7 @@ os.environ.setdefault("QDRANT_URL", "http://localhost:6333")
 os.environ.setdefault("MINIO_ENDPOINT", "localhost:9000")
 os.environ.setdefault("MINIO_ACCESS_KEY", "minioadmin")
 os.environ.setdefault("MINIO_SECRET_KEY", "minioadmin")
-os.environ.setdefault("MINIO_BUCKET_NAME", "ccgp-evidence")
+os.environ.setdefault("MINIO_BUCKET_NAME", "sentradesk-evidence")
 os.environ.setdefault("JWT_SECRET", "perf_test_secret_key")
 
 # ── SQLAlchemy in-memory SQLite test DB ──────────────────────────────────────
@@ -166,8 +166,8 @@ def bench_email_parser():
 
 _assign_db = fresh_db()
 # Pre-create investigators once
-_inv_a = make_investigator(_assign_db, f"inv_a_{uuid.uuid4().hex[:6]}@ccgp.gov.in")
-_inv_b = make_investigator(_assign_db, f"inv_b_{uuid.uuid4().hex[:6]}@ccgp.gov.in")
+_inv_a = make_investigator(_assign_db, f"inv_a_{uuid.uuid4().hex[:6]}@sentradesk.gov.in")
+_inv_b = make_investigator(_assign_db, f"inv_b_{uuid.uuid4().hex[:6]}@sentradesk.gov.in")
 
 def bench_auto_assignment():
     ticket = ticket_service.create_complaint_and_ticket(
@@ -215,8 +215,8 @@ def bench_rejection_workflow():
     """Full rejection cycle: create → set Under Investigation → request closure → L1 approve → reject."""
     db = fresh_db()
     try:
-        sup = make_investigator(db, f"sup_{uuid.uuid4().hex[:8]}@ccgp.gov.in")
-        inv = make_investigator(db, f"inv_{uuid.uuid4().hex[:8]}@ccgp.gov.in")
+        sup = make_investigator(db, f"sup_{uuid.uuid4().hex[:8]}@sentradesk.gov.in")
+        inv = make_investigator(db, f"inv_{uuid.uuid4().hex[:8]}@sentradesk.gov.in")
         sup.role = "supervisor"
         db.add(sup)
         db.commit()
@@ -252,7 +252,7 @@ def bench_rejection_workflow():
 
 def main():
     print("=" * 70)
-    print("  CCGP Era 6 — Performance Metrics Analysis")
+    print("  SentraDesk Era 6 — Performance Metrics Analysis")
     print(f"  Iterations per benchmark: {ITERATIONS}")
     print("=" * 70)
 

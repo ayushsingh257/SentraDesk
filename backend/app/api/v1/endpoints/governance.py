@@ -85,13 +85,13 @@ def dispatch_governance_report(
     """Trigger immediate monthly governance report dispatch to supervisors via Celery (Phase 86)."""
     from app.tasks.governance import send_governance_report_task
     from app.core.celery_app import dispatch_task
-    dispatch_task(send_governance_report_task, "supervisor@ccgp.gov.in")
+    dispatch_task(send_governance_report_task, "supervisor@sentradesk.gov.in")
     return {
         "success": True,
         "data": {
             "dispatched": True,
             "message": "Governance analytics report task queued for delivery.",
-            "recipient": "supervisor@ccgp.gov.in"
+            "recipient": "supervisor@sentradesk.gov.in"
         },
         "error": None
     }
@@ -121,7 +121,7 @@ def export_governance_data_json(
     return Response(
         content=json.dumps(export_rows, indent=2),
         media_type="application/json",
-        headers={"Content-Disposition": f"attachment; filename=ccgp_bi_export_{datetime.now(timezone.utc).strftime('%Y%m%d')}.json"}
+        headers={"Content-Disposition": f"attachment; filename=sentradesk_bi_export_{datetime.now(timezone.utc).strftime('%Y%m%d')}.json"}
     )
 
 
@@ -149,6 +149,6 @@ def export_governance_data_csv(
     return Response(
         content=buffer.getvalue(),
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=ccgp_bi_export_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"}
+        headers={"Content-Disposition": f"attachment; filename=sentradesk_bi_export_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"}
     )
 

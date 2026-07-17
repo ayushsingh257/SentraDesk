@@ -1,26 +1,26 @@
 def test_create_and_manage_ticket(client):
     # 1. Register operator & supervisor
     client.post("/api/v1/users/register", json={
-        "email": "operator@ccgp.gov.in",
+        "email": "operator@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Operator",
         "role": "complaint_operator"
     })
     client.post("/api/v1/users/register", json={
-        "email": "supervisor@ccgp.gov.in",
+        "email": "supervisor@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Supervisor",
         "role": "supervisor"
     })
     client.post("/api/v1/users/register", json={
-        "email": "officer@ccgp.gov.in",
+        "email": "officer@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Officer",
         "role": "cyber_cell_officer"
     })
 
     # 2. Login as operator
-    login_op = client.post("/api/v1/auth/login", json={"email": "operator@ccgp.gov.in", "password": "SecurePassword123!"})
+    login_op = client.post("/api/v1/auth/login", json={"email": "operator@sentradesk.gov.in", "password": "SecurePassword123!"})
     op_token = login_op.json()["data"]["access_token"]
 
     # 3. Create Ticket (Operator role)
@@ -50,7 +50,7 @@ def test_create_and_manage_ticket(client):
     assert data["data"]["assigned_group"] == "Financial Fraud Unit"
 
     # 4. Login as supervisor to assign
-    login_sup = client.post("/api/v1/auth/login", json={"email": "supervisor@ccgp.gov.in", "password": "SecurePassword123!"})
+    login_sup = client.post("/api/v1/auth/login", json={"email": "supervisor@sentradesk.gov.in", "password": "SecurePassword123!"})
     sup_token = login_sup.json()["data"]["access_token"]
 
     # Get officer details to assign
@@ -77,24 +77,24 @@ def test_ai_pipeline_and_similar_tickets(client):
 
     # 0. Register operator & officer
     client.post("/api/v1/users/register", json={
-        "email": "operator@ccgp.gov.in",
+        "email": "operator@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Operator",
         "role": "complaint_operator"
     })
     client.post("/api/v1/users/register", json={
-        "email": "officer@ccgp.gov.in",
+        "email": "officer@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Officer",
         "role": "cyber_cell_officer"
     })
 
     # 1. Login as operator
-    login_op = client.post("/api/v1/auth/login", json={"email": "operator@ccgp.gov.in", "password": "SecurePassword123!"})
+    login_op = client.post("/api/v1/auth/login", json={"email": "operator@sentradesk.gov.in", "password": "SecurePassword123!"})
     op_token = login_op.json()["data"]["access_token"]
 
     # 2. Login as officer
-    login_off = client.post("/api/v1/auth/login", json={"email": "officer@ccgp.gov.in", "password": "SecurePassword123!"})
+    login_off = client.post("/api/v1/auth/login", json={"email": "officer@sentradesk.gov.in", "password": "SecurePassword123!"})
     off_token = login_off.json()["data"]["access_token"]
 
     # 3. Create Ticket 1

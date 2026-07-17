@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # FastAPI settings
-    PROJECT_NAME: str = "CCGP — Cyber Complaint Governance Platform"
+    PROJECT_NAME: str = "SentraDesk — SentraDesk"
     API_V1_STR: str = "/api/v1"
     FRONTEND_URL: str = "http://localhost:3000"
     BACKEND_CORS_ORIGINS: Annotated[
@@ -47,12 +47,12 @@ class Settings(BaseSettings):
     ]
 
     # Postgres Database Configs
-    POSTGRES_USER: str = "ccgp_admin"
-    POSTGRES_PASSWORD: str = "ccgp_secure_password_2026"
-    POSTGRES_DB: str = "ccgp_governance"
+    POSTGRES_USER: str = "sentradesk_admin"
+    POSTGRES_PASSWORD: str = "sentradesk_secure_password_2026"
+    POSTGRES_DB: str = "sentradesk_governance"
     POSTGRES_HOST: str = "127.0.0.1"
     POSTGRES_PORT: int = 5432
-    DATABASE_URL: str = "postgresql://ccgp_admin:ccgp_secure_password_2026@127.0.0.1:5432/ccgp_governance"
+    DATABASE_URL: str = "postgresql://sentradesk_admin:sentradesk_secure_password_2026@127.0.0.1:5432/sentradesk_governance"
 
     # Redis Caching Configs
     REDIS_HOST: str = "127.0.0.1"
@@ -63,7 +63,7 @@ class Settings(BaseSettings):
     MINIO_ENDPOINT: str = "127.0.0.1:9000"
     MINIO_ACCESS_KEY: str = "minio_admin_user"
     MINIO_SECRET_KEY: str = "minio_admin_secret_key_2026"
-    MINIO_BUCKET_NAME: str = "ccgp-evidence"
+    MINIO_BUCKET_NAME: str = "sentradesk-evidence"
     MINIO_SECURE: bool = False
 
     # Qdrant Vector DB Configs
@@ -78,15 +78,15 @@ class Settings(BaseSettings):
     # SMTP Configurations
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
-    SMTP_USER: str = "alerts.ccgp@example.com"
+    SMTP_USER: str = "alerts.sentradesk@example.com"
     SMTP_PASSWORD: str = "gmail_application_password"
-    SMTP_FROM_EMAIL: str = "alerts.ccgp@example.com"
-    SMTP_FROM_NAME: str = "CCGP Alert System"
+    SMTP_FROM_EMAIL: str = "alerts.sentradesk@example.com"
+    SMTP_FROM_NAME: str = "SentraDesk Alert System"
 
     # IMAP Configurations
     IMAP_HOST: str = "imap.gmail.com"
     IMAP_PORT: int = 993
-    IMAP_USER: str = "alerts.ccgp@example.com"
+    IMAP_USER: str = "alerts.sentradesk@example.com"
     IMAP_PASSWORD: str = "gmail_application_password"
     IMAP_SECURE: bool = True
 
@@ -116,7 +116,7 @@ class Settings(BaseSettings):
         if self.ENVIRONMENT == "production":
             if self.JWT_SECRET == "super_secret_jwt_signing_key_for_development_purposes_only_change_in_production":
                 raise ValueError("JWT_SECRET must be changed in production environment!")
-            if self.POSTGRES_PASSWORD == "ccgp_secure_password_2026":
+            if self.POSTGRES_PASSWORD == "sentradesk_secure_password_2026":
                 raise ValueError("POSTGRES_PASSWORD must be changed in production environment!")
             if self.MINIO_SECRET_KEY == "minio_admin_secret_key_2026":
                 raise ValueError("MINIO_SECRET_KEY must be changed in production environment!")

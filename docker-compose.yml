@@ -3,25 +3,25 @@ version: '3.8'
 services:
   db:
     image: postgres:16-alpine
-    container_name: ccgp_db
+    container_name: sentradesk_db
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-ccgp_admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ccgp_secure_password_2026}
-      POSTGRES_DB: ${POSTGRES_DB:-ccgp_governance}
+      POSTGRES_USER: ${POSTGRES_USER:-sentradesk_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sentradesk_secure_password_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-sentradesk_governance}
     ports:
       - "127.0.0.1:5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ccgp_admin} -d ${POSTGRES_DB:-ccgp_governance}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sentradesk_admin} -d ${POSTGRES_DB:-sentradesk_governance}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: ccgp_redis
+    container_name: sentradesk_redis
     restart: always
     ports:
       - "127.0.0.1:6379:6379"
@@ -35,7 +35,7 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: ccgp_minio
+    container_name: sentradesk_minio
     restart: always
     ports:
       - "127.0.0.1:9000:9000"
@@ -54,7 +54,7 @@ services:
 
   qdrant:
     image: qdrant/qdrant:v1.9.3
-    container_name: ccgp_qdrant
+    container_name: sentradesk_qdrant
     restart: always
     ports:
       - "127.0.0.1:6333:6333"
@@ -67,18 +67,18 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: ccgp_backend
+    container_name: sentradesk_backend
     restart: always
     environment:
       - ENVIRONMENT=development
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-ccgp_admin}:${POSTGRES_PASSWORD:-ccgp_secure_password_2026}@db:5432/${POSTGRES_DB:-ccgp_governance}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-sentradesk_admin}:${POSTGRES_PASSWORD:-sentradesk_secure_password_2026}@db:5432/${POSTGRES_DB:-sentradesk_governance}
       - REDIS_URL=redis://redis:6379/0
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minio_admin_user}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minio_admin_secret_key_2026}
-      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME:-ccgp-evidence}
+      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME:-sentradesk-evidence}
       - MINIO_SECURE=false
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
@@ -104,7 +104,7 @@ services:
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_API_URL=http://localhost:8000
-    container_name: ccgp_frontend
+    container_name: sentradesk_frontend
     restart: always
     ports:
       - "127.0.0.1:3000:3000"
@@ -117,19 +117,19 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: ccgp_celery
+    container_name: sentradesk_celery
     restart: always
     command: celery -A app.core.celery_app worker --loglevel=info --concurrency=4
     environment:
       - ENVIRONMENT=development
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-ccgp_admin}:${POSTGRES_PASSWORD:-ccgp_secure_password_2026}@db:5432/${POSTGRES_DB:-ccgp_governance}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-sentradesk_admin}:${POSTGRES_PASSWORD:-sentradesk_secure_password_2026}@db:5432/${POSTGRES_DB:-sentradesk_governance}
       - REDIS_URL=redis://redis:6379/0
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minio_admin_user}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minio_admin_secret_key_2026}
-      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME:-ccgp-evidence}
+      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME:-sentradesk-evidence}
       - MINIO_SECURE=false
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
@@ -137,9 +137,9 @@ services:
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET_is_required_in_env_file}
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
       - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER:-alerts.ccgp@example.com}
+      - SMTP_USER=${SMTP_USER:-alerts.sentradesk@example.com}
       - SMTP_PASSWORD=${SMTP_PASSWORD:-gmail_application_password}
-      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-alerts.ccgp@example.com}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-alerts.sentradesk@example.com}
     depends_on:
       db:
         condition: service_healthy
@@ -150,19 +150,19 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: ccgp_celery_beat
+    container_name: sentradesk_celery_beat
     restart: always
     command: celery -A app.core.celery_app beat --loglevel=info
     environment:
       - ENVIRONMENT=development
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-ccgp_admin}:${POSTGRES_PASSWORD:-ccgp_secure_password_2026}@db:5432/${POSTGRES_DB:-ccgp_governance}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-sentradesk_admin}:${POSTGRES_PASSWORD:-sentradesk_secure_password_2026}@db:5432/${POSTGRES_DB:-sentradesk_governance}
       - REDIS_URL=redis://redis:6379/0
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minio_admin_user}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minio_admin_secret_key_2026}
-      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME:-ccgp-evidence}
+      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME:-sentradesk-evidence}
       - MINIO_SECURE=false
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
@@ -176,7 +176,7 @@ services:
 
   nginx:
     image: nginx:1.25-alpine
-    container_name: ccgp_nginx
+    container_name: sentradesk_nginx
     restart: always
     ports:
       - "8080:80"
@@ -191,7 +191,7 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.51.0
-    container_name: ccgp_prometheus
+    container_name: sentradesk_prometheus
     restart: always
     ports:
       - "127.0.0.1:9090:9090"
@@ -207,13 +207,13 @@ services:
 
   grafana:
     image: grafana/grafana:10.4.0
-    container_name: ccgp_grafana
+    container_name: sentradesk_grafana
     restart: always
     ports:
       - "127.0.0.1:3001:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-ccgp_grafana_2026}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-sentradesk_grafana_2026}
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafanadata:/var/lib/grafana

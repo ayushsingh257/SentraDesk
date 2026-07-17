@@ -28,7 +28,7 @@ def generate_self_signed_cert():
         x509.NameAttribute(NameOID.COUNTRY_NAME, "IN"),
         x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Delhi"),
         x509.NameAttribute(NameOID.LOCALITY_NAME, "New Delhi"),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Cyber Complaint Governance Platform"),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "SentraDesk"),
         x509.NameAttribute(NameOID.COMMON_NAME, "localhost"),
     ])
     

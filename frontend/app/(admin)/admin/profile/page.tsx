@@ -10,7 +10,7 @@ import { Card, Alert } from '@/components/ui/index'
 export default function AdminProfile() {
   const { user } = useAuth()
   const [name, setName] = useState(user?.name || 'Administrator')
-  const [email, setEmail] = useState(user?.email || 'admin@ccgp.gov.in')
+  const [email, setEmail] = useState(user?.email || 'admin@sentradesk.gov.in')
   const [success, setSuccess] = useState<string | null>(null)
 
   const handleUpdateProfile = (e: React.FormEvent) => {

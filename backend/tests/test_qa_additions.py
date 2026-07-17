@@ -8,13 +8,13 @@ from app.models.evidence import Evidence
 def test_threat_intelligence_api(client: TestClient, db: Session):
     # 1. Register and login as an officer
     client.post("/api/v1/users/register", json={
-        "email": "officer_qa@ccgp.gov.in",
+        "email": "officer_qa@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Officer QA",
         "role": "cyber_cell_officer"
     })
     login_resp = client.post("/api/v1/auth/login", json={
-        "email": "officer_qa@ccgp.gov.in",
+        "email": "officer_qa@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     token = login_resp.json()["data"]["access_token"]
@@ -61,7 +61,7 @@ def test_threat_intelligence_api(client: TestClient, db: Session):
     db.commit()
 
     ticket = Ticket(
-        ticket_number="CCGP-2026-1122",
+        ticket_number="SentraDesk-2026-1122",
         complaint_id=comp.id,
         category="Cyber Stalking",
         severity="Medium"
@@ -95,13 +95,13 @@ def test_threat_intelligence_api(client: TestClient, db: Session):
 def test_blockchain_audit_verification(client: TestClient):
     # 1. Register and login as security auditor
     client.post("/api/v1/users/register", json={
-        "email": "auditor_qa@ccgp.gov.in",
+        "email": "auditor_qa@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Auditor QA",
         "role": "security_auditor"
     })
     login_resp = client.post("/api/v1/auth/login", json={
-        "email": "auditor_qa@ccgp.gov.in",
+        "email": "auditor_qa@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     token = login_resp.json()["data"]["access_token"]
@@ -123,13 +123,13 @@ def test_blockchain_audit_verification(client: TestClient):
 def test_prometheus_metrics(client: TestClient):
     # Verify prometheus metrics endpoint
     client.post("/api/v1/users/register", json={
-        "email": "admin_qa_metrics@ccgp.gov.in",
+        "email": "admin_qa_metrics@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Admin QA Metrics",
         "role": "system_administrator"
     })
     login_resp = client.post("/api/v1/auth/login", json={
-        "email": "admin_qa_metrics@ccgp.gov.in",
+        "email": "admin_qa_metrics@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     token = login_resp.json()["data"]["access_token"]
@@ -137,20 +137,20 @@ def test_prometheus_metrics(client: TestClient):
 
     metrics_resp = client.get("/api/v1/metrics", headers=headers)
     assert metrics_resp.status_code == 200
-    assert "ccgp_uptime_seconds" in metrics_resp.text
-    assert "ccgp_python_version" in metrics_resp.text
+    assert "sentradesk_uptime_seconds" in metrics_resp.text
+    assert "sentradesk_python_version" in metrics_resp.text
 
 
 def test_bi_exports_auth_and_format(client: TestClient):
     # 1. Register and login as security auditor
     client.post("/api/v1/users/register", json={
-        "email": "auditor_qa_2@ccgp.gov.in",
+        "email": "auditor_qa_2@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Auditor QA 2",
         "role": "security_auditor"
     })
     login_resp = client.post("/api/v1/auth/login", json={
-        "email": "auditor_qa_2@ccgp.gov.in",
+        "email": "auditor_qa_2@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     token = login_resp.json()["data"]["access_token"]
@@ -170,13 +170,13 @@ def test_bi_exports_auth_and_format(client: TestClient):
 def test_admin_direct_user_creation_and_session_invalidation(client: TestClient, db: Session):
     # 1. Register/login as system administrator
     client.post("/api/v1/users/register", json={
-        "email": "admin_user_mgr@ccgp.gov.in",
+        "email": "admin_user_mgr@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Admin Mgr",
         "role": "system_administrator"
     })
     login_resp = client.post("/api/v1/auth/login", json={
-        "email": "admin_user_mgr@ccgp.gov.in",
+        "email": "admin_user_mgr@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     admin_token = login_resp.json()["data"]["access_token"]
@@ -186,7 +186,7 @@ def test_admin_direct_user_creation_and_session_invalidation(client: TestClient,
     prov_resp = client.post(
         "/api/v1/admin/users",
         json={
-            "email": "provisioned_officer@ccgp.gov.in",
+            "email": "provisioned_officer@sentradesk.gov.in",
             "password": "TemporarySecurePassword123!",
             "name": "Provisioned Officer",
             "role": "cyber_cell_officer",
@@ -197,13 +197,13 @@ def test_admin_direct_user_creation_and_session_invalidation(client: TestClient,
     )
     assert prov_resp.status_code == 200
     prov_data = prov_resp.json()["data"]
-    assert prov_data["email"] == "provisioned_officer@ccgp.gov.in"
+    assert prov_data["email"] == "provisioned_officer@sentradesk.gov.in"
     assert prov_data["role"] == "cyber_cell_officer"
     officer_id = prov_data["id"]
 
     # 3. Log in as the new provisioned officer
     off_login = client.post("/api/v1/auth/login", json={
-        "email": "provisioned_officer@ccgp.gov.in",
+        "email": "provisioned_officer@sentradesk.gov.in",
         "password": "TemporarySecurePassword123!"
     })
     assert off_login.status_code == 200
@@ -229,13 +229,13 @@ def test_admin_direct_user_creation_and_session_invalidation(client: TestClient,
 def test_evidence_integrity_scan_on_demand(client: TestClient, db: Session):
     # 1. Register/login as officer
     client.post("/api/v1/users/register", json={
-        "email": "officer_integrity@ccgp.gov.in",
+        "email": "officer_integrity@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Officer Integrity",
         "role": "cyber_cell_officer"
     })
     login_resp = client.post("/api/v1/auth/login", json={
-        "email": "officer_integrity@ccgp.gov.in",
+        "email": "officer_integrity@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     token = login_resp.json()["data"]["access_token"]
@@ -253,7 +253,7 @@ def test_evidence_integrity_scan_on_demand(client: TestClient, db: Session):
     db.commit()
 
     ticket = Ticket(
-        ticket_number="CCGP-2026-9911",
+        ticket_number="SentraDesk-2026-9911",
         complaint_id=comp.id,
         category="Ransomware",
         severity="High"
@@ -288,13 +288,13 @@ def test_evidence_integrity_scan_on_demand(client: TestClient, db: Session):
 def test_approval_record_persistent_audit(client: TestClient, db: Session):
     # 1. Register/login as supervisor
     client.post("/api/v1/users/register", json={
-        "email": "supervisor_audit@ccgp.gov.in",
+        "email": "supervisor_audit@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Supervisor Audit",
         "role": "supervisor"
     })
     login_resp = client.post("/api/v1/auth/login", json={
-        "email": "supervisor_audit@ccgp.gov.in",
+        "email": "supervisor_audit@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     token = login_resp.json()["data"]["access_token"]
@@ -302,13 +302,13 @@ def test_approval_record_persistent_audit(client: TestClient, db: Session):
 
     # 2. Register/login as investigator
     client.post("/api/v1/users/register", json={
-        "email": "investigator_audit@ccgp.gov.in",
+        "email": "investigator_audit@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Investigator Audit",
         "role": "investigator"
     })
     inv_login = client.post("/api/v1/auth/login", json={
-        "email": "investigator_audit@ccgp.gov.in",
+        "email": "investigator_audit@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     inv_token = inv_login.json()["data"]["access_token"]
@@ -326,7 +326,7 @@ def test_approval_record_persistent_audit(client: TestClient, db: Session):
     db.commit()
 
     ticket = Ticket(
-        ticket_number="CCGP-2026-9922",
+        ticket_number="SentraDesk-2026-9922",
         complaint_id=comp.id,
         category="Hacking",
         severity="High"

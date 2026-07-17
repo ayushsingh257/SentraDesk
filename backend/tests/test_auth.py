@@ -1,7 +1,7 @@
 def test_register_and_login(client):
     # 1. Register a user
     register_payload = {
-        "email": "test_officer@ccgp.gov.in",
+        "email": "test_officer@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Test Officer",
         "role": "cyber_cell_officer"
@@ -10,12 +10,12 @@ def test_register_and_login(client):
     assert response.status_code == 200
     data = response.json()
     assert data["success"] is True
-    assert data["data"]["email"] == "test_officer@ccgp.gov.in"
+    assert data["data"]["email"] == "test_officer@sentradesk.gov.in"
     assert data["data"]["role"] == "cyber_cell_officer"
 
     # 2. Login with credentials
     login_payload = {
-        "email": "test_officer@ccgp.gov.in",
+        "email": "test_officer@sentradesk.gov.in",
         "password": "SecurePassword123!"
     }
     response = client.post("/api/v1/auth/login", json=login_payload)
@@ -28,7 +28,7 @@ def test_register_and_login(client):
 
 def test_login_invalid_credentials(client):
     login_payload = {
-        "email": "unknown@ccgp.gov.in",
+        "email": "unknown@sentradesk.gov.in",
         "password": "wrongpassword"
     }
     response = client.post("/api/v1/auth/login", json=login_payload)
@@ -40,7 +40,7 @@ def test_login_invalid_credentials(client):
 def test_password_policy_strength_validations(client):
     # Test short password
     payload_short = {
-        "email": "short@ccgp.gov.in",
+        "email": "short@sentradesk.gov.in",
         "password": "Short1!",
         "name": "Short Pass User"
     }
@@ -50,7 +50,7 @@ def test_password_policy_strength_validations(client):
 
     # Test missing uppercase
     payload_no_upper = {
-        "email": "noupper@ccgp.gov.in",
+        "email": "noupper@sentradesk.gov.in",
         "password": "lowercase123!",
         "name": "No Upper User"
     }
@@ -60,14 +60,14 @@ def test_password_policy_strength_validations(client):
 
     # Test common password blocklist
     payload_common = {
-        "email": "common@ccgp.gov.in",
+        "email": "common@sentradesk.gov.in",
         "password": "password12345!", # contains common word
         "name": "Common User"
     }
     # Wait, the blacklist checks if the password is EXACTLY in COMMON_PASSWORDS in lowercase
     # Let's test a blacklisted password exactly
     payload_blacklisted = {
-        "email": "blacklisted@ccgp.gov.in",
+        "email": "blacklisted@sentradesk.gov.in",
         "password": "password123",
         "name": "Blacklisted User"
     }
@@ -83,7 +83,7 @@ def test_email_verification_flow(client, db):
     
     try:
         register_payload = {
-            "email": "unverified@ccgp.gov.in",
+            "email": "unverified@sentradesk.gov.in",
             "password": "SecurePassword123!",
             "name": "Unverified User",
             "role": "citizen"
@@ -114,7 +114,7 @@ def test_email_verification_flow(client, db):
 def test_password_forgot_and_reset_flow(client, db):
     # Register verified user
     register_payload = {
-        "email": "recovery_user@ccgp.gov.in",
+        "email": "recovery_user@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Recovery User"
     }
@@ -122,7 +122,7 @@ def test_password_forgot_and_reset_flow(client, db):
     assert resp.status_code == 200
     
     # 1. Trigger forgot password
-    forgot_resp = client.post("/api/v1/auth/forgot-password", json={"email": "recovery_user@ccgp.gov.in"})
+    forgot_resp = client.post("/api/v1/auth/forgot-password", json={"email": "recovery_user@sentradesk.gov.in"})
     assert forgot_resp.status_code == 200
     assert "instructions dispatched" in forgot_resp.json()["data"]
     
@@ -146,7 +146,7 @@ def test_password_forgot_and_reset_flow(client, db):
     
     # Verify login works with new password
     login_payload = {
-        "email": "recovery_user@ccgp.gov.in",
+        "email": "recovery_user@sentradesk.gov.in",
         "password": "NewSecurePassword123!"
     }
     login_resp = client.post("/api/v1/auth/login", json=login_payload)

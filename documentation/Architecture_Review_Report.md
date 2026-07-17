@@ -1,16 +1,16 @@
-# CCGP — Architecture Review Report
+# SentraDesk — Architecture Review Report
 
 **Document Classification:** CONFIDENTIAL — For Management Review  
 **Report Version:** 1.1 (Post-Hardening Verification)  
 **Assessment Date:** July 16, 2026  
 **Prepared By:** Enterprise Architecture Review Team  
-**Prepared For:** Cyber Complaint Governance Platform (CCGP)
+**Prepared For:** SentraDesk (SentraDesk)
 
 ---
 
 ## Executive Summary
 
-This report provides a comprehensive architecture review of the Cyber Complaint Governance Platform (CCGP). The platform is a microservices-influenced, Docker-orchestrated application comprising 11 containerized services that deliver a complete cyber crime complaint management system.
+This report provides a comprehensive architecture review of the SentraDesk (SentraDesk). The platform is a microservices-influenced, Docker-orchestrated application comprising 11 containerized services that deliver a complete cyber crime complaint management system.
 
 Following the completion of the Security Hardening Phase, several architectural improvements were implemented, including the migration of token storage to `httpOnly` secure cookies, configuring Nginx TLS termination on port 443 with HSTS and CSP, closing exposed service ports, and setting up automated dependency and vulnerability scans in the CI/CD pipeline.
 
@@ -20,7 +20,7 @@ Following the completion of the Security Hardening Phase, several architectural 
 
 ## 1. High-Level Architecture
 
-The CCGP platform consists of:
+The SentraDesk platform consists of:
 - **Frontend:** Next.js 15 (React) standalone web application
 - **Backend:** FastAPI (Python 3.13) REST API
 - **Workers:** Celery distributed task queue (worker + beat scheduler)
@@ -134,7 +134,7 @@ All critical architectural debt has been resolved:
 
 ## 7. Final Verdict
 
-The CCGP platform architecture has been successfully hardened. The architectural enhancements made during the security phase resolve all previously identified security gaps.
+The SentraDesk platform architecture has been successfully hardened. The architectural enhancements made during the security phase resolve all previously identified security gaps.
 
 **The architecture is highly secure, robust, and recommended for production deployment.**
 

@@ -17,9 +17,9 @@ export default function OperationsCenter() {
   const [refreshLoading, setRefreshLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sysLogs, setSysLogs] = useState<string[]>([
-    "[SYSTEM] CCGP Operations Center initializing connection...",
+    "[SYSTEM] SentraDesk Operations Center initializing connection...",
     "[SERVICE] Nginx reverse proxy rate limits loaded.",
-    "[Celery] Worker node ccgp_celery listening on queue: default.",
+    "[Celery] Worker node sentradesk_celery listening on queue: default.",
     "[Qdrant] Loaded collection 'complaints_semantic_index' size: 128 vectors."
   ])
 

@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'CCGP — Cyber Complaint Governance Platform',
+  title: 'SentraDesk — SentraDesk',
   description: 'File cyber complaints online. Track your case in real-time. AI-powered investigation. Enterprise-grade security.',
 }
 
@@ -29,14 +29,14 @@ function HeroSection() {
         <div className="py-20 sm:py-28 lg:py-32 max-w-4xl">
           {/* Brand & Version */}
           <div className="flex items-center gap-3 mb-6">
-            <span className="text-4xl sm:text-5xl font-black tracking-wider text-primary-700 dark:text-primary-400">CCGP</span>
+            <span className="text-4xl sm:text-5xl font-black tracking-wider text-primary-700 dark:text-primary-400">SentraDesk</span>
             <span className="px-2.5 py-0.5 rounded-full bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 text-xs font-semibold">
               Version 1.0
             </span>
           </div>
 
           <h1 className="text-5xl sm:text-6xl font-extrabold text-neutral-900 dark:text-white tracking-tight leading-none mb-4">
-            Cyber Complaint Governance Platform
+            SentraDesk
           </h1>
 
           <p className="text-xl sm:text-2xl text-neutral-600 dark:text-neutral-300 font-semibold leading-relaxed mb-6">
@@ -86,9 +86,9 @@ function HeroSection() {
 }
 
 // ============================================================
-// Section 2 — What is CCGP
+// Section 2 — What is SentraDesk
 // ============================================================
-function WhatIsCCGP() {
+function WhatIsSentraDesk() {
   const pillars = [
     {
       icon: ClipboardList,
@@ -116,10 +116,10 @@ function WhatIsCCGP() {
     <section className="page-section bg-neutral-50 dark:bg-neutral-950">
       <div className="page-container">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <p className="section-label">What is CCGP</p>
+          <p className="section-label">What is SentraDesk</p>
           <h2 className="section-title">Enterprise Cyber Complaint Management</h2>
           <p className="section-subtitle mx-auto">
-            CCGP is an AI-powered platform purpose-built for cyber crime departments.
+            SentraDesk is an AI-powered platform purpose-built for cyber crime departments.
             It transforms how complaints are filed, investigated, and resolved.
           </p>
         </div>
@@ -144,7 +144,7 @@ function WhatIsCCGP() {
 }
 
 // ============================================================
-// Section 3 — How CCGP Works (lifecycle)
+// Section 3 — How SentraDesk Works (lifecycle)
 // ============================================================
 function HowItWorksSection() {
   const steps = [
@@ -210,7 +210,7 @@ function HowItWorksSection() {
     <section className="page-section bg-white dark:bg-neutral-900">
       <div className="page-container">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <p className="section-label">How CCGP Works</p>
+          <p className="section-label">How SentraDesk Works</p>
           <h2 className="section-title">The Complete Complaint Lifecycle</h2>
           <p className="section-subtitle mx-auto">
             Every complaint follows a structured, auditable journey from the moment it is filed to final resolution.
@@ -345,7 +345,7 @@ function FeaturesSection() {
   )
 }
 
-function WhyCCGP() {
+function WhySentraDesk() {
   const points = [
     'Faster Cyber Complaint Resolution: Automated triage routes cases to specialized units, reducing response and investigation times.',
     'Secure Handling of Complaints: Comprehensive data access controls and encryption protect sensitive personal and financial details.',
@@ -362,7 +362,7 @@ function WhyCCGP() {
             <p className="section-label">Trust & Value</p>
             <h2 className="section-title">A Secure Ecosystem for Cyber Governance</h2>
             <p className="section-subtitle">
-              CCGP provides a secure, structured, and auditable platform that ensures cyber complaints are resolved rapidly and tracked transparently, giving both citizens and authorities peace of mind.
+              SentraDesk provides a secure, structured, and auditable platform that ensures cyber complaints are resolved rapidly and tracked transparently, giving both citizens and authorities peace of mind.
             </p>
 
             <ul className="mt-8 space-y-4">
@@ -444,10 +444,10 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
-      <WhatIsCCGP />
+      <WhatIsSentraDesk />
       <HowItWorksSection />
       <FeaturesSection />
-      <WhyCCGP />
+      <WhySentraDesk />
       <CTASection />
     </>
   )

@@ -3,7 +3,7 @@ from app.core.config import settings
 
 # Initialize Celery app
 celery_app = Celery(
-    "ccgp_tasks",
+    "sentradesk_tasks",
     broker=settings.REDIS_URL,
     backend=settings.REDIS_URL
 )
@@ -37,7 +37,7 @@ celery_app.conf.beat_schedule = {
     "monthly-governance-reports": {
         "task": "app.tasks.governance.send_governance_report_task",
         "schedule": 2592000.0,
-        "args": ("supervisor@ccgp.gov.in",)
+        "args": ("supervisor@sentradesk.gov.in",)
     },
     "daily-postgresql-backup": {
         "task": "app.tasks.devops.backup_postgresql_task",

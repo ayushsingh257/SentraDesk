@@ -1,12 +1,12 @@
-# CCGP — Cyber Complaint Governance Platform
+# SentraDesk — SentraDesk
 
 <div align="center">
 
-**An Enterprise AI-Powered Cyber Complaint Management System**
+**AI Complaint Management & Intelligent Case Assignment Platform**
 
 Version 1.0 | Production-Oriented | Government-Grade Security
 
-[![CI](https://github.com/ayushsingh257/Cyber-Complaint-Governance-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/ayushsingh257/Cyber-Complaint-Governance-Platform/actions)
+[![CI](https://github.com/ayushsingh257/SentraDesk/actions/workflows/ci.yml/badge.svg)](https://github.com/ayushsingh257/SentraDesk/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.13+](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://python.org)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15-black.svg)](https://nextjs.org)
@@ -18,11 +18,11 @@ Version 1.0 | Production-Oriented | Government-Grade Security
 
 ## Overview
 
-CCGP is a production-oriented, AI-assisted cyber complaint governance platform designed for cyber crime departments and government organizations. It provides a complete complaint management lifecycle — from citizen submission through AI classification, officer investigation, evidence management, multi-tier approval, and final resolution.
+SentraDesk is a production-oriented, AI-assisted complaint governance platform designed for cyber crime departments and government organizations. It provides a complete complaint management lifecycle — from citizen submission through AI classification, officer investigation, evidence management, multi-tier approval, and final resolution.
 
-> **Core Philosophy:** The engine is more important than the car's exterior. CCGP prioritizes backend correctness, data integrity, security, and auditability over visual effects.
+> **Core Philosophy:** The engine is more important than the car's exterior. SentraDesk prioritizes backend correctness, data integrity, security, and auditability over visual effects.
 
-### What CCGP Provides
+### What SentraDesk Provides
 
 | Role | Capability |
 |---|---|
@@ -161,7 +161,7 @@ CCGP is a production-oriented, AI-assisted cyber complaint governance platform d
 ## Folder Structure
 
 ```
-CCGP/
+SentraDesk/
   brain.md              ← Permanent project memory
   roadmap.md            ← Era/Phase/Task roadmap
   README.md             ← This file
@@ -241,8 +241,8 @@ CCGP/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/ayushsingh257/Cyber-Complaint-Governance-Platform.git
-cd Cyber-Complaint-Governance-Platform
+git clone https://github.com/ayushsingh257/SentraDesk.git
+cd SentraDesk
 ```
 
 ### 2. Backend Setup
@@ -296,12 +296,12 @@ npm run dev
 ### Default Seeded Accounts
 | Role | Email | Password |
 |---|---|---|
-| System Administrator | admin@ccgp.gov.in | (set at seed) |
-| Supervisor | supervisor@ccgp.gov.in | (set at seed) |
-| Cyber Officer | officer@ccgp.gov.in | (set at seed) |
-| Investigator | investigator@ccgp.gov.in | (set at seed) |
-| Security Auditor | auditor@ccgp.gov.in | (set at seed) |
-| Citizen | citizen@ccgp.gov.in | (set at seed) |
+| System Administrator | admin@sentradesk.gov.in | (set at seed) |
+| Supervisor | supervisor@sentradesk.gov.in | (set at seed) |
+| Cyber Officer | officer@sentradesk.gov.in | (set at seed) |
+| Investigator | investigator@sentradesk.gov.in | (set at seed) |
+| Security Auditor | auditor@sentradesk.gov.in | (set at seed) |
+| Citizen | citizen@sentradesk.gov.in | (set at seed) |
 
 ---
 

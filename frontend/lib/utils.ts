@@ -111,7 +111,7 @@ export function formatNumber(n: number): string {
 // --- Ticket number formatting ---
 
 export function formatTicketNumber(num: string): string {
-  return num // Already formatted: CCGP-YYYY-NNNNNN
+  return num // Already formatted: SentraDesk-YYYY-NNNNNN
 }
 
 // --- Status / Severity helpers ---

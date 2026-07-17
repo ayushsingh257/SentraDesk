@@ -7,13 +7,13 @@ from app.models.user import User
 def test_admin_rbac_and_boundaries(client: TestClient, db: Session):
     # 1. Register a system administrator and login
     client.post("/api/v1/users/register", json={
-        "email": "admin_suite@ccgp.gov.in",
+        "email": "admin_suite@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Admin Suite User",
         "role": "system_administrator"
     })
     admin_login = client.post("/api/v1/auth/login", json={
-        "email": "admin_suite@ccgp.gov.in",
+        "email": "admin_suite@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     admin_token = admin_login.json()["data"]["access_token"]
@@ -21,13 +21,13 @@ def test_admin_rbac_and_boundaries(client: TestClient, db: Session):
 
     # 2. Register a plain investigator and login
     client.post("/api/v1/users/register", json={
-        "email": "investigator_suite@ccgp.gov.in",
+        "email": "investigator_suite@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Investigator Suite User",
         "role": "investigator"
     })
     inv_login = client.post("/api/v1/auth/login", json={
-        "email": "investigator_suite@ccgp.gov.in",
+        "email": "investigator_suite@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     inv_token = inv_login.json()["data"]["access_token"]
@@ -63,13 +63,13 @@ def test_admin_rbac_and_boundaries(client: TestClient, db: Session):
 def test_admin_user_lifecycle_crud(client: TestClient, db: Session):
     # Login admin
     client.post("/api/v1/users/register", json={
-        "email": "admin_lifecycle@ccgp.gov.in",
+        "email": "admin_lifecycle@sentradesk.gov.in",
         "password": "SecurePassword123!",
         "name": "Lifecycle Admin",
         "role": "system_administrator"
     })
     admin_login = client.post("/api/v1/auth/login", json={
-        "email": "admin_lifecycle@ccgp.gov.in",
+        "email": "admin_lifecycle@sentradesk.gov.in",
         "password": "SecurePassword123!"
     })
     admin_token = admin_login.json()["data"]["access_token"]
@@ -79,7 +79,7 @@ def test_admin_user_lifecycle_crud(client: TestClient, db: Session):
     prov_resp = client.post(
         "/api/v1/admin/users",
         json={
-            "email": "provisioned_user@ccgp.gov.in",
+            "email": "provisioned_user@sentradesk.gov.in",
             "password": "SecurePassword123!",
             "name": "Provisioned User",
             "role": "investigator",

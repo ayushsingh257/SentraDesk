@@ -4,13 +4,13 @@ import sys
 BASE_URL = "http://localhost:8001/api/v1"
 
 SEEDED_ACCOUNTS = [
-    {"email": "admin@ccgp.gov.in", "password": "password123", "role": "system_administrator"},
-    {"email": "operator@ccgp.gov.in", "password": "password123", "role": "complaint_operator"},
-    {"email": "officer@ccgp.gov.in", "password": "password123", "role": "cyber_cell_officer"},
-    {"email": "investigator@ccgp.gov.in", "password": "password123", "role": "investigator"},
-    {"email": "supervisor@ccgp.gov.in", "password": "password123", "role": "supervisor"},
-    {"email": "auditor@ccgp.gov.in", "password": "password123", "role": "security_auditor"},
-    {"email": "citizen@ccgp.gov.in", "password": "password123", "role": "citizen"}
+    {"email": "admin@sentradesk.gov.in", "password": "password123", "role": "system_administrator"},
+    {"email": "operator@sentradesk.gov.in", "password": "password123", "role": "complaint_operator"},
+    {"email": "officer@sentradesk.gov.in", "password": "password123", "role": "cyber_cell_officer"},
+    {"email": "investigator@sentradesk.gov.in", "password": "password123", "role": "investigator"},
+    {"email": "supervisor@sentradesk.gov.in", "password": "password123", "role": "supervisor"},
+    {"email": "auditor@sentradesk.gov.in", "password": "password123", "role": "security_auditor"},
+    {"email": "citizen@sentradesk.gov.in", "password": "password123", "role": "citizen"}
 ]
 
 def print_section(title):
@@ -51,7 +51,7 @@ def test_auth_login_all_seeded():
         print(f"[OK] Successfully authenticated {email} as {expected_role}.")
 
     # Test invalid login handling
-    resp = requests.post(f"{BASE_URL}/auth/login", json={"email": "wrong@ccgp.gov.in", "password": "wrongpassword"})
+    resp = requests.post(f"{BASE_URL}/auth/login", json={"email": "wrong@sentradesk.gov.in", "password": "wrongpassword"})
     assert resp.status_code == 401
     assert resp.json()["success"] is False
     assert resp.json()["error"]["code"] == "AUTHENTICATION_FAILED"
@@ -138,7 +138,7 @@ def test_complaint_and_ticket_lifecycle(tokens):
     ticket_id = ticket["id"]
     
     # Verify sequence-based ticket number prefix
-    assert ticket["ticket_number"].startswith("CCGP-2026-")
+    assert ticket["ticket_number"].startswith("SentraDesk-2026-")
     # Verify auto-calculated severity (rule: financial >= 500k = Critical)
     assert ticket["severity"] == "Critical"
     # Verify automated unit routing

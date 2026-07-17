@@ -176,7 +176,7 @@ class AuthService:
                 db,
                 recipient=user.email,
                 template_name="reset_password",
-                subject="Reset your CCGP Account Password",
+                subject="Reset your SentraDesk Account Password",
                 variables={
                     "name": user.name,
                     "reset_link": reset_link

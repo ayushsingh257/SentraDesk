@@ -87,5 +87,5 @@ def export_audit_logs_report_pdf(
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
-        headers={"Content-Disposition": "attachment; filename=ccgp_audit_report.pdf"}
+        headers={"Content-Disposition": "attachment; filename=sentradesk_audit_report.pdf"}
     )

@@ -44,7 +44,7 @@ class SLAService:
             
             # 3. Notify Supervisor
             # Let's find a supervisor email or default system admin email to alert
-            supervisor_email = "supervisor.ccgp@example.com"
+            supervisor_email = "supervisor.sentradesk@example.com"
             try:
                 notification_service.send_email(
                     db,

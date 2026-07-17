@@ -3,20 +3,20 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: {
-    default: 'CCGP — Cyber Complaint Governance Platform',
-    template: '%s | CCGP',
+    default: 'SentraDesk — SentraDesk',
+    template: '%s | SentraDesk',
   },
   description:
-    'Enterprise AI-powered cyber complaint management system. File complaints, track investigations, and get justice.',
-  keywords: ['cyber complaint', 'cybercrime', 'complaint portal', 'CCGP', 'cyber cell'],
-  authors: [{ name: 'CCGP Team' }],
+    'Enterprise AI Complaint Management & Intelligent Case Assignment Platform system. File complaints, track investigations, and get justice.',
+  keywords: ['cyber complaint', 'cybercrime', 'complaint portal', 'SentraDesk', 'cyber cell'],
+  authors: [{ name: 'SentraDesk Team' }],
   robots: 'index, follow',
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    siteName: 'CCGP',
-    title: 'CCGP — Cyber Complaint Governance Platform',
-    description: 'Enterprise AI-powered cyber complaint management system.',
+    siteName: 'SentraDesk',
+    title: 'SentraDesk — SentraDesk',
+    description: 'Enterprise AI Complaint Management & Intelligent Case Assignment Platform system.',
   },
 }
 
@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('ccgp-theme') || 'light';
+                  var theme = localStorage.getItem('sentradesk-theme') || 'light';
                   document.documentElement.classList.toggle('dark', theme === 'dark');
                 } catch(e) {}
               })();

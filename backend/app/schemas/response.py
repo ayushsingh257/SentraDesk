@@ -9,7 +9,7 @@ class ErrorDetail(BaseModel):
     details: Optional[Any] = None
 
 class StandardResponse(BaseModel, Generic[T]):
-    """Standard unified response wrapper for all CCGP API schemas."""
+    """Standard unified response wrapper for all SentraDesk API schemas."""
     success: bool
     data: Optional[T] = None
     error: Optional[ErrorDetail] = None

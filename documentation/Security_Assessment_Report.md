@@ -1,17 +1,17 @@
-# CCGP — Security Assessment Report
+# SentraDesk — Security Assessment Report
 
 **Document Classification:** CONFIDENTIAL — For Management Review  
 **Report Version:** 1.1 (Post-Hardening Verification)  
 **Assessment Date:** July 16, 2026  
 **Prepared By:** Enterprise Cybersecurity Assessment Team  
-**Prepared For:** Cyber Complaint Governance Platform (CCGP)  
+**Prepared For:** SentraDesk (SentraDesk)  
 **Assessment Type:** Application Security Review (White-Box Verification)
 
 ---
 
 ## Executive Summary
 
-The Cyber Complaint Governance Platform (CCGP) is a full-stack web application designed to digitize the lifecycle of cyber crime complaint processing for Indian law enforcement. This updated security assessment was conducted as a white-box code review and architecture analysis following the completion of the Security Hardening Phase.
+The SentraDesk (SentraDesk) is a full-stack web application designed to digitize the lifecycle of cyber crime complaint processing for Indian law enforcement. This updated security assessment was conducted as a white-box code review and architecture analysis following the completion of the Security Hardening Phase.
 
 The platform demonstrates an **excellent security posture** (Score: `9.6 / 10`, Risk: `Low`, Production Readiness: `Fully Ready`). All 10 security findings (including HTTP-only secure cookie migration, TLS termination configuration, exposed database port bindings, rate-limiting local fallbacks, password complexity validators, and supervisor self-approval block rules) have been **fully resolved and verified**.
 
@@ -170,7 +170,7 @@ All assessment criteria are **Fully Ready** for production deployment. There are
 
 ## 11. Final Verdict
 
-The CCGP platform has successfully completed the security hardening phase. All 10 security findings identified during the initial assessment have been fully resolved. 
+The SentraDesk platform has successfully completed the security hardening phase. All 10 security findings identified during the initial assessment have been fully resolved. 
 
 **The platform demonstrates an excellent security posture and is fully recommended for production deployment.**
 

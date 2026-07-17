@@ -27,7 +27,7 @@ export function PublicNavbar() {
               <Shield className="w-4.5 h-4.5 text-white" size={18} />
             </div>
             <div>
-              <span className="font-bold text-neutral-900 dark:text-white text-sm tracking-tight">CCGP</span>
+              <span className="font-bold text-neutral-900 dark:text-white text-sm tracking-tight">SentraDesk</span>
               <span className="hidden sm:inline text-neutral-400 dark:text-neutral-500 text-xs ml-1 font-normal">
                 Cyber Complaint Governance
               </span>

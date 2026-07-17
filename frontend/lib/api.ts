@@ -16,7 +16,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('ccgp_access_token')
+      const token = localStorage.getItem('sentradesk_access_token')
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
       }
@@ -76,7 +76,7 @@ api.interceptors.response.use(
 
       try {
         const refreshToken = typeof window !== 'undefined'
-          ? localStorage.getItem('ccgp_refresh_token')
+          ? localStorage.getItem('sentradesk_refresh_token')
           : null
 
         const res = await axios.post(
@@ -88,8 +88,8 @@ api.interceptors.response.use(
         const { access_token, refresh_token: newRefreshToken } = res.data.data
 
         if (typeof window !== 'undefined') {
-          if (access_token) localStorage.setItem('ccgp_access_token', access_token)
-          if (newRefreshToken) localStorage.setItem('ccgp_refresh_token', newRefreshToken)
+          if (access_token) localStorage.setItem('sentradesk_access_token', access_token)
+          if (newRefreshToken) localStorage.setItem('sentradesk_refresh_token', newRefreshToken)
         }
 
         processQueue(null, access_token)
@@ -104,9 +104,9 @@ api.interceptors.response.use(
 
         // Clear tokens and redirect to login
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('ccgp_access_token')
-          localStorage.removeItem('ccgp_refresh_token')
-          localStorage.removeItem('ccgp_user')
+          localStorage.removeItem('sentradesk_access_token')
+          localStorage.removeItem('sentradesk_refresh_token')
+          localStorage.removeItem('sentradesk_user')
           window.location.href = '/auth/login?session=expired'
         }
 

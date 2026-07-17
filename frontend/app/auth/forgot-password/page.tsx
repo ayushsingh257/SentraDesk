@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
           <div className="w-10 h-10 bg-primary-700 rounded-xl flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
           </div>
-          <span className="font-extrabold text-neutral-900 dark:text-white text-xl tracking-tight">CCGP</span>
+          <span className="font-extrabold text-neutral-900 dark:text-white text-xl tracking-tight">SentraDesk</span>
         </Link>
         <h2 className="text-center text-3xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
           Recover Password

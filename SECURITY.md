@@ -1,8 +1,8 @@
-# CCGP — Enterprise Security Policy
+# SentraDesk — Enterprise Security Policy
 
-**Cyber Complaint Governance Platform | Version 1**
+**SentraDesk | Version 1**
 
-> This document defines the security architecture, policies, and standards for the CCGP platform. It must be reviewed and updated whenever security-relevant changes are made to the system.
+> This document defines the security architecture, policies, and standards for the SentraDesk platform. It must be reviewed and updated whenever security-relevant changes are made to the system.
 
 ---
 
@@ -17,7 +17,7 @@
 
 ## 1. Security Architecture Overview
 
-CCGP implements a layered security model:
+SentraDesk implements a layered security model:
 
 ```
 Internet
@@ -80,7 +80,7 @@ All passwords must meet the following requirements:
 | On change | All existing sessions invalidated |
 
 ### Common Password Blacklist (Examples)
-`password`, `password123`, `12345678`, `123456789`, `qwerty`, `qwerty123`, `admin`, `admin123`, `welcome`, `letmein`, `abc123`, `test123`, `changeme`, `iloveyou`, `sunshine`, `master`, `pass1234`, `ccgp123`, `cyber123`
+`password`, `password123`, `12345678`, `123456789`, `qwerty`, `qwerty123`, `admin`, `admin123`, `welcome`, `letmein`, `abc123`, `test123`, `changeme`, `iloveyou`, `sunshine`, `master`, `pass1234`, `sentradesk123`, `cyber123`
 
 Frontend displays a real-time password strength meter during registration and password change.
 
@@ -260,10 +260,10 @@ Referrer-Policy: strict-origin-when-cross-origin
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in CCGP:
+If you discover a security vulnerability in SentraDesk:
 
 1. **Do NOT** open a public GitHub issue
-2. Email: `security@ccgp.gov.in`
+2. Email: `security@sentradesk.gov.in`
 3. Include: description, reproduction steps, impact assessment, suggested fix
 4. Response within **24 hours**
 5. Patch target: **5 business days** for critical/high, **30 days** for medium/low
@@ -273,4 +273,4 @@ We follow responsible disclosure and will acknowledge your contribution.
 ---
 
 *Last updated: Era 7 — Final Testing, CI/CD & Production Readiness*  
-*Maintainer: CCGP Security Team*
+*Maintainer: SentraDesk Security Team*

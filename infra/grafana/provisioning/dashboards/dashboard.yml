@@ -1,9 +1,9 @@
 apiVersion: 1
 
 providers:
-  - name: 'CCGP Dashboards'
+  - name: 'SentraDesk Dashboards'
     orgId: 1
-    folder: 'CCGP SOC'
+    folder: 'SentraDesk SOC'
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30

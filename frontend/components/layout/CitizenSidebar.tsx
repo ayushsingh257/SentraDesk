@@ -77,7 +77,7 @@ export function CitizenSidebar() {
           <Shield className="w-5 h-5 text-white" />
         </div>
         <div className="flex flex-col">
-          <span className="font-bold text-neutral-900 dark:text-white leading-none">CCGP</span>
+          <span className="font-bold text-neutral-900 dark:text-white leading-none">SentraDesk</span>
           <span className="text-[10px] text-neutral-400 font-semibold mt-0.5 tracking-wider uppercase">Citizen Portal</span>
         </div>
       </div>
@@ -157,7 +157,7 @@ export function CitizenSidebar() {
           <div className="w-8 h-8 bg-primary-700 rounded-lg flex items-center justify-center">
             <Shield className="w-4 h-4 text-white" />
           </div>
-          <span className="font-bold text-neutral-900 dark:text-white text-base">CCGP</span>
+          <span className="font-bold text-neutral-900 dark:text-white text-base">SentraDesk</span>
         </Link>
         <div className="flex items-center gap-4">
           <ThemeToggle />

@@ -1,10 +1,10 @@
-# CCGP — Threat Model Report
+# SentraDesk — Threat Model Report
 
 **Document Classification:** CONFIDENTIAL — For Management Review  
 **Report Version:** 1.1 (Post-Hardening Verification)  
 **Assessment Date:** July 16, 2026  
 **Prepared By:** Enterprise Threat Modeling and Red Team Analysis Division  
-**Prepared For:** Cyber Complaint Governance Platform (CCGP)  
+**Prepared For:** SentraDesk (SentraDesk)  
 **Methodology:** STRIDE Threat Modeling Framework  
 **Reference Standards:** MITRE ATT&CK v14, OWASP Threat Modeling, NIST SP 800-154
 
@@ -12,7 +12,7 @@
 
 ## Executive Summary
 
-This threat model report applies the STRIDE methodology to the Cyber Complaint Governance Platform (CCGP). Following the completion of the Security Hardening Phase, all threat vectors and residual risk items have been re-evaluated.
+This threat model report applies the STRIDE methodology to the SentraDesk (SentraDesk). Following the completion of the Security Hardening Phase, all threat vectors and residual risk items have been re-evaluated.
 
 **Key Verification Outcomes:**
 - **60 out of 60 threats** are now fully mitigated by code-level and network-level security controls.
@@ -98,7 +98,7 @@ All critical and medium priority risks have been closed:
 
 ## 5. Final Conclusion
 
-Following the implementation of the Security Hardening Phase, the Cyber Complaint Governance Platform (CCGP) demonstrates a **strong, fully-defended threat posture**. The STRIDE analysis identifies zero remaining high, medium, or low priority unmitigated threats.
+Following the implementation of the Security Hardening Phase, the SentraDesk (SentraDesk) demonstrates a **strong, fully-defended threat posture**. The STRIDE analysis identifies zero remaining high, medium, or low priority unmitigated threats.
 
 The integration of secure `httpOnly` cookies, TLS termination, loopback port bindings, and automated security scans in the pipeline ensures that the platform is fully secure.
 

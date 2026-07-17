@@ -3,7 +3,7 @@ import { Shield } from 'lucide-react'
 
 const footerLinks = {
   Platform: [
-    { href: '/about', label: 'About CCGP' },
+    { href: '/about', label: 'About SentraDesk' },
     { href: '/contact', label: 'Contact Us' },
     { href: '/auth/login', label: 'Sign In' },
     { href: '/auth/register', label: 'Create Account' },
@@ -35,10 +35,10 @@ export function PublicFooter() {
               <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
                 <Shield className="w-4.5 h-4.5 text-white" size={18} />
               </div>
-              <span className="font-bold text-white text-sm">CCGP</span>
+              <span className="font-bold text-white text-sm">SentraDesk</span>
             </Link>
             <p className="text-sm leading-relaxed max-w-xs text-neutral-500">
-              An enterprise AI-powered cyber complaint governance platform for government cyber crime departments.
+              AI Complaint Management & Intelligent Case Assignment Platform for government cyber crime departments.
             </p>
           </div>
 
@@ -78,7 +78,7 @@ export function PublicFooter() {
         {/* Divider */}
         <div className="border-t border-neutral-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-neutral-600">
-            © {year} Cyber Complaint Governance Platform. Built for enterprise use.
+            © {year} SentraDesk. Built for enterprise use.
           </p>
           <div className="flex items-center gap-4 text-xs text-neutral-600">
             <span>🔒 Secured with JWT + bcrypt</span>

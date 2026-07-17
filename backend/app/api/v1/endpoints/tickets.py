@@ -1048,7 +1048,7 @@ def scan_all_indicators(
             "indicator_type": ind_type,
             "status": scan_res.get("status", "Clean"),
             "threat_score": scan_res.get("threat_score", 15.0),
-            "source": scan_res.get("source", "CCGP Threat Intelligence Hub"),
+            "source": scan_res.get("source", "SentraDesk Threat Intelligence Hub"),
             "description": scan_res.get("details", {}).get("reasons", ["No threat feeds matched."])[0] if (isinstance(scan_res.get("details", {}).get("reasons"), list) and scan_res.get("details", {}).get("reasons")) else scan_res.get("description", "Checked against threat registries.")
         })
 

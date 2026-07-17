@@ -24,7 +24,7 @@ try:
             pass
 except Exception as db_err:
     print(f"PostgreSQL connection failed ({db_err}). Falling back to local SQLite database.")
-    sqlite_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "ccgp_local.db"))
+    sqlite_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "sentradesk_local.db"))
     engine = create_engine(
         f"sqlite:///{sqlite_path}",
         connect_args={"check_same_thread": False}

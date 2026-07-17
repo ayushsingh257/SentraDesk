@@ -79,7 +79,7 @@ export function SupervisorSidebar() {
           <Shield className="w-5 h-5 text-white" />
         </div>
         <div>
-          <span className="font-extrabold text-neutral-900 dark:text-white tracking-tight">CCGP Workspace</span>
+          <span className="font-extrabold text-neutral-900 dark:text-white tracking-tight">SentraDesk Workspace</span>
           <span className="block text-[10px] text-neutral-450 uppercase font-black tracking-widest mt-0.5">Supervisor portal</span>
         </div>
       </div>
@@ -159,7 +159,7 @@ export function SupervisorSidebar() {
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between px-4 z-40">
         <div className="flex items-center gap-2">
           <Shield className="w-6 h-6 text-amber-700" />
-          <span className="font-extrabold text-neutral-900 dark:text-white text-sm">CCGP Supervisor</span>
+          <span className="font-extrabold text-neutral-900 dark:text-white text-sm">SentraDesk Supervisor</span>
         </div>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}

@@ -1,6 +1,6 @@
-# brain.md — CCGP Project Memory
+# brain.md — SentraDesk Project Memory
 
-> **This is the permanent memory of the Cyber Complaint Governance Platform.**
+> **This is the permanent memory of the SentraDesk.**
 > Before implementing any feature, read this document first.
 > After completing any feature that changes architecture, workflows, APIs, database design, security, or user journeys — update this document before committing.
 
@@ -31,16 +31,16 @@
 
 ## 1. Project Vision
 
-**CCGP — Cyber Complaint Governance Platform** is an enterprise-grade, AI-powered cyber complaint management system built for use by cyber crime departments and government organizations.
+**SentraDesk — SentraDesk** is an enterprise-grade, AI Complaint Management & Intelligent Case Assignment Platform system built for use by cyber crime departments and government organizations.
 
-### What CCGP Is
+### What SentraDesk Is
 
 - A production-oriented ticket management platform for cyber complaints
 - An AI-assisted investigation tool for cyber crime officers
 - A secure, auditable, role-based governance system
 - A multi-channel complaint intake platform (web portal, email, API)
 
-### What CCGP Is Not
+### What SentraDesk Is Not
 
 - A college project or UI showcase
 - An animation portfolio
@@ -183,7 +183,7 @@ The backend is the engine. The frontend is the interface. Every engineering deci
 | Column | Type | Notes |
 |---|---|---|
 | id | UUID PK | |
-| ticket_number | String(100) UNIQUE | Format: CCGP-YYYY-NNNNNN |
+| ticket_number | String(100) UNIQUE | Format: SentraDesk-YYYY-NNNNNN |
 | complaint_id | UUID FK → complaints | |
 | category | String(100) | AI-classified |
 | severity | String(50) | Critical, High, Medium, Low |
@@ -398,7 +398,7 @@ AI is organized into 7 independent modules, all called during `ticket_service.cr
 ```
 ENTRY POINT: Citizen visits http://localhost:3000
 ↓
-Homepage explains CCGP. Citizen clicks "Sign In" or "Track Ticket"
+Homepage explains SentraDesk. Citizen clicks "Sign In" or "Track Ticket"
 ↓
 REGISTRATION:
   - Enter: name, email, password (with strength meter)
@@ -422,7 +422,7 @@ RAISE COMPLAINT (Primary Purpose):
     UPI ID, bank account, wallet, URL, social media, suspect name/phone,
     additional info, file attachments
   - Submit → AI pipeline runs (classification, entity extraction, severity, duplicate detection)
-  - Ticket created: CCGP-YYYY-NNNNNN
+  - Ticket created: SentraDesk-YYYY-NNNNNN
   - Acknowledgement email sent
   - In-app notification created
   - Success screen shows ticket number
@@ -611,7 +611,7 @@ Reopened → Under Investigation
 | Reopened | Under Investigation | cyber_cell_officer+ |
 
 ### Ticket Number Format
-`CCGP-{YEAR}-{6-digit-sequence}` — e.g. `CCGP-2026-000001`
+`SentraDesk-{YEAR}-{6-digit-sequence}` — e.g. `SentraDesk-2026-000001`
 Never reused. Always searchable. Globally unique.
 
 ---
@@ -716,7 +716,7 @@ SLA deadline computed at ticket creation. Celery task monitors deadlines. On bre
 ## 14. Folder Structure
 
 ```
-CCGP/
+SentraDesk/
   brain.md                          ← This document
   roadmap.md                        ← Era/Phase/Task roadmap
   README.md                         ← Enterprise README
